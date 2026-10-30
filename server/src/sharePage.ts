@@ -1,6 +1,6 @@
 import { OFF_ATTRIBUTION } from './off';
 import { GOAL_LABELS, LIBRARY_GOALS, type LibraryGoal } from './library';
-import { scoreTone } from './og';
+import { ogImageVersion, publishedResult, resultWindow, scoreTone, storyImageVersion } from './og';
 import type { ShareView } from './sharing';
 
 export type PageContext = {
@@ -16,8 +16,12 @@ export function renderSharePage(view: ShareView | null, context: PageContext): s
   const who = view.displayName ?? 'A Stack user';
   const count = view.products.length;
   const title = `${view.stackName}, shared on Stack`;
-  const description = `${count} ${count === 1 ? 'supplement' : 'supplements'} from ${who}, with daily doses checked against upper limits. Audit score ${view.auditScore} out of 100.`;
-  const image = `${context.origin}/s/${view.slug}/og.png?v=${view.version}`;
+  const headline = view.result ? ` ${view.result.line}. ${view.result.disclaimer}.` : '';
+  const description = `${count} ${count === 1 ? 'supplement' : 'supplements'} from ${who}, with daily doses checked against upper limits. Audit score ${view.auditScore} out of 100.${headline}`;
+  const image = `${context.origin}/s/${view.slug}/og.png?v=${ogImageVersion(view.version)}`;
+  const imageAlt = view.result
+    ? `${view.stackName}. Audit score ${view.auditScore} out of 100. ${view.result.line}. ${view.result.disclaimer}.`
+    : `${view.stackName}. Audit score ${view.auditScore} out of 100.`;
   const head = [
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(description)}">`,
@@ -31,7 +35,7 @@ export function renderSharePage(view: ShareView | null, context: PageContext): s
     `<meta property="og:image" content="${escapeHtml(image)}">`,
     `<meta property="og:image:width" content="1200">`,
     `<meta property="og:image:height" content="630">`,
-    `<meta property="og:image:alt" content="${escapeHtml(`${view.stackName}. Audit score ${view.auditScore} out of 100.`)}">`,
+    `<meta property="og:image:alt" content="${escapeHtml(imageAlt)}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<meta name="twitter:title" content="${escapeHtml(title)}">`,
     `<meta name="twitter:description" content="${escapeHtml(description)}">`,
@@ -118,8 +122,9 @@ function pageBody(view: ShareView, context: PageContext): string {
       return `<li class="product"><div><p class="product-name">${escapeHtml(product.name)}</p>${brand}</div><p class="muted small">${escapeHtml(formatServings(perDay))}${lines ? `. ${lines} a day` : ''}</p></li>`;
     })
     .join('');
-  const result = view.result
-    ? `<section class="card teaser rise d3"><p class="teaser-title">${who} tracked a personal result</p><p class="muted">A before and after reading from Apple Health, for 1 person. It is shown in the Stack app.</p></section>`
+  const published = publishedResult(view.result, view.displayName);
+  const result = published
+    ? `<section class="card result rise d2"><p class="result-kicker">${escapeHtml(published.kicker)}</p><p class="result-value">${escapeHtml(published.value)}</p><p class="result-word">${escapeHtml(published.label)} ${escapeHtml(published.word)}</p><p class="muted small">${escapeHtml(resultWindow(published))}</p></section>`
     : '';
   const kept = view.copyCount != null ? `<p class="kept">Kept by ${view.copyCount} people who copied it</p>` : '';
   const changes =
@@ -146,18 +151,20 @@ ${brandBar(openHref)}
     <span class="of">out of 100</span>
   </div>
   <div class="score-text">
+    <p class="score-label">Dose audit</p>
     <p class="score-title">${escapeHtml(view.score.summary)}</p>
-    <p class="muted small">Dose audit from daily totals and overlaps. Price is not part of it.</p>
+    <p class="muted small">From daily totals and overlaps. Price is not part of it.</p>
   </div>
   ${reasons ? `<ul class="reasons">${reasons}</ul>` : ''}
 </section>
+${result}
 <a class="cta rise d2" href="${escapeHtml(getHref)}">Check your stack against this one</a>
 <p class="cta-note muted small rise d2">${escapeHtml(store)}. Copying shows what overlaps with what you already take.</p>
+<p class="story-row muted small rise d2"><a class="story-link" href="${escapeHtml(`/s/${view.slug}/story.png?v=${storyImageVersion(view.version)}`)}">Story image</a></p>
 <section class="card rise d2">
   <h2>Daily doses</h2>
   <ul class="doses">${doses}</ul>
 </section>
-${result}
 <section class="card rise d3">
   <h2>Products</h2>
   <ul class="products">${products}</ul>
@@ -211,8 +218,12 @@ p { margin: 0; line-height: 1.45; }
 .chip { font-size: 13px; font-weight: 600; color: var(--teal-deep); background: var(--teal-soft); border-radius: 999px; padding: 6px 12px; }
 .kept { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--teal); }
 .card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 18px; margin: 16px 0; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
-.score-card { display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; color: #fff; border: 0; background: linear-gradient(135deg, var(--teal), var(--teal-deep)); }
+.score-card { position: relative; display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; color: #fff; border: 0; overflow: hidden; background: linear-gradient(135deg, var(--teal), var(--teal-deep)); }
 .score-card.neutral { background: linear-gradient(135deg, var(--slate), #1D2939); }
+.score-card::after { content: ""; position: absolute; width: 280px; height: 280px; border-radius: 50%; right: -120px; bottom: -150px; background: var(--teal-deep); opacity: .55; }
+.score-card.neutral::after { background: #1D2939; }
+.score-card > * { position: relative; z-index: 1; }
+.score-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.78); margin-bottom: 4px; }
 .ring { position: relative; width: 120px; height: 120px; display: grid; place-items: center; }
 .ring svg { position: absolute; inset: 0; }
 .track { fill: none; stroke: rgba(255,255,255,.18); stroke-width: 12; }
@@ -241,8 +252,12 @@ p { margin: 0; line-height: 1.45; }
 .product { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
 .product:first-child { border-top: 0; padding-top: 0; }
 .product-name { font-weight: 600; }
-.teaser { background: var(--teal-soft); border-color: transparent; }
-.teaser-title { font-weight: 700; margin-bottom: 4px; color: var(--teal-deep); }
+.result { background: var(--teal-soft); border-color: transparent; display: grid; gap: 2px; }
+.result-kicker { font-size: 13px; font-weight: 700; color: var(--teal-deep); }
+.result-value { font-size: 52px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; margin: 4px 0; }
+.result-word { font-size: 18px; font-weight: 700; }
+.story-row { text-align: center; margin-top: 10px; }
+.story-link { color: var(--teal); font-weight: 600; text-decoration: none; }
 .changes { margin-top: 16px; font-size: 14px; color: var(--muted); }
 .changes summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 .changes ul { padding-left: 18px; margin: 8px 0 0; }

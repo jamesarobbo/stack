@@ -216,7 +216,7 @@ export function OutcomeHero({
           <Ionicons name={icon} size={22} color={theme.teal} />
         </View>
         <View style={{ flex: 1 }}>
-          <T weight="bold" size={parts.value.length > 5 ? 30 : 40} color={theme.text} style={{ letterSpacing: -1, lineHeight: 46 }}>
+          <T weight="bold" size={parts.value.length > 5 ? 36 : 52} color={theme.text} style={{ letterSpacing: -1.5, lineHeight: 58 }}>
             {parts.value}
           </T>
           <T size={15} weight="semibold" color={theme.text}>
@@ -304,19 +304,26 @@ export function DoseMeters({ totals, limit = 10 }: { totals: DailyTotal[]; limit
 }
 
 /** Compact ingredient strip for Discover cards: up to 4 ingredients with their share of the upper limit. */
-export function CompositionStrip({ items }: { items: { name: string; ofLimit: number | null }[] }) {
+export function CompositionStrip({ items, height = 8 }: { items: { name: string; ofLimit: number | null }[]; height?: number }) {
   const rows = items.slice(0, 4);
   if (rows.length === 0) return null;
   return (
-    <View style={{ gap: 6 }}>
-      {rows.map((row) => (
-        <View key={row.name} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <T size={13} color={theme.text} style={{ width: 110 }}>
-            {row.name}
-          </T>
-          <View style={{ flex: 1 }}>{row.ofLimit == null ? <View style={styles.noLimit} /> : <Meter ofLimit={row.ofLimit} height={6} />}</View>
-        </View>
-      ))}
+    <View style={{ gap: 8 }}>
+      {rows.map((row) => {
+        const state = doseState(row.ofLimit);
+        const pct = row.ofLimit == null ? null : Math.round(row.ofLimit * 100);
+        return (
+          <View key={row.name} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <T size={13} color={theme.text} style={{ width: 108 }}>
+              {row.name}
+            </T>
+            <View style={{ flex: 1 }}>{row.ofLimit == null ? <View style={styles.noLimit} /> : <Meter ofLimit={row.ofLimit} height={height} />}</View>
+            <T size={12} weight={state === 'over' ? 'semibold' : 'regular'} color={state === 'over' ? theme.flagText : theme.muted} style={{ width: 44, textAlign: 'right' }}>
+              {pct == null ? ' ' : `${pct}%`}
+            </T>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -344,6 +351,12 @@ export function ScoreBadge({ score, size = 56 }: { score: number; size?: number 
   );
 }
 
+export type CardResult = { value: string; word: string; label: string; device: string; disclaimer: string; kicker: string };
+
+function resultWindow(result: CardResult): string {
+  return `12 weeks before against 12 weeks after, measured on ${result.device}. ${result.disclaimer}.`;
+}
+
 /** What the link preview image will look like, drawn with Views so it matches without rendering a PNG on the phone. */
 export function ShareCardPreview({
   stackName,
@@ -352,6 +365,7 @@ export function ShareCardPreview({
   score,
   summary,
   composition,
+  result,
 }: {
   stackName: string;
   creator: string;
@@ -359,47 +373,166 @@ export function ShareCardPreview({
   score: number;
   summary: string;
   composition: { name: string; ofLimit: number | null }[];
+  result?: CardResult | null;
 }) {
   const tone = scoreTone(score);
   return (
     <View style={styles.preview} accessibilityLabel="Link preview">
       <View style={styles.previewBar} />
-      <View style={{ flexDirection: 'row', gap: 12 }}>
-        <View style={{ flex: 1.25, gap: 6, paddingTop: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <View style={styles.mark}>
-              <View style={[styles.markLine, { opacity: 1 }]} />
-              <View style={[styles.markLine, { opacity: 0.8 }]} />
-              <View style={[styles.markLine, { opacity: 0.6 }]} />
+      <BrandMark />
+      <T weight="bold" size={22} style={{ letterSpacing: -0.5, lineHeight: 26 }}>
+        {stackName}
+      </T>
+      <T size={13} color={theme.muted}>
+        {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
+      </T>
+      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
+        <View style={{ flex: 1.15, gap: 8, justifyContent: 'center' }}>
+          {result ? (
+            <View style={styles.previewResult}>
+              <T weight="bold" size={28} style={{ letterSpacing: -1, lineHeight: 32 }}>
+                {result.value}
+              </T>
+              <T size={13} weight="semibold">
+                {`${result.label} ${result.word}`}
+              </T>
+              <T size={12} color={theme.muted}>
+                {resultWindow(result)}
+              </T>
             </View>
-            <T weight="bold" size={12}>
-              Stack
-            </T>
-          </View>
-          <T weight="bold" size={17} style={{ letterSpacing: -0.4, lineHeight: 21 }}>
-            {stackName}
-          </T>
-          <T size={11} color={theme.muted}>
-            {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
-          </T>
-          <View style={{ gap: 5, marginTop: 4 }}>
-            {composition.slice(0, 3).map((row) => (
-              <View key={row.name} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <T size={10} style={{ width: 62 }}>
-                  {row.name}
-                </T>
-                <View style={{ flex: 1 }}>{row.ofLimit == null ? <View style={styles.noLimit} /> : <Meter ofLimit={row.ofLimit} height={5} />}</View>
-              </View>
-            ))}
-          </View>
+          ) : null}
+          {composition.slice(0, result ? 3 : 4).map((row) => (
+            <View key={row.name} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <T size={12} style={{ width: 72 }}>
+                {row.name}
+              </T>
+              <View style={{ flex: 1 }}>{row.ofLimit == null ? <View style={styles.noLimit} /> : <Meter ofLimit={row.ofLimit} height={7} />}</View>
+            </View>
+          ))}
         </View>
         <View style={[styles.previewPanel, { backgroundColor: tone === 'good' ? theme.teal : tint.slate }]}>
-          <ScoreRing score={score} size={74} stroke={7} color="#FFFFFF" track="rgba(255,255,255,0.2)" textColor="#FFFFFF" subColor="rgba(255,255,255,0.78)" />
-          <T size={10} weight="semibold" color="rgba(255,255,255,0.85)" style={{ textAlign: 'center' }}>
+          <View style={[styles.previewGlow, { backgroundColor: tone === 'good' ? tint.tealDeep : tint.slateDeep }]} />
+          <ScoreRing score={score} size={86} stroke={8} color="#FFFFFF" track="rgba(255,255,255,0.2)" textColor="#FFFFFF" subColor="rgba(255,255,255,0.78)" />
+          <T size={11} weight="semibold" color="rgba(255,255,255,0.78)">
+            Dose audit
+          </T>
+          <T size={12} weight="semibold" color="#FFFFFF" style={{ textAlign: 'center' }}>
             {summary}
           </T>
         </View>
       </View>
+      <T weight="bold" size={14} color={theme.teal}>
+        Check your stack against this one
+      </T>
+    </View>
+  );
+}
+
+/** Story sized card, 9:16, for a post. Same facts as the link preview, with room for the headline. */
+export function StoryCardPreview({
+  stackName,
+  creator,
+  productCount,
+  score,
+  summary,
+  composition,
+  result,
+}: {
+  stackName: string;
+  creator: string;
+  productCount: number;
+  score: number;
+  summary: string;
+  composition: { name: string; ofLimit: number | null }[];
+  result?: CardResult | null;
+}) {
+  const tone = scoreTone(score);
+  return (
+    <View style={styles.story} accessibilityLabel="Story card">
+      <View style={styles.previewBar} />
+      <BrandMark size={22} />
+      <T weight="bold" size={28} style={{ letterSpacing: -0.8, lineHeight: 32 }}>
+        {stackName}
+      </T>
+      <T size={14} color={theme.muted}>
+        {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
+      </T>
+      <View style={[styles.storyPanel, { backgroundColor: tone === 'good' ? theme.teal : tint.slate }]}>
+        <View style={[styles.previewGlow, { backgroundColor: tone === 'good' ? tint.tealDeep : tint.slateDeep }]} />
+        <ScoreRing score={score} size={120} stroke={11} color="#FFFFFF" track="rgba(255,255,255,0.2)" textColor="#FFFFFF" subColor="rgba(255,255,255,0.78)" />
+        <T size={13} weight="semibold" color="rgba(255,255,255,0.78)">
+          Dose audit
+        </T>
+        <T size={16} weight="bold" color="#FFFFFF" style={{ textAlign: 'center' }}>
+          {summary}
+        </T>
+      </View>
+      {result ? (
+        <View style={styles.storyResult}>
+          <T size={13} weight="bold" color={tint.tealDeep}>
+            {result.kicker}
+          </T>
+          <T weight="bold" size={48} style={{ letterSpacing: -1.5, lineHeight: 52 }}>
+            {result.value}
+          </T>
+          <T size={16} weight="semibold">
+            {`${result.label} ${result.word}`}
+          </T>
+          <T size={13} color={theme.muted}>
+            {resultWindow(result)}
+          </T>
+        </View>
+      ) : null}
+      <View style={{ gap: 8 }}>
+        {composition.slice(0, 4).map((row) => {
+          const state = doseState(row.ofLimit);
+          const pct = row.ofLimit == null ? null : Math.round(row.ofLimit * 100);
+          return (
+            <View key={row.name} style={{ gap: 4 }}>
+              <View style={styles.rowBetween}>
+                <T size={13} weight="semibold" style={{ flex: 1 }}>
+                  {row.name}
+                </T>
+                <T size={12} weight={state === 'over' ? 'semibold' : 'regular'} color={state === 'over' ? theme.flagText : theme.muted}>
+                  {pct == null ? 'No upper limit' : `${pct}%`}
+                </T>
+              </View>
+              {row.ofLimit == null ? null : <Meter ofLimit={row.ofLimit} height={8} />}
+            </View>
+          );
+        })}
+      </View>
+      <View style={styles.storyCta}>
+        <T weight="bold" size={15} color="#FFFFFF" style={{ textAlign: 'center' }}>
+          Check your stack against this one
+        </T>
+      </View>
+    </View>
+  );
+}
+
+export function BrandMark({ size = 18 }: { size?: number }) {
+  const line = Math.max(2, Math.round(size * 0.14));
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }} accessibilityLabel="Stack">
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: Math.round(size * 0.28),
+          backgroundColor: theme.teal,
+          justifyContent: 'center',
+          paddingHorizontal: Math.round(size * 0.2),
+          gap: Math.max(1, Math.round(size * 0.08)),
+        }}
+      >
+        <View style={{ height: line, borderRadius: line / 2, backgroundColor: '#FFFFFF' }} />
+        <View style={{ height: line, borderRadius: line / 2, backgroundColor: '#FFFFFF', opacity: 0.8 }} />
+        <View style={{ height: line, borderRadius: line / 2, backgroundColor: '#FFFFFF', opacity: 0.6 }} />
+      </View>
+      <T weight="bold" size={Math.round(size * 0.85)}>
+        Stack
+      </T>
     </View>
   );
 }
@@ -493,11 +626,15 @@ const styles = StyleSheet.create({
   outcomeRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   outcomeIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   noLimit: { height: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#D0D5DD' },
-  preview: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#EEF0F3', padding: 12, paddingTop: 16, overflow: 'hidden' },
+  preview: { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#EEF0F3', padding: 16, paddingTop: 18, gap: 8, overflow: 'hidden' },
   previewBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: theme.teal },
-  previewPanel: { flex: 1, borderRadius: 14, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  mark: { width: 16, height: 16, borderRadius: 5, backgroundColor: theme.teal, justifyContent: 'center', paddingHorizontal: 3, gap: 1.5 },
-  markLine: { height: 2.5, borderRadius: 1.25, backgroundColor: '#FFFFFF' },
+  previewPanel: { width: 132, borderRadius: 18, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
+  previewGlow: { position: 'absolute', width: 160, height: 160, borderRadius: 80, right: -70, bottom: -80, opacity: 0.55 },
+  previewResult: { backgroundColor: theme.tealSoft, borderRadius: 14, padding: 10, gap: 2 },
+  story: { backgroundColor: '#FFFFFF', borderRadius: 22, borderWidth: 1, borderColor: '#EEF0F3', padding: 18, paddingTop: 22, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
+  storyPanel: { borderRadius: 20, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
+  storyResult: { backgroundColor: theme.tealSoft, borderRadius: 18, padding: 14, gap: 2 },
+  storyCta: { backgroundColor: theme.teal, borderRadius: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 12 },
   chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4E7EC' },
   chipOn: { backgroundColor: theme.teal, borderColor: theme.teal },
   segmented: { flexDirection: 'row', backgroundColor: '#E9ECF0', borderRadius: 12, padding: 3, gap: 2 },
@@ -511,7 +648,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    minHeight: 44,
+    paddingVertical: 10,
     borderRadius: 999,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,

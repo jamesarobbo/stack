@@ -172,15 +172,15 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
       style={({ pressed }) => [styles.card, pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : null]}
     >
       <View style={styles.cardTop}>
-        <ScoreBadge score={item.auditScore} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <T weight="semibold" size={17} style={{ letterSpacing: -0.2 }}>
+        <ScoreBadge score={item.auditScore} size={68} />
+        <View style={{ flex: 1, gap: 3 }}>
+          <T weight="bold" size={18} style={{ letterSpacing: -0.3 }}>
             {item.stackName}
           </T>
           <T size={13} color={theme.muted}>
             {`${item.creatorName || 'A Stack user'}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
           </T>
-          <T size={13} color={theme.text}>
+          <T size={14} weight="semibold">
             {item.summary}
           </T>
         </View>
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, paddingVertical: 12, fontFamily: font.regular, fontSize: 16, color: theme.text },
   chips: { gap: 8, paddingRight: 8 },
-  card: { backgroundColor: theme.card, borderRadius: theme.radius, padding: 16, borderWidth: 1, borderColor: '#EEF0F3', gap: 12 },
+  card: { backgroundColor: theme.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#EEF0F3', gap: 14 },
   cardTop: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   save: { padding: 4 },
   likeYou: { backgroundColor: theme.tealSoft, borderRadius: 12, padding: 10, gap: 2 },

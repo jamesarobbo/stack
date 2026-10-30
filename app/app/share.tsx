@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, Share, StyleSheet, TextInput, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
-import { Chip, FadeIn, OutcomeHero, ScoreHero, ShareCardPreview, Toggle } from '@/src/components/share';
+import { Chip, FadeIn, OutcomeHero, ScoreHero, ShareCardPreview, StoryCardPreview, Toggle, type CardResult } from '@/src/components/share';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { LIBRARY_GOALS, goalLabel, type LibraryGoalKey } from '@/src/copy/library';
@@ -15,7 +15,7 @@ import {
 } from '@/src/copy/sharing';
 import { creatorResults, sharePayloadProducts, type OwnShare, type ShareView } from '@/src/data/sharing';
 import { scoreStack } from '@/src/domain/auditScore';
-import { earliestReady, submittedFields, type OutcomeMetric, type OutcomeResult } from '@/src/domain/outcome';
+import { earliestReady, heroParts, submittedFields, type OutcomeMetric, type OutcomeResult } from '@/src/domain/outcome';
 import { formatUsDate } from '@/src/dates';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
@@ -66,6 +66,15 @@ export default function ShareScreen() {
   const previewName = stackName.trim() || (shownName ? `${shownName}'s stack` : (app.products[0]?.name ?? 'Shared stack'));
   const chosen: OutcomeResult | null = selected !== 'none' && selected !== 'keep' ? (eligible.find((item) => item.metric === selected) ?? null) : null;
   const resultToShow = selected === 'keep' ? current?.result : chosen;
+  const previewResult: CardResult | null = resultToShow
+    ? {
+        ...heroParts(resultToShow),
+        label: resultToShow.label,
+        device: resultToShow.device,
+        disclaimer: resultToShow.disclaimer ?? '1 person, not a trial',
+        kicker: shownName ? `What changed for ${shownName}` : (resultToShow.framing ?? 'What changed for me'),
+      }
+    : null;
   const blocked = app.usingSampleData;
   const loaded = !app.sessionToken || fetched;
 
@@ -183,7 +192,7 @@ export default function ShareScreen() {
         {SHARE_STACK_LABEL}
       </T>
       <T size={15} color={theme.muted}>
-        A page with your products, daily doses, and the audit score. Anyone can open it, and people with the app can copy it.
+        The tall card is for a story. The wide card is the link preview. Anyone with the link can open the page, and people with the app can copy it.
       </T>
 
       {app.products.length === 0 ? (
@@ -259,9 +268,17 @@ export default function ShareScreen() {
       {app.products.length > 0 && !blocked ? (
         <>
           <FadeIn delay={40}>
-            <T size={13} weight="semibold" color={theme.muted} style={{ marginBottom: 8 }}>
-              Link preview
-            </T>
+            <StoryCardPreview
+              stackName={previewName}
+              creator={shownName || 'A Stack user'}
+              productCount={app.products.length}
+              score={scored.score}
+              summary={scored.summary}
+              composition={scored.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit }))}
+              result={previewResult}
+            />
+          </FadeIn>
+          <FadeIn delay={60}>
             <ShareCardPreview
               stackName={previewName}
               creator={shownName || 'A Stack user'}
@@ -269,6 +286,7 @@ export default function ShareScreen() {
               score={scored.score}
               summary={scored.summary}
               composition={scored.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit }))}
+              result={previewResult}
             />
           </FadeIn>
           <FadeIn delay={80}>

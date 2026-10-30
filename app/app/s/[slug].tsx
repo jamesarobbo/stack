@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
-import { DoseMeters, FadeIn, IconAction, OutcomeHero, ScoreHero, Toggle } from '@/src/components/share';
+import { BrandMark, DoseMeters, FadeIn, IconAction, OutcomeHero, ScoreBadge, ScoreHero, Toggle } from '@/src/components/share';
 import { BackButton, Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { REPORT_REASONS, goalLabel, type ReportReasonKey } from '@/src/copy/library';
@@ -229,7 +229,8 @@ export default function SharedStackScreen() {
     <Screen footer={footer}>
       <BackButton />
       <FadeIn>
-        <View style={{ gap: 6 }}>
+        <View style={{ gap: 8 }}>
+          <BrandMark />
           <T weight="bold" size={32} style={styles.title}>
             {stack.stackName}
           </T>
@@ -253,6 +254,12 @@ export default function SharedStackScreen() {
         <ScoreHero score={stack.score.score} summary={stack.score.summary} reasons={stack.score.reasons} />
       </FadeIn>
 
+      {stack.result ? (
+        <FadeIn delay={100}>
+          <OutcomeHero result={stack.result} who={stack.displayName} />
+        </FadeIn>
+      ) : null}
+
       {rows && preview ? (
         <FadeIn>
           <Card style={styles.merge}>
@@ -260,23 +267,19 @@ export default function SharedStackScreen() {
               Before you copy
             </T>
             <View style={styles.scoreChange}>
-              <View style={{ alignItems: 'center' }}>
-                <T size={12} color={theme.muted}>
+              <View style={{ alignItems: 'center', gap: 8 }}>
+                <ScoreBadge score={preview.before} size={72} />
+                <T size={13} color={theme.muted}>
                   Your score now
                 </T>
-                <T weight="bold" size={28}>
-                  {String(preview.before)}
-                </T>
               </View>
-              <T size={20} color={theme.faint}>
+              <T size={16} weight="semibold" color={theme.muted}>
                 to
               </T>
-              <View style={{ alignItems: 'center' }}>
-                <T size={12} color={theme.muted}>
+              <View style={{ alignItems: 'center', gap: 8 }}>
+                <ScoreBadge score={preview.after} size={72} />
+                <T size={13} color={theme.muted}>
                   After copying
-                </T>
-                <T weight="bold" size={28} color={preview.after >= preview.before ? theme.teal : theme.flagText}>
-                  {String(preview.after)}
                 </T>
               </View>
             </View>
@@ -350,12 +353,6 @@ export default function SharedStackScreen() {
             onChange={(next) => void changeConsent(next)}
           />
         </Card>
-      ) : null}
-
-      {stack.result ? (
-        <FadeIn delay={120}>
-          <OutcomeHero result={stack.result} who={stack.displayName} />
-        </FadeIn>
       ) : null}
 
       <FadeIn delay={160}>
@@ -494,7 +491,7 @@ const styles = StyleSheet.create({
   scoreChange: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, paddingVertical: 4 },
   mergeRow: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 6 },
   choiceRow: { flexDirection: 'row', gap: 6 },
-  choice: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: theme.bg },
+  choice: { borderRadius: 999, paddingHorizontal: 14, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg },
   choiceOn: { backgroundColor: theme.teal },
   product: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 2 },
   changes: { backgroundColor: theme.bg, borderRadius: 12, padding: 12, gap: 4, marginTop: 4 },

@@ -16,7 +16,7 @@ import {
 import { OFF_ATTRIBUTION, loadOffUpc, offUserAgent } from './off';
 import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from './revenuecat';
 import { blockCreator, intParam, refreshDailyStats, reportShare, searchLibrary, setSaved, syncSearchRow, type LibrarySegment } from './library';
-import { ogSvg, renderOgPng, type OgAssets } from './og';
+import { ogImageVersion, ogSvg, publishedResult, renderOgPng, storyImageVersion, storySvg, type OgAssets } from './og';
 import { addressKey, allow, clientAddress } from './rateLimit';
 import { renderSharePage, type PageContext } from './sharePage';
 import {
@@ -603,36 +603,10 @@ app.post('/v1/links/claim', async (c) => {
 app.get('/.well-known/apple-app-site-association', (c) => appSiteAssociation(c));
 app.get('/apple-app-site-association', (c) => appSiteAssociation(c));
 
-app.get('/s/:slug/og.png', async (c) => {
-  const found = await publicShare(c.env.DB, c.req.param('slug'));
-  if (!found) return c.notFound();
-  const cached = await c.env.DB.prepare('SELECT png FROM share_images WHERE share_id = ? AND version = ?')
-    .bind(found.row.id, found.row.version)
-    .first<{ png: ArrayBuffer | Uint8Array }>();
-  let png = cached ? toBytes(cached.png) : null;
-  if (!png) {
-    const assets = c.env.OG_ASSETS ?? (await import('./ogAssets')).OG_ASSETS;
-    png = await renderOgPng(ogSvg(ogInput(c, found.view)), assets);
-    await c.env.DB.batch([
-      c.env.DB.prepare('DELETE FROM share_images WHERE share_id = ?').bind(found.row.id),
-      c.env.DB.prepare('INSERT INTO share_images (share_id, version, png, created_at) VALUES (?, ?, ?, ?)').bind(
-        found.row.id,
-        found.row.version,
-        png,
-        new Date().toISOString(),
-      ),
-    ]);
-  }
-  return new Response(png, {
-    headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' },
-  });
-});
-
-app.get('/s/:slug/og.svg', async (c) => {
-  const found = await publicShare(c.env.DB, c.req.param('slug'));
-  if (!found) return c.notFound();
-  return new Response(ogSvg(ogInput(c, found.view)), { headers: { 'content-type': 'image/svg+xml' } });
-});
+app.get('/s/:slug/og.png', (c) => sharePng(c, 'card'));
+app.get('/s/:slug/story.png', (c) => sharePng(c, 'story'));
+app.get('/s/:slug/og.svg', (c) => shareSvg(c, 'card'));
+app.get('/s/:slug/story.svg', (c) => shareSvg(c, 'story'));
 
 app.get('/s/:slug', async (c) => {
   const found = await publicShare(c.env.DB, c.req.param('slug'));
@@ -670,7 +644,48 @@ function ogInput(c: AppContext, view: Awaited<ReturnType<typeof publicShare>> ex
     summary: view.score.summary,
     composition: view.score.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit })),
     host: new URL(publicOrigin(c)).host,
+    result: publishedResult(view.result, view.displayName),
   };
+}
+
+async function shareSvg(c: AppContext, kind: 'card' | 'story') {
+  const slug = c.req.param('slug');
+  if (!slug) return c.notFound();
+  const found = await publicShare(c.env.DB, slug);
+  if (!found) return c.notFound();
+  const svg = kind === 'card' ? ogSvg(ogInput(c, found.view)) : storySvg(ogInput(c, found.view));
+  return new Response(svg, { headers: { 'content-type': 'image/svg+xml' } });
+}
+
+async function sharePng(c: AppContext, kind: 'card' | 'story') {
+  const slug = c.req.param('slug');
+  if (!slug) return c.notFound();
+  const found = await publicShare(c.env.DB, slug);
+  if (!found) return c.notFound();
+  const version = kind === 'card' ? ogImageVersion(found.row.version) : storyImageVersion(found.row.version);
+  const cached = await c.env.DB.prepare('SELECT png FROM share_images WHERE share_id = ? AND version = ?')
+    .bind(found.row.id, version)
+    .first<{ png: ArrayBuffer | Uint8Array }>();
+  let png = cached ? toBytes(cached.png) : null;
+  if (!png) {
+    const assets = c.env.OG_ASSETS ?? (await import('./ogAssets')).OG_ASSETS;
+    const input = ogInput(c, found.view);
+    const svg = kind === 'card' ? ogSvg(input) : storySvg(input);
+    png = await renderOgPng(svg, assets, kind === 'card' ? 1200 : 1080);
+    await c.env.DB.batch([
+      c.env.DB.prepare('DELETE FROM share_images WHERE share_id = ? AND version = ?').bind(found.row.id, found.row.version),
+      c.env.DB.prepare('DELETE FROM share_images WHERE share_id = ? AND version = ?').bind(found.row.id, version),
+      c.env.DB.prepare('INSERT INTO share_images (share_id, version, png, created_at) VALUES (?, ?, ?, ?)').bind(
+        found.row.id,
+        version,
+        png,
+        new Date().toISOString(),
+      ),
+    ]);
+  }
+  return new Response(png, {
+    headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' },
+  });
 }
 
 function toBytes(value: ArrayBuffer | Uint8Array | number[]): Uint8Array {

@@ -2,6 +2,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 import { ageAccount, createTestEnv, json, request, signIn, type TestEnv } from '../test/env';
 import { scheduled } from './app';
+import { ogImageVersion, storyImageVersion } from './og';
 
 const magnesium = {
   id: 'mag',
@@ -68,7 +69,8 @@ describe('publishing', () => {
     const html = await page.text();
     expect(page.status).toBe(200);
     expect(html).toContain('apple-itunes-app');
-    expect(html).toContain(`/s/${share.slug}/og.png?v=1`);
+    expect(html).toContain(`/s/${share.slug}/og.png?v=${ogImageVersion(share.version)}`);
+    expect(html).toContain(`/s/${share.slug}/story.png?v=${storyImageVersion(share.version)}`);
     expect(html).toContain('og:image');
     expect(html).not.toMatch(/proven|clinically|cures?\b/i);
     expect(html).not.toMatch(/[\u2013\u2014]/);
@@ -78,6 +80,10 @@ describe('publishing', () => {
     const text = await svg.text();
     expect(text).toContain("Sam's stack");
     expect(text).toContain('>100<');
+    expect(text).not.toContain('1 person');
+    const story = await (await request(env, `/s/${share.slug}/story.svg`)).text();
+    expect(story).toContain('width="1080"');
+    expect(story).toContain('>100<');
   });
 
   it('rejects names with links or health claims and keeps risky stacks out of Discover', async () => {
@@ -115,6 +121,15 @@ describe('publishing', () => {
     const shared = await json<View>(await publish(env, token, { products: [magnesium], result: restingResult }));
     expect(shared.result?.line).toBe('Resting heart rate down 6% over 12 weeks, measured on Apple Watch');
     expect(shared.result?.disclaimer).toBe('1 person, not a trial');
+    const page = await (await request(env, `/s/${shared.slug}`)).text();
+    expect(page).toContain('6%');
+    expect(page).toContain('12 weeks before against 12 weeks after');
+    expect(page).toContain('1 person, not a trial');
+    expect(page).toContain('Apple Watch');
+    expect(page).not.toContain('Typical change');
+    const image = await (await request(env, `/s/${shared.slug}/og.svg`)).text();
+    expect(image).toContain('6%');
+    expect(image).toContain('1 person, not a trial');
 
     const kept = await json<View>(await publish(env, token, { products: [magnesium, vitaminD], result: 'keep' }));
     expect(kept.slug).toBe(shared.slug);

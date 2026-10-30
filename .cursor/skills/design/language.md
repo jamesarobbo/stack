@@ -73,7 +73,8 @@ The sharing screens do it like this. Copy the pattern instead of decorating.
 - One hero, then quiet content. The score panel is the loudest thing on the page: a solid teal or slate field, the number, and the reasons with small dots (over, near, within the limit). A single darker disc sits behind it (`heroGlow`), same hue, clipped by the panel.
 - The result hero is the teal wash, not a second saturated panel. One big value, then the window and the device in muted text.
 - Daily doses are a meter or a composition strip, not a paragraph of numbers.
-- The share card preview mirrors the link image: white, a 4px teal line on the top edge, the name, and a small score panel. That top line belongs to this preview only. Do not put a coloured side stripe on ordinary cards.
+- The share cards mirror the images people post. Both are white, with a 4px teal line on the top edge, the mark, the name, the dose bars, and a score panel. The wide card is the link preview (1200 by 630). The tall card is the story (1080 by 1920, 9:16). That top line belongs to these cards only. Do not put a coloured side stripe on ordinary cards.
+- A personal result the owner published sits on the card and the public page as a big number, with the window, the device, and "1 person, not a trial". Cohort averages stay off the page and both images. The preview cache key includes a renderer version in `server/src/og.ts`, so a drawing change generates a new image.
 - The score panel may blend teal into `#0A5C50`, or slate into `#1D2939`. That is the only gradient. No gradient text, no rainbow, no background halo.
 
 ## Where the same pieces show up

@@ -27,7 +27,7 @@ The shape of the list follows Impeccable, the design vocabulary by Paul Bakaus (
 - A cream or beige restyle, a purple gradient, and a dark hero are out. They fight the pinned palette.
 - Numbers that animate count once, to the real value. Do not animate a number the person did not earn.
 - The layout still works when text is larger. Prefer min height to a fixed height on anything that contains a label. Check a long stack name and a long product name.
-- The public page has a real title and description, a readable preview image, and no result numbers.
+- The public page has a real title and description and a readable preview image. Cohort averages stay off the page and both preview images. A personal result the owner published may show, with the window, the device, and that it is one person.
 
 ## Leave alone
 
