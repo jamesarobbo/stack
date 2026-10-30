@@ -55,6 +55,13 @@ export default function SettingsScreen() {
         <T size={14} color={theme.muted}>
           {app.usingSampleData ? 'The stack and wearable days are the fictional example.' : 'You have changed the example data.'}
         </T>
+        {app.previewPro ? (
+          <Pressable accessibilityRole="button" onPress={() => void app.setPreviewPro(false)}>
+            <T weight="semibold" color={theme.teal}>
+              Turn off Pro preview
+            </T>
+          </Pressable>
+        ) : null}
         <Pressable accessibilityRole="button" onPress={() => void exportData()}>
           <T weight="semibold" color={theme.teal}>
             Export my data

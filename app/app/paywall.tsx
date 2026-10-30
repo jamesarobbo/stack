@@ -1,9 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import { BackButton, Button, Disclaimer, Screen, T } from '@/src/components/ui';
+import { OnboardingProgress } from '@/src/components/OnboardingProgress';
+import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { PRO_ANNUAL_CENTS, PRO_ANNUAL_SAVINGS_CENTS, PRO_MONTHLY_CENTS } from '@/src/config';
+import { auditStack } from '@/src/domain/audit';
 import { formatUsd } from '@/src/format';
+import { EXPECTATION, goalEcho, wearableLine } from '@/src/onboarding/answers';
+import { readGoals, readWearable } from '@/src/onboarding/storage';
 import { purchasesAvailable } from '@/src/purchases';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
@@ -18,8 +23,16 @@ const ROWS: { label: string; free: boolean; pro: boolean }[] = [
 
 export default function PaywallScreen() {
   const app = useApp();
+  const params = useLocalSearchParams<{ onboarding?: string }>();
+  const fromOnboarding = (Array.isArray(params.onboarding) ? params.onboarding[0] : params.onboarding) === '1';
+  const audit = useMemo(() => auditStack(app.products), [app.products]);
   const [plan, setPlan] = useState<'annual' | 'monthly'>('annual');
   const price = plan === 'annual' ? `${formatUsd(PRO_ANNUAL_CENTS)}/year` : `${formatUsd(PRO_MONTHLY_CENTS)}/month`;
+
+  async function finishFree() {
+    await app.completeOnboarding();
+    router.replace('/(tabs)/audit');
+  }
 
   async function start() {
     if (app.isPro && app.previewPro && !purchasesAvailable()) {
@@ -29,6 +42,11 @@ export default function PaywallScreen() {
     try {
       const result = await app.buy(plan);
       if (result === 'purchased') {
+        if (fromOnboarding) {
+          await app.completeOnboarding();
+          router.replace('/(tabs)/audit');
+          return;
+        }
         Alert.alert('Pro is on', 'Purchases are confirmed by RevenueCat on this Apple ID.');
         return;
       }
@@ -48,16 +66,29 @@ export default function PaywallScreen() {
 
   return (
     <Screen>
-      <BackButton />
+      {fromOnboarding ? <OnboardingProgress step="paywall" /> : null}
+      <BackButton fallback={fromOnboarding ? '/onboarding/save' : '/(tabs)/more'} />
       <T size={13} weight="semibold" color={theme.teal}>
-        Stack Pro
+        {fromOnboarding ? goalEcho(readGoals()) : 'Stack Pro'}
       </T>
       <T weight="bold" size={32} style={styles.title}>
-        See every dollar and every signal
+        {fromOnboarding ? 'Keep this audit, and the weeks after' : 'See every dollar and every signal'}
       </T>
       <T size={15} color={theme.muted}>
-        Free covers the basics. Pro adds multi-supplement impact, confounder notes, and a monthly report.
+        {fromOnboarding
+          ? `${wearableLine(readWearable())} ${EXPECTATION}`
+          : 'Free covers the basics. Pro adds multi-supplement impact, confounder notes, and a monthly report.'}
       </T>
+      {fromOnboarding && audit.wastedCents > 0 ? (
+        <Card style={{ backgroundColor: theme.amberBg, borderColor: theme.amberBorder }}>
+          <T size={13} color={theme.amber}>
+            Estimated overlap from your labels
+          </T>
+          <T weight="bold" size={28} color={theme.amber}>
+            {`${formatUsd(audit.wastedCents)} a month`}
+          </T>
+        </Card>
+      ) : null}
 
       <Pressable accessibilityRole="button" onPress={() => setPlan('annual')} style={[styles.plan, plan === 'annual' && styles.planOn]}>
         <View style={{ flex: 1 }}>
@@ -115,6 +146,7 @@ export default function PaywallScreen() {
       </View>
 
       <Button label={app.previewPro ? 'Turn off preview' : `Start Pro: ${price}`} onPress={() => void start()} />
+      {fromOnboarding ? <Button label="Continue with Free" tone="ghost" onPress={() => void finishFree()} /> : null}
       <Pressable
         accessibilityRole="button"
         onPress={async () => {

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Card, Eyebrow, Screen, T } from '@/src/components/ui';
 import { APP_NAME, APP_TAGLINE } from '@/src/config';
+import { devToolsInProfile, openDevTools } from '@/src/devMenu';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
 
@@ -18,11 +19,19 @@ export default function MoreScreen() {
       <T size={15} color={theme.muted} style={{ marginTop: -6 }}>
         {APP_TAGLINE}
       </T>
+      {app.previewPro ? (
+        <Row
+          title="Turn off Pro preview"
+          detail="Preview is on for this device. It is not a charge."
+          onPress={() => void app.setPreviewPro(false)}
+        />
+      ) : null}
       <Row title={app.isPro ? 'Pro is on' : 'Stack Pro'} detail={app.isPro ? 'Multi-compare, confounders, monthly report' : '$7.99/month or $59/year'} onPress={() => router.push('/paywall')} />
       <Row title="Monthly report" detail={app.isPro ? 'Keep, drop, or unclear' : 'Pro'} onPress={() => router.push('/report')} />
       <Row title={app.sessionToken ? 'Signed in' : 'Sign in'} detail={app.email || 'Syncs your supplement list only'} onPress={() => router.push('/sign-in')} />
       <Row title="Settings" detail="Export, delete, example data" onPress={() => router.push('/settings')} />
       <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} />
+      {devToolsInProfile() ? <Row title="Developer tools" detail="Expo tools, kept off the page" onPress={openDevTools} /> : null}
       <Card>
         <T weight="semibold">Wearable reads</T>
         <T size={13} color={theme.muted}>

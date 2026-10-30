@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { applyScreenExit } from '../navigation/exit';
 import { DISCLAIMER } from '../config';
 import { monthlyCostCents } from '../domain/audit';
 import type { ProductInput } from '../domain/types';
@@ -134,9 +135,14 @@ export function Disclaimer({ text = DISCLAIMER }: { text?: string }) {
   );
 }
 
-export function BackButton({ label = 'Back' }: { label?: string }) {
+export function BackButton({ label = 'Back', fallback = '/(tabs)/stack' }: { label?: string; fallback?: string }) {
   return (
-    <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.back} hitSlop={8}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => applyScreenExit(router.canGoBack(), () => router.back(), (href) => router.replace(href), fallback)}
+      style={styles.back}
+      hitSlop={8}
+    >
       <Ionicons name="chevron-back" size={18} color={theme.teal} />
       <T size={15} weight="medium" color={theme.teal}>
         {label}

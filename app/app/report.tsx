@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { BackButton, Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
 import { ASSOCIATION } from '@/src/config';
 import { localToday } from '@/src/dates';
 import { buildMonthlyReport, travelLabel } from '@/src/domain/report';
@@ -20,6 +20,7 @@ export default function ReportScreen() {
   if (!app.isPro) {
     return (
       <Screen>
+        <BackButton label="Close" />
         <Eyebrow left="Pro · monthly report" right="Pro only" />
         <T weight="bold" size={32} style={styles.title}>
           The monthly report is part of Pro
@@ -35,6 +36,7 @@ export default function ReportScreen() {
 
   return (
     <Screen>
+      <BackButton label="Close" />
       <Eyebrow left="Pro · monthly report" right="Pro" />
       <T weight="bold" size={32} style={styles.title}>
         {report.month}

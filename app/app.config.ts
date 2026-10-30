@@ -29,6 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSHealthShareUsageDescription: healthUsage,
       NSHealthUpdateUsageDescription: `${APP_NAME} does not write health data.`,
       NSCameraUsageDescription: `${APP_NAME} uses the camera to read a supplement barcode. It does not save photos.`,
+      EXDevMenuShowFloatingActionButton: false,
     },
   },
   android: {

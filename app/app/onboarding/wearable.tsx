@@ -1,0 +1,106 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { OnboardingFrame } from '@/src/components/OnboardingProgress';
+import { Button, T } from '@/src/components/ui';
+import { EXPECTATION, type WearableChoice } from '@/src/onboarding/answers';
+import { writeWearable } from '@/src/onboarding/storage';
+import { track } from '@/src/telemetry';
+import { useApp } from '@/src/state';
+import { theme } from '@/src/theme';
+
+const COMING = [
+  { name: 'Oura', icon: 'ellipse-outline' as const },
+  { name: 'WHOOP', icon: 'watch-outline' as const },
+  { name: 'Garmin', icon: 'navigate-outline' as const },
+];
+
+export default function WearableStep() {
+  const app = useApp();
+  const [message, setMessage] = useState<string | null>(null);
+  const [tried, setTried] = useState(false);
+  const linked = app.healthSource === 'healthkit';
+  const selected = linked || tried;
+
+  async function go(choice: WearableChoice) {
+    await writeWearable(choice);
+    track('onboarding_answer', { step: 'wearable', value: choice });
+    router.push('/onboarding/supplements');
+  }
+
+  return (
+    <OnboardingFrame
+      step="wearable"
+      footer={
+        <View style={{ gap: 8 }}>
+          <Button label="Continue" onPress={() => void go(linked ? 'healthkit' : tried ? 'sample' : 'skipped')} />
+          <Button label="Skip for now" tone="ghost" onPress={() => void go('skipped')} />
+        </View>
+      }
+    >
+      <T weight="bold" size={30} style={styles.title}>
+        Choose a wearable
+      </T>
+      <T size={15} color={theme.muted}>
+        This is how Stack shows whether each supplement is doing anything for you. You can skip this.
+      </T>
+      <T size={15} color={theme.muted}>
+        {EXPECTATION}
+      </T>
+      <View style={styles.grid}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={async () => {
+            setTried(true);
+            setMessage(await app.connectWearable());
+          }}
+          style={[styles.wearable, selected ? styles.wearableOn : null]}
+        >
+          <Ionicons name="phone-portrait-outline" size={18} color={theme.teal} />
+          <T weight="semibold">Apple Health</T>
+          <T size={12} color={selected ? theme.teal : theme.muted}>
+            {linked ? 'Connected' : tried ? 'Sample data on this device' : 'Tap to connect'}
+          </T>
+        </Pressable>
+        {COMING.map((item) => (
+          <Pressable
+            key={item.name}
+            accessibilityRole="button"
+            onPress={() => setMessage(`${item.name} is coming soon. Apple Health is available in this version.`)}
+            style={styles.wearable}
+          >
+            <Ionicons name={item.icon} size={18} color={theme.faint} />
+            <T weight="semibold" color={theme.muted}>
+              {item.name}
+            </T>
+            <T size={12} color={theme.faint}>
+              Coming soon
+            </T>
+          </Pressable>
+        ))}
+      </View>
+      {message ? (
+        <T size={13} color={theme.muted}>
+          {message}
+        </T>
+      ) : null}
+    </OnboardingFrame>
+  );
+}
+
+const styles = StyleSheet.create({
+  title: { letterSpacing: -0.6 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  wearable: {
+    width: '48%',
+    minHeight: 96,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EEF0F3',
+    padding: 14,
+    gap: 4,
+  },
+  wearableOn: { borderColor: theme.teal, backgroundColor: '#F3FBFA' },
+});

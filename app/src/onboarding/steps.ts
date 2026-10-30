@@ -1,6 +1,12 @@
 export const ONBOARDING_STEPS = [
-  { key: 'wearable', path: '/onboarding', title: 'Choose a wearable' },
+  { key: 'goal', path: '/onboarding', title: 'What do you want your stack to do?' },
+  { key: 'spend', path: '/onboarding/spend', title: 'Rough monthly supplement spend' },
+  { key: 'wearable', path: '/onboarding/wearable', title: 'Choose a wearable' },
   { key: 'supplements', path: '/onboarding/supplements', title: 'Add your supplements' },
+  { key: 'auditing', path: '/onboarding/auditing', title: 'Auditing your stack' },
+  { key: 'result', path: '/onboarding/result', title: 'Your audit' },
+  { key: 'save', path: '/onboarding/save', title: 'Save your stack and audit' },
+  { key: 'paywall', path: '/paywall', title: 'Stack Pro' },
 ] as const;
 
 export type OnboardingStepKey = (typeof ONBOARDING_STEPS)[number]['key'];
@@ -36,7 +42,13 @@ export function onboardingProgress(key: OnboardingStepKey) {
   return {
     current,
     total,
-    label: `Step ${current} of ${total}`,
+    label: `${current} of ${total}`,
     filled: current,
   };
+}
+
+export function previousOnboardingStep(key: OnboardingStepKey) {
+  const index = ONBOARDING_STEPS.findIndex((step) => step.key === key);
+  if (index <= 0) return null;
+  return ONBOARDING_STEPS[index - 1] ?? null;
 }

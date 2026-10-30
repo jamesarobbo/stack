@@ -5,14 +5,16 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { router, Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Boot } from '@/src/components/ui';
+import { hideFloatingDevTools } from '@/src/devMenu';
+import { redirectOnLaunch } from '@/src/navigation/exit';
 import { openStackDatabase, migrations, type AppDatabase } from '@/src/db/client';
 import { AppProvider, useApp } from '@/src/state';
 import { theme } from '@/src/theme';
@@ -81,10 +83,24 @@ function Migrations({ database }: { database: AppDatabase }) {
 
 function RootNav() {
   const app = useApp();
+  const pathname = usePathname();
+  const checkedLaunch = useRef(false);
+
+  useEffect(() => {
+    hideFloatingDevTools();
+  }, []);
+
+  useEffect(() => {
+    if (!app.ready || checkedLaunch.current) return;
+    checkedLaunch.current = true;
+    const next = redirectOnLaunch(pathname, app.onboardingComplete);
+    if (next) router.replace(next);
+  }, [app.onboardingComplete, app.ready, pathname]);
+
   if (app.bootError) return <Boot message={app.bootError} />;
   if (!app.ready) return <Boot message="Loading your stack…" />;
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }}>
+    <Stack screenOptions={{ headerShown: false, gestureEnabled: true, contentStyle: { backgroundColor: theme.bg } }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />

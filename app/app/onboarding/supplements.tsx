@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { OnboardingProgress } from '@/src/components/OnboardingProgress';
-import { Button, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { OnboardingFrame } from '@/src/components/OnboardingProgress';
+import { Button, Eyebrow, Pill, T } from '@/src/components/ui';
+import { goalEcho } from '@/src/onboarding/answers';
+import { readGoals } from '@/src/onboarding/storage';
 import { SUPPLEMENT_ENTRY } from '@/src/onboarding/steps';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
@@ -15,33 +17,23 @@ const ICONS = {
 
 export default function SupplementStep() {
   const app = useApp();
+  const echo = goalEcho(readGoals());
   const shown = app.products.slice(0, 6);
   const extra = Math.max(0, app.products.length - shown.length);
 
   return (
-    <Screen
+    <OnboardingFrame
+      step="supplements"
       footer={
-        <View style={{ gap: 8 }}>
-          <Button
-            label={app.products.length > 0 ? `Continue with ${app.products.length} products` : 'Continue'}
-            onPress={async () => {
-              await app.completeOnboarding();
-              router.replace('/(tabs)/stack');
-            }}
-          />
-          <T size={12} color={theme.muted} style={{ textAlign: 'center' }}>
-            You can change this any time.
-          </T>
-        </View>
+        <Button
+          label={app.products.length > 0 ? `Audit ${app.products.length} products` : 'Audit this stack'}
+          onPress={() => router.push('/onboarding/auditing')}
+        />
       }
     >
-      <OnboardingProgress step="supplements" />
-      <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.back} hitSlop={8}>
-        <Ionicons name="chevron-back" size={18} color={theme.teal} />
-        <T size={15} weight="medium" color={theme.teal}>
-          Wearable
-        </T>
-      </Pressable>
+      <T weight="semibold" size={15} color={theme.teal}>
+        {echo}
+      </T>
       <T weight="bold" size={30} style={styles.title}>
         Add your supplements
       </T>
@@ -91,15 +83,15 @@ export default function SupplementStep() {
           </T>
         </Pressable>
       )}
-    </Screen>
+    </OnboardingFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6, marginTop: 4 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
+  title: { letterSpacing: -0.6 },
   list: { gap: 10 },
   row: {
+    minHeight: 72,
     backgroundColor: '#fff',
     borderRadius: 16,
     borderWidth: 1,

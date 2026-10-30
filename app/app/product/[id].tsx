@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
 import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Disclaimer, ProductRow, Screen, T } from '@/src/components/ui';
+import { applyScreenExit } from '@/src/navigation/exit';
 import { monthlyCostCents } from '@/src/domain/audit';
 import { formatNumber, formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
@@ -16,7 +17,10 @@ export default function ProductScreen() {
     return (
       <Screen>
         <T weight="semibold">That product is gone.</T>
-        <Button label="Back to stack" onPress={() => router.back()} />
+        <Button
+          label="Back to stack"
+          onPress={() => applyScreenExit(router.canGoBack(), () => router.back(), (href) => router.replace(href))}
+        />
       </Screen>
     );
   }
