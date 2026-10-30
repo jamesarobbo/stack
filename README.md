@@ -127,7 +127,7 @@ Product search and barcode lookup call the Worker, which calls the NIH Dietary S
 
 ## What the screens do
 
-1. **Onboarding:** connect Apple Health (or sample data) and add products by NIH label search, barcode, or by typing the label.
+1. **Onboarding:** step 1 chooses a wearable (Apple Health, or skip). Step 2 adds products by NIH label search, barcode, or by typing the label.
 2. **My Stack:** each product's monthly cost and the total. Monthly cost is `(price / servings) × servings per day × 30`.
 3. **Audit:** rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
 4. **Impact:** 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
