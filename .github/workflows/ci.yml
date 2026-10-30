@@ -70,6 +70,9 @@ jobs:
       - name: No uppercase labels
         run: npm run check:case
 
+      - name: No emoji in app copy
+        run: npm run check:emoji
+
   deploy:
     name: Deploy Worker
     needs: check

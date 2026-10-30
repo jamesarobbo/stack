@@ -7,6 +7,7 @@
     "test": "npm test --prefix app && npm test --prefix server",
     "check:dashes": "node scripts/check-no-em-dash",
     "check:case": "node scripts/check-no-uppercase.js",
+    "check:emoji": "node scripts/check-no-emoji.js",
     "dev:app": "npm start --prefix app",
     "dev:server": "npm run dev --prefix server"
   }

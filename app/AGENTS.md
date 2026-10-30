@@ -38,5 +38,6 @@ Docs: https://docs.expo.dev/eas/index.md
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand. Configure native behavior in `app.json` and config plugins.
 - Never use an em dash (U+2014) or an en dash (U+2013) in copy, strings, docs, comments, commits, or pull requests. Use a comma, full stop, colon, parentheses, or a plain hyphen. Write ranges as "2 to 4". Run `npm run check:dashes` from the repo root.
+- No emoji in copy. Run `npm run check:emoji` from the repo root. A design pass follows `.cursor/skills/design/SKILL.md`.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md

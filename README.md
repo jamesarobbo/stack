@@ -169,13 +169,15 @@ Discover is a link on My Stack, not another tab. One control switches New, Most 
 
 ## CI
 
-`.github/workflows/ci.yml` typechecks, lints, and tests the app and the Worker, then runs gitleaks, Semgrep, and `npm run check:dashes`. A push to `main` deploys the Worker only after those checks pass and only when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set. If either secret is missing, deploy is skipped.
+`.github/workflows/ci.yml` typechecks, lints, and tests the app and the Worker, then runs gitleaks, Semgrep, `npm run check:dashes`, `npm run check:case`, and `npm run check:emoji`. A push to `main` deploys the Worker only after those checks pass and only when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set. If either secret is missing, deploy is skipped.
 
 ## House rule
 
 Do not use an em dash (U+2014) or an en dash (U+2013) anywhere in this project: UI copy, strings, seed data, docs, comments, commit messages, or pull request text. Use a comma, full stop, colon, parentheses, or a plain hyphen. Write a range as "2 to 4", not with an en dash. `npm run check:dashes` fails if a tracked text file contains either character. Lockfiles and vendored files are excluded.
 
 Labels use sentence case. Do not set `textTransform` to `uppercase`, and do not track small labels out with wide letter spacing. `npm run check:case` fails if a tracked source file does.
+
+Do not put emoji in the app, the Worker, or `shared/`. `npm run check:emoji` fails if a tracked source file there contains one. Design passes follow `.cursor/skills/design/SKILL.md`.
 
 ## What's stubbed
 
