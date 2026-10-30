@@ -1,52 +1,56 @@
 import { describe, expect, it } from 'vitest';
-import { auditScoreParts, type ScoreProduct } from './auditScore';
+import { scoreStack, type ScoreProduct } from '../../shared/auditScore';
 
-function bottle(id: string, ingredients: { key: string; amount: number; unit?: string }[], servingsPerDay = 1): ScoreProduct {
-  return {
-    id,
-    servingsPerDay,
-    ingredients: ingredients.map((ingredient) => ({ key: ingredient.key, amount: ingredient.amount, unit: ingredient.unit ?? 'mg' })),
-  };
+function item(id: string, ingredients: ScoreProduct['ingredients'], servingsPerDay = 1): ScoreProduct {
+  return { id, name: id, servingsPerDay, ingredients };
 }
 
 describe('audit score', () => {
-  it('starts at 100 when nothing overlaps or exceeds a limit', () => {
-    expect(auditScoreParts([]).score).toBe(100);
-    expect(auditScoreParts([bottle('a', [{ key: 'magnesium', amount: 200 }])])).toEqual({
-      score: 100,
-      duplicate: 0,
-      limits: 0,
-      redundant: 0,
-    });
+  it('scores a clean stack 100 with a plain summary', () => {
+    const result = scoreStack([item('mag', [{ key: 'magnesium', amount: 200, unit: 'mg' }])]);
+    expect(result.score).toBe(100);
+    expect(result.summary).toBe('No doses above the upper limit and nothing doubled up');
+    expect(result.totals[0]).toMatchObject({ key: 'magnesium', amount: 200, unit: 'mg', ofLimit: 200 / 350 });
   });
 
-  it('penalises duplicate ingredients and redundant products, not price', () => {
-    const stack = [
-      bottle('a', [{ key: 'magnesium', amount: 100 }]),
-      bottle('b', [{ key: 'magnesium', amount: 100 }]),
-    ];
-    expect(auditScoreParts(stack)).toEqual({ score: 58, duplicate: 12, limits: 0, redundant: 30 });
-  });
-
-  it('flags a dose above the upper limit and a dose in the near band', () => {
-    expect(auditScoreParts([bottle('a', [{ key: 'zinc', amount: 50 }])])).toMatchObject({ score: 80, limits: 20 });
-    expect(auditScoreParts([bottle('a', [{ key: 'zinc', amount: 36 }])])).toMatchObject({ score: 92, limits: 8 });
-    expect(auditScoreParts([bottle('a', [{ key: 'zinc', amount: 40 }])])).toMatchObject({ score: 92, limits: 8 });
-  });
-
-  it('converts vitamin D micrograms into the IU limit', () => {
-    expect(auditScoreParts([bottle('a', [{ key: 'vitamin-d', amount: 100, unit: 'mcg' }])])).toMatchObject({ limits: 8 });
-    expect(auditScoreParts([bottle('a', [{ key: 'vitamin-d', amount: 101, unit: 'mcg' }])])).toMatchObject({ limits: 20 });
-  });
-
-  it('does not call a product redundant when it still has a unique ingredient', () => {
-    const parts = auditScoreParts([
-      bottle('a', [
-        { key: 'magnesium', amount: 200 },
-        { key: 'vitamin-c', amount: 100 },
-      ]),
-      bottle('b', [{ key: 'magnesium', amount: 100 }]),
+  it('does not penalise overlap that stays within the limit', () => {
+    const result = scoreStack([
+      item('multi', [{ key: 'vitamin-d', amount: 25, unit: 'mcg' }]),
+      item('d3', [{ key: 'vitamin-d', amount: 1000, unit: 'IU' }]),
     ]);
-    expect(parts).toEqual({ score: 73, duplicate: 12, limits: 0, redundant: 15 });
+    expect(result.score).toBe(100);
+    expect(result.reasons).toEqual([
+      { kind: 'overlap_ok', key: 'vitamin-d', text: 'Vitamin D is in 2 products, within the limit in total', points: 0 },
+    ]);
+  });
+
+  it('explains each deduction', () => {
+    const result = scoreStack([
+      item('zinc', [{ key: 'zinc', amount: 50, unit: 'mg' }]),
+      item('ash1', [{ key: 'ashwagandha', name: 'Ashwagandha', amount: 300, unit: 'mg' }]),
+      item('ash2', [{ key: 'ashwagandha', name: 'Ashwagandha', amount: 300, unit: 'mg' }]),
+    ]);
+    expect(result.score).toBe(72);
+    expect(result.summary).toBe('1 above the upper limit, 1 doubled up');
+    expect(result.reasons.map((reason) => [reason.kind, reason.points])).toEqual([
+      ['over', 20],
+      ['doubled', 8],
+    ]);
+    expect(result.reasons[0]?.text).toBe('Zinc 50 mg a day, above the 40 mg upper limit');
+    expect(result.overTwiceLimit).toBe(false);
+  });
+
+  it('caps each kind so one problem cannot zero the score', () => {
+    const many = ['zinc', 'iron', 'copper', 'manganese'].map((key) => item(key, [{ key, amount: 1000, unit: 'mg' }]));
+    const result = scoreStack(many);
+    expect(result.parts.over).toBe(40);
+    expect(result.score).toBe(60);
+    expect(result.overTwiceLimit).toBe(true);
+  });
+
+  it('does not check vitamin A in IU against the retinol limit', () => {
+    const result = scoreStack([item('a', [{ key: 'vitamin-a', amount: 25000, unit: 'IU' }])]);
+    expect(result.score).toBe(100);
+    expect(result.reasons[0]?.kind).toBe('unchecked');
   });
 });

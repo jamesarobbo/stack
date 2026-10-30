@@ -1,7 +1,16 @@
-name = "stack-api"
+# Top level is local development only (`wrangler dev`). It uses a different Worker name so a plain
+# `wrangler deploy` can never overwrite production with development settings.
+# Production is `[env.production]`: deploy with `wrangler deploy --env production`.
+name = "stack-api-dev"
 main = "src/index.ts"
 compatibility_date = "2026-10-30"
 compatibility_flags = ["nodejs_compat"]
+
+# Fonts for the link preview image are bundled as bytes. The resvg .wasm is bundled as compiled wasm by default.
+[[rules]]
+type = "Data"
+globs = ["**/*.ttf"]
+fallthrough = true
 
 [vars]
 ENVIRONMENT = "development"
@@ -9,8 +18,29 @@ APPLE_AUDIENCE = "app.stack.mobile"
 # Contact address or URL sent with Open Food Facts lookups. Replace with a monitored address.
 CONTACT_EMAIL = "https://github.com/jamesarobbo/stack"
 
-# D1 database `stack`.
+# D1 database `stack`. Local dev uses the local copy (`wrangler d1 migrations apply stack --local`).
 [[d1_databases]]
+binding = "DB"
+database_name = "stack"
+database_id = "f77ceacc-e4ee-4542-9c77-546661462f76"
+migrations_dir = "migrations"
+
+[env.production]
+name = "stack-api"
+
+# Daily refresh of kept copy counts and averages, and clean up of expired rows. The API also refreshes lazily once a day.
+[env.production.triggers]
+crons = ["17 3 * * *"]
+
+[env.production.vars]
+ENVIRONMENT = "production"
+APPLE_AUDIENCE = "app.stack.mobile"
+CONTACT_EMAIL = "https://github.com/jamesarobbo/stack"
+# Optional, set when known: APP_STORE_ID (numeric), APPLE_TEAM_ID, PUBLIC_BASE_URL (https origin for share links).
+# Secrets (wrangler secret put --env production): AUTH_PEPPER, REVENUECAT_WEBHOOK_AUTH, ADMIN_TOKEN,
+# and for preview testing TEST_EMAILS plus TEST_SIGN_IN_CODE.
+
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "stack"
 database_id = "f77ceacc-e4ee-4542-9c77-546661462f76"

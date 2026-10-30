@@ -1,6 +1,7 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { verifyAppleIdentityToken, AuthError } from './apple';
+import { isTestSignIn, returnsDevCode, testCode } from './auth';
 import { hashCode, hashToken, randomCode, randomId, randomToken, safeEqual } from './crypto';
 import {
   DSLD_ATTRIBUTION,
@@ -14,18 +15,26 @@ import {
 } from './dsld';
 import { OFF_ATTRIBUTION, loadOffUpc, offUserAgent } from './off';
 import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from './revenuecat';
-import { reportShare, searchLibrary, setSaved } from './library';
+import { blockCreator, intParam, refreshDailyStats, reportShare, searchLibrary, setSaved, syncSearchRow, type LibrarySegment } from './library';
+import { ogSvg, renderOgPng, type OgAssets } from './og';
+import { addressKey, allow, clientAddress } from './rateLimit';
+import { renderSharePage, type PageContext } from './sharePage';
 import {
-  aggregateForShare,
-  copyShare,
+  cohortReport,
   currentShare,
-  previewPersonal,
+  isSlug,
+  listCopies,
+  liveRow,
   publicShare,
   readProfile,
+  recordCopy,
   revokeShare,
   saveProfile,
+  setOutcomeConsent,
   submitOutcome,
+  syncCopiesFromStack,
   upsertShare,
+  viewerState,
 } from './sharing';
 
 export type Bindings = {
@@ -38,7 +47,23 @@ export type Bindings = {
   OFF_FETCH?: (input: string, init?: RequestInit) => Promise<Response>;
   /** Contact address or URL placed in the Open Food Facts User-Agent. */
   CONTACT_EMAIL?: string;
+  /** Comma separated test addresses on reserved domains that may sign in with TEST_SIGN_IN_CODE. */
+  TEST_EMAILS?: string;
+  /** Secret 6 digit code for TEST_EMAILS. Never returned by the API. */
+  TEST_SIGN_IN_CODE?: string;
+  /** Bearer token for the moderation queue. */
+  ADMIN_TOKEN?: string;
+  /** Numeric App Store id for the Smart App Banner and the store button. */
+  APP_STORE_ID?: string;
+  /** Apple developer team id for apple-app-site-association. */
+  APPLE_TEAM_ID?: string;
+  /** Origin used in share links and link previews, for example https://stack.example. Defaults to the request origin. */
+  PUBLIC_BASE_URL?: string;
+  /** Tests inject these instead of the bundled resvg wasm and fonts. */
+  OG_ASSETS?: OgAssets;
 };
+
+type AppContext = Context<{ Bindings: Bindings }>;
 
 type UserRow = { id: string; email: string | null; apple_sub: string | null };
 type StackIngredient = {
@@ -76,6 +101,8 @@ app.post('/v1/auth/email/start', async (c) => {
   if (!email) return c.json({ error: 'Enter a valid email address.' }, 400);
   const pepper = c.env.AUTH_PEPPER;
   if (!pepper) return c.json({ error: 'Auth is not configured.' }, 500);
+  if (!(await allowAddress(c, 'email_start', 20, 3600))) return tooMany(c);
+  if (isTestSignIn(c.env, email)) return c.json({ ok: true });
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const recent = await c.env.DB.prepare(
     'SELECT COUNT(*) AS n FROM email_codes WHERE email = ? AND created_at > ?',
@@ -87,13 +114,13 @@ app.post('/v1/auth/email/start', async (c) => {
   const code = randomCode();
   const now = new Date();
   await c.env.DB.prepare(
-    'INSERT INTO email_codes (id, email, code_hash, expires_at, consumed_at, created_at) VALUES (?, ?, ?, ?, NULL, ?)',
+    'INSERT INTO email_codes (id, email, code_hash, expires_at, consumed_at, created_at, attempts) VALUES (?, ?, ?, ?, NULL, ?, 0)',
   )
     .bind(randomId(), email, await hashCode(pepper, email, code), new Date(now.getTime() + 10 * 60 * 1000).toISOString(), now.toISOString())
     .run();
 
-  if (c.env.ENVIRONMENT === 'production') return c.json({ ok: true });
-  return c.json({ ok: true, devCode: code });
+  if (returnsDevCode(c.env.ENVIRONMENT, c.req.url)) return c.json({ ok: true, devCode: code });
+  return c.json({ ok: true });
 });
 
 app.post('/v1/auth/email/verify', async (c) => {
@@ -103,16 +130,30 @@ app.post('/v1/auth/email/verify', async (c) => {
   if (!email || !/^\d{6}$/.test(code)) return c.json({ error: 'Enter the 6-digit code.' }, 400);
   const pepper = c.env.AUTH_PEPPER;
   if (!pepper) return c.json({ error: 'Auth is not configured.' }, 500);
+  if (!(await allowAddress(c, 'email_verify', 30, 3600))) return tooMany(c);
+  if (!(await allow(c.env.DB, `verify:${await addressKey(pepper, email)}`, 10, 900))) return tooMany(c);
+
+  if (isTestSignIn(c.env, email)) {
+    const expected = testCode(c.env.TEST_SIGN_IN_CODE) ?? '';
+    if (!safeEqual(code, expected)) return c.json({ error: 'That code is not valid.' }, 401);
+    const user = await findOrCreateUser(c.env.DB, { email });
+    const session = await createSession(c.env.DB, user.id);
+    return c.json({ token: session.token, user: publicUser(user) });
+  }
+
   const row = await c.env.DB.prepare(
-    `SELECT id, code_hash FROM email_codes
+    `SELECT id, code_hash, attempts FROM email_codes
      WHERE email = ? AND consumed_at IS NULL AND expires_at > ?
      ORDER BY created_at DESC LIMIT 1`,
   )
     .bind(email, new Date().toISOString())
-    .first<{ id: string; code_hash: string }>();
+    .first<{ id: string; code_hash: string; attempts: number }>();
   const expected = await hashCode(pepper, email, code);
-  const matches = row ? safeEqual(row.code_hash, expected) : safeEqual(expected, expected.slice(0, 0).padEnd(expected.length, '0'));
-  if (!row || !matches) return c.json({ error: 'That code is not valid.' }, 401);
+  const matches = row ? safeEqual(row.code_hash, expected) : false;
+  if (!row || row.attempts >= 5 || !matches) {
+    if (row) await c.env.DB.prepare('UPDATE email_codes SET attempts = attempts + 1 WHERE id = ?').bind(row.id).run();
+    return c.json({ error: 'That code is not valid.' }, 401);
+  }
   await c.env.DB.prepare('UPDATE email_codes SET consumed_at = ? WHERE id = ?').bind(new Date().toISOString(), row.id).run();
   const user = await findOrCreateUser(c.env.DB, { email });
   const session = await createSession(c.env.DB, user.id);
@@ -125,6 +166,7 @@ app.post('/v1/auth/apple', async (c) => {
   const rawNonce = typeof body.rawNonce === 'string' ? body.rawNonce : '';
   if (!identityToken || !rawNonce) return c.json({ error: 'Missing Apple token.' }, 400);
   if (!c.env.APPLE_AUDIENCE) return c.json({ error: 'Apple sign-in is not configured.' }, 500);
+  if (!(await allowAddress(c, 'apple', 30, 3600))) return tooMany(c);
   try {
     const apple = await verifyAppleIdentityToken(identityToken, rawNonce, { audience: c.env.APPLE_AUDIENCE });
     const user = await findOrCreateUser(c.env.DB, { appleSub: apple.sub, email: apple.email });
@@ -186,6 +228,7 @@ app.put('/v1/sync/stack', async (c) => {
   )
     .bind(user.id, payload, now)
     .run();
+  await syncCopiesFromStack(c.env.DB, user.id, products.map((product) => product.catalogueId));
   return c.json({ ok: true, updatedAt: now });
 });
 
@@ -270,24 +313,6 @@ app.put('/v1/labels/upc/:code', async (c) => {
   return c.json({ ok: true, label });
 });
 
-app.delete('/v1/account', async (c) => {
-  const user = await userFromRequest(c);
-  if (!user) return c.json({ error: 'Sign in required.' }, 401);
-  await c.env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id).run();
-  await c.env.DB.prepare('DELETE FROM subscriptions WHERE user_id = ?').bind(user.id).run();
-  await c.env.DB.prepare('DELETE FROM synced_stacks WHERE user_id = ?').bind(user.id).run();
-  await c.env.DB.prepare('DELETE FROM contributed_labels WHERE user_id = ?').bind(user.id).run();
-  await c.env.DB.prepare('DELETE FROM share_search WHERE share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id).run();
-  await c.env.DB.prepare('DELETE FROM share_saves WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
-  await c.env.DB.prepare('DELETE FROM share_reports WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
-  await c.env.DB.prepare('DELETE FROM share_copies WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
-  await c.env.DB.prepare('DELETE FROM share_outcomes WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
-  await c.env.DB.prepare('DELETE FROM shares WHERE user_id = ?').bind(user.id).run();
-  if (user.email) await c.env.DB.prepare('DELETE FROM email_codes WHERE email = ?').bind(user.email).run();
-  await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run();
-  return c.json({ ok: true });
-});
-
 app.post('/v1/webhooks/revenuecat', async (c) => {
   const secret = c.env.REVENUECAT_WEBHOOK_AUTH;
   if (!secret) return c.json({ error: 'Webhook is not configured.' }, 503);
@@ -317,33 +342,59 @@ app.post('/v1/webhooks/revenuecat', async (c) => {
   return c.json({ ok: true, status: write.status });
 });
 
+app.delete('/v1/account', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const db = c.env.DB;
+  const mine = 'SELECT id FROM shares WHERE user_id = ?';
+  const statements = [
+    db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM subscriptions WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM synced_stacks WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM contributed_labels WHERE user_id = ?').bind(user.id),
+    db.prepare(`DELETE FROM share_search WHERE share_id IN (${mine})`).bind(user.id),
+    db.prepare(`DELETE FROM share_saves WHERE user_id = ? OR share_id IN (${mine})`).bind(user.id, user.id),
+    db.prepare(`DELETE FROM share_reports WHERE user_id = ? OR share_id IN (${mine})`).bind(user.id, user.id),
+    db.prepare(`DELETE FROM share_copies WHERE user_id = ? OR share_id IN (${mine})`).bind(user.id, user.id),
+    db.prepare(`DELETE FROM copier_outcomes WHERE user_id = ? OR share_id IN (${mine})`).bind(user.id, user.id),
+    db.prepare(`DELETE FROM share_cohort_cache WHERE share_id IN (${mine})`).bind(user.id),
+    db.prepare(`DELETE FROM share_versions WHERE share_id IN (${mine})`).bind(user.id),
+    db.prepare(`DELETE FROM share_images WHERE share_id IN (${mine})`).bind(user.id),
+    db.prepare('DELETE FROM user_blocks WHERE user_id = ? OR blocked_user_id = ?').bind(user.id, user.id),
+    db.prepare('DELETE FROM shares WHERE user_id = ?').bind(user.id),
+  ];
+  if (user.email) statements.push(db.prepare('DELETE FROM email_codes WHERE email = ?').bind(user.email));
+  statements.push(db.prepare('DELETE FROM users WHERE id = ?').bind(user.id));
+  await db.batch(statements);
+  return c.json({ ok: true });
+});
+
 app.put('/v1/me/profile', async (c) => {
   const user = await userFromRequest(c);
   if (!user) return c.json({ error: 'Sign in required.' }, 401);
-  const profile = await saveProfile(c.env.DB, user.id, await readJson(c));
-  return c.json({ profile });
+  const saved = await saveProfile(c.env.DB, user.id, await readJson(c));
+  if (!saved.ok) return c.json({ error: saved.error }, 400);
+  return c.json({ profile: saved.profile });
 });
 
-app.post('/v1/outcomes/preview', async (c) => {
-  const user = await userFromRequest(c);
-  if (!user) return c.json({ error: 'Sign in required.' }, 401);
-  const result = previewPersonal(await readJson(c));
-  if (!result) return c.json({ error: 'That personal result could not be read.' }, 400);
-  return c.json(result);
-});
+app.post('/v1/outcomes/preview', (c) =>
+  c.json({ error: 'Personal results are worked out on your phone. Wearable samples are not sent to the server.' }, 410),
+);
 
 app.post('/v1/shares', async (c) => {
   const user = await userFromRequest(c);
   if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  if (!(await allow(c.env.DB, `publish:${user.id}`, 30, 3600))) return tooMany(c);
   const saved = await upsertShare(c.env.DB, user.id, await readJson(c));
   if (!saved.ok) return c.json({ error: saved.error }, 400);
-  return c.json(saved.share);
+  return c.json({ ...saved.share, url: shareUrl(c, saved.share.slug) });
 });
 
 app.get('/v1/shares/current', async (c) => {
   const user = await userFromRequest(c);
   if (!user) return c.json({ error: 'Sign in required.' }, 401);
-  return c.json({ share: await currentShare(c.env.DB, user.id) });
+  const share = await currentShare(c.env.DB, user.id);
+  return c.json({ share: share ? { ...share, url: shareUrl(c, share.slug) } : null });
 });
 
 app.delete('/v1/shares/current', async (c) => {
@@ -353,50 +404,76 @@ app.delete('/v1/shares/current', async (c) => {
   return c.json({ ok: true });
 });
 
+app.get('/v1/me/copies', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  return c.json({ copies: await listCopies(c.env.DB, user.id) });
+});
+
+app.delete('/v1/me/blocks', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  await c.env.DB.prepare('DELETE FROM user_blocks WHERE user_id = ?').bind(user.id).run();
+  return c.json({ ok: true });
+});
+
 app.get('/v1/shares/:slug', async (c) => {
   const found = await publicShare(c.env.DB, c.req.param('slug'));
-  if (!found.view) return c.json({ error: 'This stack is no longer shared.' }, 404);
-  return c.json(found.view);
+  if (!found) return c.json({ error: 'This stack is no longer shared.' }, 404);
+  const user = await userFromRequest(c);
+  const viewer = user ? await viewerState(c.env.DB, found.row, user.id) : null;
+  return c.json({ ...found.view, url: shareUrl(c, found.view.slug), viewer });
 });
 
 app.post('/v1/shares/:slug/copy', async (c) => {
   const user = await userFromRequest(c);
   if (!user) return c.json({ error: 'Sign in required.' }, 401);
-  const copied = await copyShare(c.env.DB, c.req.param('slug'), user.id);
+  if (!(await allow(c.env.DB, `copy:${user.id}`, 30, 3600))) return tooMany(c);
+  if (!(await allowAddress(c, 'copy', 60, 3600))) return tooMany(c);
+  const copied = await recordCopy(c.env.DB, c.req.param('slug'), user.id, await readJson(c));
   if (!copied.ok) return c.json({ error: copied.error }, copied.status as 400);
-  return c.json({ alreadyCopied: copied.alreadyCopied, products: copied.products, credit: copied.credit });
+  return c.json({ copiedOn: copied.copiedOn, restarted: copied.restarted });
+});
+
+app.put('/v1/shares/:slug/outcome-consent', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const body = await readJson(c);
+  const ok = await setOutcomeConsent(c.env.DB, c.req.param('slug'), user.id, body.consent === true);
+  if (!ok) return c.json({ error: 'This stack is no longer shared.' }, 404);
+  return c.json({ consent: body.consent === true });
 });
 
 app.post('/v1/shares/:slug/outcome', async (c) => {
   const user = await userFromRequest(c);
   if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  if (!(await allow(c.env.DB, `outcome:${user.id}`, 10, 86_400))) return tooMany(c);
   const saved = await submitOutcome(c.env.DB, c.req.param('slug'), user.id, await readJson(c));
   if (!saved.ok) return c.json({ error: saved.error }, saved.status as 400);
-  return c.json({ result: saved.result, aggregate: saved.aggregate });
+  return c.json({ saved: saved.saved });
 });
 
-app.get('/v1/shares/:slug/aggregate', async (c) => {
-  const ageRange = c.req.query('ageRange') ?? null;
-  const sex = c.req.query('sex') ?? null;
-  const aggregate = await aggregateForShare(c.env.DB, c.req.param('slug'), { ageRange, sex });
-  return c.json({ aggregate });
+app.get('/v1/shares/:slug/cohorts', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in to see results from people who copied this.' }, 401);
+  const profile = await readProfile(c.env.DB, user.id);
+  const report = await cohortReport(c.env.DB, c.req.param('slug'), { ageRange: profile?.age_range ?? null, sex: profile?.sex ?? null });
+  if (!report) return c.json({ error: 'This stack is no longer shared.' }, 404);
+  return c.json(report);
 });
 
 app.get('/v1/library', async (c) => {
   const user = await userFromRequest(c);
-  const tab = c.req.query('tab');
-  const sort = c.req.query('sort');
+  const segment = c.req.query('segment') ?? c.req.query('tab');
+  await refreshDailyStats(c.env.DB);
+  const profile = user ? await readProfile(c.env.DB, user.id) : null;
   const page = await searchLibrary(c.env.DB, {
-    tab: tab === 'top' || tab === 'saved' ? tab : 'new',
-    q: c.req.query('q') ?? '',
+    segment: (['new', 'top', 'saved', 'like_you'] as const).includes(segment as LibrarySegment) ? (segment as LibrarySegment) : 'new',
+    q: (c.req.query('q') ?? '').slice(0, 80),
     goal: c.req.query('goal') ?? '',
-    sort: sort === 'score' || sort === 'copies' || sort === 'like_you' || sort === 'newest' ? sort : undefined,
-    ageRange: c.req.query('ageRange'),
-    sex: c.req.query('sex'),
-    limit: Number(c.req.query('limit') ?? 20),
-    offset: Number(c.req.query('offset') ?? 0),
-    viewerId: user?.id ?? null,
-    now: c.req.query('now') ?? undefined,
+    limit: intParam(c.req.query('limit'), 20, 1, 50),
+    offset: intParam(c.req.query('offset'), 0, 0, 10_000),
+    viewer: user ? { id: user.id, ageRange: profile?.age_range ?? null, sex: profile?.sex ?? null } : null,
   });
   return c.json(page);
 });
@@ -420,18 +497,217 @@ app.delete('/v1/shares/:slug/save', async (c) => {
 app.post('/v1/shares/:slug/report', async (c) => {
   const user = await userFromRequest(c);
   if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  if (!(await allow(c.env.DB, `report:${user.id}`, 20, 86_400))) return tooMany(c);
   const body = await readJson(c);
-  const reported = await reportShare(c.env.DB, c.req.param('slug'), user.id, body.reason);
+  const reported = await reportShare(c.env.DB, c.req.param('slug'), user.id, body.reason, body.note);
   if (!reported.ok) return c.json({ error: reported.error }, reported.status as 400);
   return c.json({ ok: true });
 });
 
+app.post('/v1/shares/:slug/block', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const blocked = await blockCreator(c.env.DB, c.req.param('slug'), user.id, true);
+  if (!blocked.ok) return c.json({ error: blocked.error }, blocked.status as 400);
+  return c.json({ blocked: true });
+});
+
+app.delete('/v1/shares/:slug/block', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const blocked = await blockCreator(c.env.DB, c.req.param('slug'), user.id, false);
+  if (!blocked.ok) return c.json({ error: blocked.error }, blocked.status as 400);
+  return c.json({ blocked: false });
+});
+
+app.get('/v1/admin/reports', async (c) => {
+  const denied = adminDenied(c);
+  if (denied) return denied;
+  const rows = await c.env.DB.prepare(
+    `SELECT s.slug, s.stack_name, s.creator_name, s.hidden_at, s.review_status, s.listed,
+            COUNT(r.user_id) AS open_reports, GROUP_CONCAT(r.reason, ' | ') AS reasons, MAX(r.created_at) AS last_report
+     FROM shares s JOIN share_reports r ON r.share_id = s.id AND r.resolved_at IS NULL
+     WHERE s.revoked_at IS NULL
+     GROUP BY s.id
+     ORDER BY s.hidden_at IS NULL, open_reports DESC, last_report DESC
+     LIMIT 100`,
+  )
+    .bind()
+    .all();
+  return c.json({ queue: rows.results ?? [] });
+});
+
+app.post('/v1/admin/shares/:slug', async (c) => {
+  const denied = adminDenied(c);
+  if (denied) return denied;
+  const row = await liveRow(c.env.DB, c.req.param('slug'), { includeHidden: true });
+  if (!row) return c.json({ error: 'Not found.' }, 404);
+  const body = await readJson(c);
+  const action = body.action;
+  const note = typeof body.note === 'string' ? body.note.slice(0, 300) : null;
+  const now = new Date().toISOString();
+  const db = c.env.DB;
+  const log = db
+    .prepare('INSERT INTO moderation_log (id, share_id, action, note, created_at) VALUES (?, ?, ?, ?, ?)')
+    .bind(randomId(), row.id, String(action), note, now);
+  if (action === 'restore') {
+    await db.batch([
+      db.prepare("UPDATE shares SET hidden_at = NULL, review_status = 'cleared' WHERE id = ?").bind(row.id),
+      db.prepare('UPDATE share_reports SET resolved_at = ? WHERE share_id = ? AND resolved_at IS NULL').bind(now, row.id),
+      log,
+    ]);
+  } else if (action === 'hide') {
+    await db.batch([db.prepare("UPDATE shares SET hidden_at = ?, review_status = 'pending' WHERE id = ?").bind(now, row.id), log]);
+  } else if (action === 'remove') {
+    await db.batch([
+      db.prepare("UPDATE shares SET revoked_at = ?, listed = 0, review_status = 'removed' WHERE id = ?").bind(now, row.id),
+      db.prepare('UPDATE share_reports SET resolved_at = ? WHERE share_id = ? AND resolved_at IS NULL').bind(now, row.id),
+      log,
+    ]);
+  } else {
+    return c.json({ error: 'Use restore, hide, or remove.' }, 400);
+  }
+  await syncSearchRow(db, row.id);
+  return c.json({ ok: true, action });
+});
+
+app.get('/s/:slug/get', async (c) => {
+  const slug = c.req.param('slug');
+  if (!isSlug(slug)) return c.redirect('/', 302);
+  if (c.env.AUTH_PEPPER && (await allowAddress(c, 'link_get', 30, 3600))) {
+    const key = await addressKey(c.env.AUTH_PEPPER, clientAddress((name) => c.req.header(name)));
+    await c.env.DB.prepare(
+      `INSERT INTO pending_links (ip_hash, slug, created_at) VALUES (?, ?, ?)
+       ON CONFLICT(ip_hash) DO UPDATE SET slug = excluded.slug, created_at = excluded.created_at`,
+    )
+      .bind(key, slug, new Date().toISOString())
+      .run();
+  }
+  if (c.env.APP_STORE_ID) return c.redirect(`https://apps.apple.com/app/id${encodeURIComponent(c.env.APP_STORE_ID)}`, 302);
+  return c.redirect(`stack://s/${slug}`, 302);
+});
+
+app.post('/v1/links/claim', async (c) => {
+  if (!c.env.AUTH_PEPPER) return c.json({ slug: null });
+  if (!(await allowAddress(c, 'link_claim', 30, 3600))) return tooMany(c);
+  const key = await addressKey(c.env.AUTH_PEPPER, clientAddress((name) => c.req.header(name)));
+  const since = new Date(Date.now() - 2 * 3_600_000).toISOString();
+  const row = await c.env.DB.prepare('DELETE FROM pending_links WHERE ip_hash = ? RETURNING slug, created_at')
+    .bind(key)
+    .first<{ slug: string; created_at: string }>();
+  if (!row || row.created_at < since) return c.json({ slug: null });
+  const live = await liveRow(c.env.DB, row.slug);
+  return c.json({ slug: live ? row.slug : null });
+});
+
+app.get('/.well-known/apple-app-site-association', (c) => appSiteAssociation(c));
+app.get('/apple-app-site-association', (c) => appSiteAssociation(c));
+
+app.get('/s/:slug/og.png', async (c) => {
+  const found = await publicShare(c.env.DB, c.req.param('slug'));
+  if (!found) return c.notFound();
+  const cached = await c.env.DB.prepare('SELECT png FROM share_images WHERE share_id = ? AND version = ?')
+    .bind(found.row.id, found.row.version)
+    .first<{ png: ArrayBuffer | Uint8Array }>();
+  let png = cached ? toBytes(cached.png) : null;
+  if (!png) {
+    const assets = c.env.OG_ASSETS ?? (await import('./ogAssets')).OG_ASSETS;
+    png = await renderOgPng(ogSvg(ogInput(c, found.view)), assets);
+    await c.env.DB.batch([
+      c.env.DB.prepare('DELETE FROM share_images WHERE share_id = ?').bind(found.row.id),
+      c.env.DB.prepare('INSERT INTO share_images (share_id, version, png, created_at) VALUES (?, ?, ?, ?)').bind(
+        found.row.id,
+        found.row.version,
+        png,
+        new Date().toISOString(),
+      ),
+    ]);
+  }
+  return new Response(png, {
+    headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' },
+  });
+});
+
+app.get('/s/:slug/og.svg', async (c) => {
+  const found = await publicShare(c.env.DB, c.req.param('slug'));
+  if (!found) return c.notFound();
+  return new Response(ogSvg(ogInput(c, found.view)), { headers: { 'content-type': 'image/svg+xml' } });
+});
+
 app.get('/s/:slug', async (c) => {
   const found = await publicShare(c.env.DB, c.req.param('slug'));
-  return c.html(found.html, found.status as 200);
+  const context = pageContext(c);
+  if (!found) return c.html(renderSharePage(null, context), 404);
+  return c.html(renderSharePage(found.view, context), 200);
 });
 
 export default app;
+
+export async function scheduled(env: Bindings): Promise<void> {
+  await refreshDailyStats(env.DB, new Date(), true);
+}
+
+function pageContext(c: AppContext): PageContext {
+  return { origin: publicOrigin(c), appStoreId: c.env.APP_STORE_ID?.trim() || null };
+}
+
+function publicOrigin(c: AppContext): string {
+  const configured = c.env.PUBLIC_BASE_URL?.trim().replace(/\/+$/, '');
+  if (configured && /^https:\/\//.test(configured)) return configured;
+  return new URL(c.req.url).origin;
+}
+
+function shareUrl(c: AppContext, slug: string): string {
+  return `${publicOrigin(c)}/s/${slug}`;
+}
+
+function ogInput(c: AppContext, view: Awaited<ReturnType<typeof publicShare>> extends infer R ? (R extends { view: infer V } ? V : never) : never) {
+  return {
+    stackName: view.stackName,
+    creator: view.displayName ?? 'A Stack user',
+    productCount: view.products.length,
+    score: view.auditScore,
+    summary: view.score.summary,
+    composition: view.score.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit })),
+    host: new URL(publicOrigin(c)).host,
+  };
+}
+
+function toBytes(value: ArrayBuffer | Uint8Array | number[]): Uint8Array {
+  if (value instanceof Uint8Array) return value;
+  if (Array.isArray(value)) return new Uint8Array(value);
+  return new Uint8Array(value);
+}
+
+function appSiteAssociation(c: AppContext): Response {
+  const team = c.env.APPLE_TEAM_ID?.trim();
+  const bundle = c.env.APPLE_AUDIENCE?.trim();
+  if (!team || !bundle) return c.json({ error: 'Not configured.' }, 404);
+  return c.json({
+    applinks: {
+      details: [{ appIDs: [`${team}.${bundle}`], components: [{ '/': '/s/*', comment: 'Shared stacks' }] }],
+    },
+  });
+}
+
+function adminDenied(c: AppContext): Response | null {
+  const secret = c.env.ADMIN_TOKEN;
+  if (!secret) return c.json({ error: 'Moderation is not configured.' }, 503);
+  const header = c.req.header('authorization') ?? '';
+  const presented = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!presented || !safeEqual(presented, secret)) return c.json({ error: 'Unauthorized.' }, 401);
+  return null;
+}
+
+async function allowAddress(c: AppContext, bucket: string, limit: number, windowSeconds: number): Promise<boolean> {
+  const pepper = c.env.AUTH_PEPPER || 'local';
+  const key = await addressKey(pepper, clientAddress((name) => c.req.header(name)));
+  return allow(c.env.DB, `${bucket}:${key}`, limit, windowSeconds);
+}
+
+function tooMany(c: AppContext): Response {
+  return c.json({ error: 'Too many requests. Try again in a little while.' }, 429);
+}
 
 function dsldFetcher(env: Bindings): (input: string, init?: RequestInit) => Promise<Response> {
   return env.DSLD_FETCH ?? fetch;

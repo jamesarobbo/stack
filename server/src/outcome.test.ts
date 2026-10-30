@@ -1,100 +1,58 @@
 import { describe, expect, it } from 'vitest';
-import { aggregateOutcomes, cohortLine, personalOutcome, type OutcomeRow } from './outcome';
-
-function addDays(iso: string, days: number): string {
-  const [year, month, day] = iso.split('-').map(Number);
-  const date = new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1));
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-}
-
-function fill(start: string, count: number, value: number) {
-  return Array.from({ length: count }, (_, index) => ({ date: addDays(start, index), value }));
-}
+import { addDays, computeOutcome, validateOutcomeFields, type DayValue } from '../../shared/outcome';
 
 const START = '2026-04-01';
 
-describe('personal outcome', () => {
-  it('describes a relative change against the person own baseline', () => {
-    const result = personalOutcome({
-      metric: 'resting_hr_bpm',
-      samples: [...fill(addDays(START, -90), 60, 50), ...fill(START, 30, 47)],
-      stackStart: START,
-      device: 'Oura',
-      asOf: addDays(START, 89),
-    });
-    expect(result.eligible).toBe(true);
-    if (!result.eligible) return;
-    expect(result.percent).toBe(-6);
-    expect(result.windowDays).toBe(90);
-    expect(result.line).toBe('Resting heart rate down 6% over 90 days, measured on Oura');
-    expect(result.disclaimer).toBe('1 person, not a trial');
-    expect(result.framing).toBe('What changed for me');
-    expect(result.line.toLowerCase()).not.toContain('caused');
-    expect(result.line.toLowerCase()).not.toContain('improved');
-  });
-
-  it('says when there are not enough days before or after the start', () => {
-    const shortBefore = personalOutcome({
-      metric: 'hrv_sdnn_ms',
-      samples: [...fill(addDays(START, -20), 10, 40), ...fill(START, 30, 44)],
-      stackStart: START,
-      device: 'Apple Health',
-      asOf: addDays(START, 89),
-    });
-    expect(shortBefore).toEqual({ eligible: false, reason: 'Not enough wearable data before the stack started.' });
-
-    const shortAfter = personalOutcome({
-      metric: 'deep_sleep_min',
-      samples: [...fill(addDays(START, -90), 60, 40), ...fill(START, 10, 48)],
-      stackStart: START,
-      device: 'Apple Health',
-      asOf: addDays(START, 20),
-    });
-    expect(shortAfter).toEqual({ eligible: false, reason: 'Not enough days after the stack started.' });
-  });
-});
-
-describe('copier aggregate', () => {
-  it('hides the average until 10 people have a 90 day window', () => {
-    const rows = Array.from({ length: 9 }, () => row('resting_hr_bpm', -6, 90, '30_39', 'male'));
-    expect(aggregateOutcomes(rows)).toBeNull();
-    const shown = aggregateOutcomes([...rows, row('resting_hr_bpm', -6, 90, '30_39', 'male')]);
-    expect(shown?.people).toBe(10);
-    expect(shown?.averagePercent).toBe(-6);
-    expect(shown?.cohort).toBe('Mostly men 30 to 39');
-    expect(shown?.disclaimer).toBe('Real-world data, not a trial');
-  });
-
-  it('drops shorter windows and filters people like you without ranking stacks', () => {
-    const long = Array.from({ length: 10 }, () => row('resting_hr_bpm', -4, 90, '30_39', 'male'));
-    const short = Array.from({ length: 10 }, () => row('resting_hr_bpm', -20, 60, '30_39', 'male'));
-    expect(aggregateOutcomes([...long, ...short])?.averagePercent).toBe(-4);
-
-    const mixed = [
-      ...Array.from({ length: 6 }, () => row('hrv_sdnn_ms', 8, 90, '40_49', 'female')),
-      ...Array.from({ length: 4 }, () => row('hrv_sdnn_ms', 2, 90, '18_29', 'male')),
-    ];
-    expect(aggregateOutcomes(mixed, { ageRange: '40_49', sex: 'female' })).toBeNull();
-    const enough = [
-      ...mixed,
-      ...Array.from({ length: 4 }, () => row('hrv_sdnn_ms', 8, 90, '40_49', 'female')),
-    ];
-    const like = aggregateOutcomes(enough, { ageRange: '40_49', sex: 'female' });
-    expect(like?.people).toBe(10);
-    expect(like?.cohort).toBe('Mostly women 40 to 49');
-  });
-
-  it('names a mixed cohort when no group is 40 percent', () => {
-    const rows = [
-      row('steps', 1, 90, '18_29', 'female'),
-      row('steps', 1, 90, '30_39', 'male'),
-      row('steps', 1, 90, '40_49', 'female'),
-    ];
-    expect(cohortLine(rows)).toBe('A mix of ages');
-  });
-});
-
-function row(metric: OutcomeRow['metric'], percentChange: number, windowDays: number, ageRange: string, sex: string): OutcomeRow {
-  return { metric, percentChange, windowDays, ageRange, sex };
+function series(from: string, days: number, value: (index: number) => number): DayValue[] {
+  return Array.from({ length: days }, (_, index) => ({ date: addDays(from, index), value: value(index) }));
 }
+
+/** Steady history with a wobble, then a step change from the start date. */
+function history(after: number, wobble = 1) {
+  const before = series(addDays(START, -300), 300, (index) => 60 + (index % 2 === 0 ? wobble : -wobble));
+  const later = series(START, 100, () => after);
+  return [...before, ...later];
+}
+
+describe('personal outcome', () => {
+  it('waits for the full 12 week window', () => {
+    const result = computeOutcome({ metric: 'resting_hr_bpm', samples: history(56), stackStart: START, device: 'Apple Watch', asOf: addDays(START, 60) });
+    expect(result).toMatchObject({ eligible: false, readyOn: addDays(START, 97) });
+  });
+
+  it('reports a change bigger than normal variation', () => {
+    const result = computeOutcome({ metric: 'resting_hr_bpm', samples: history(56), stackStart: START, device: 'Apple Watch', asOf: addDays(START, 100) });
+    expect(result).toMatchObject({ eligible: true, direction: 'down', percent: -7, withinNormal: false });
+    if (result.eligible) expect(result.line).toBe('Resting heart rate down 7% over 12 weeks, measured on Apple Watch');
+  });
+
+  it('calls a small change normal variation', () => {
+    const result = computeOutcome({ metric: 'resting_hr_bpm', samples: history(59), stackStart: START, device: 'Apple Watch', asOf: addDays(START, 100) });
+    expect(result).toMatchObject({ eligible: true, withinNormal: true, direction: 'flat' });
+  });
+
+  it('uses the history before the start to set the bar', () => {
+    const noisy = [
+      ...series(addDays(START, -700), 700, (index) => (Math.floor((700 - index - 1) / 98) % 2 === 0 ? 60 : 48)),
+      ...series(START, 100, () => 55),
+    ];
+    const result = computeOutcome({ metric: 'resting_hr_bpm', samples: noisy, stackStart: START, device: 'Apple Watch', asOf: addDays(START, 100) });
+    expect(result).toMatchObject({ eligible: true, withinNormal: true });
+  });
+
+  it('needs enough data before the start', () => {
+    const sparse = series(addDays(START, -30), 130, () => 60);
+    const result = computeOutcome({ metric: 'resting_hr_bpm', samples: sparse, stackStart: START, device: 'Apple Watch', asOf: addDays(START, 100) });
+    expect(result).toMatchObject({ eligible: false });
+  });
+
+  it('accepts only consistent fields from the phone', () => {
+    const good = { metric: 'hrv_sdnn_ms', direction: 'up', percent: 12, withinNormal: false, windowDays: 84, device: 'Apple Watch <b>' };
+    expect(validateOutcomeFields(good)).toEqual({ ...good, device: 'Apple Watch b' });
+    expect(validateOutcomeFields({ ...good, percent: 5 })).toBeNull();
+    expect(validateOutcomeFields({ ...good, percent: 61 })).toBeNull();
+    expect(validateOutcomeFields({ ...good, direction: 'flat' })).toBeNull();
+    expect(validateOutcomeFields({ ...good, percent: 3, withinNormal: true, direction: 'flat' })).toMatchObject({ direction: 'flat' });
+    expect(validateOutcomeFields({ ...good, line: 'Cured', metric: 'steps' })).toBeNull();
+  });
+});

@@ -110,7 +110,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: server
-          command: d1 migrations apply stack --remote
+          command: d1 migrations apply stack --remote --env production
 
       - name: Deploy Worker
         if: steps.cf.outputs.ready == 'true'
@@ -119,4 +119,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: server
-          command: deploy
+          command: deploy --env production
