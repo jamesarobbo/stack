@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { BarChart } from '@/src/components/BarChart';
 import { Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
 import { ASSOCIATION } from '@/src/config';
-import { ADD_SUPPLEMENT_ROUTE } from '@/src/copy/labels';
+import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
 import { auditStack, productWastedCents } from '@/src/domain/audit';
 import { IMPACT_EMPTY, freshStartGaps } from '@/src/domain/emptyStates';
 import {
@@ -42,7 +42,13 @@ export default function ImpactScreen() {
         <T size={15} color={theme.muted}>
           {currentWearableEmptyCopy()}
         </T>
-        {needsProduct ? <Button label="Add a supplement" onPress={() => router.push(ADD_SUPPLEMENT_ROUTE)} /> : null}
+        {needsProduct ? (
+          <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)}>
+            <T weight="semibold" color={theme.teal}>
+              {GO_TO_STACK_LABEL}
+            </T>
+          </Pressable>
+        ) : null}
         <Button
           label="Connect Apple Health"
           tone={needsProduct ? 'ghost' : 'teal'}

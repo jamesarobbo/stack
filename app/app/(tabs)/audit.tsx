@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
-import { ADD_SUPPLEMENT_ROUTE } from '@/src/copy/labels';
+import { Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
 import { auditStack, formatWasted } from '@/src/domain/audit';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
 import { formatUsd } from '@/src/format';
@@ -24,7 +24,11 @@ export default function AuditScreen() {
         <T size={15} color={theme.muted}>
           {AUDIT_EMPTY.body}
         </T>
-        <Button label="Add a supplement" onPress={() => router.push(ADD_SUPPLEMENT_ROUTE)} />
+        <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)}>
+          <T weight="semibold" color={theme.teal}>
+            {GO_TO_STACK_LABEL}
+          </T>
+        </Pressable>
       </Screen>
     );
   }

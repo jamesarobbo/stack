@@ -16,6 +16,8 @@ describe('fresh empty states', () => {
     for (const line of lines) {
       expect(line).not.toBe(line.toUpperCase());
     }
+    expect(AUDIT_EMPTY.body).toContain('My Stack');
+    expect(AUDIT_EMPTY.body.toLowerCase()).not.toContain('add a supplement');
     expect(IMPACT_EMPTY.wearableBody).toContain('few weeks');
     expect(REPORT_EMPTY.wearable).toContain('few weeks');
   });

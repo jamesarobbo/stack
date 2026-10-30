@@ -3,6 +3,8 @@ import {
   ADD_BUTTON_LABEL,
   ADD_SUPPLEMENT_LABEL,
   ADD_SUPPLEMENT_ROUTE,
+  GO_TO_STACK_LABEL,
+  STACK_TAB_HREF,
   CLEAR_ALL_DATA_LABEL,
   LOAD_EXAMPLE_LABEL,
   MONTHLY_REPORT_LABEL,
@@ -22,6 +24,8 @@ describe('stack labels', () => {
     expect(ADD_BUTTON_LABEL).toBe('Add');
     expect(ADD_SUPPLEMENT_LABEL).toBe('Add supplement');
     expect(ADD_SUPPLEMENT_ROUTE).toBe('/add');
+    expect(GO_TO_STACK_LABEL).toBe('Go to My Stack');
+    expect(STACK_TAB_HREF).toBe('/(tabs)/stack');
     expect(LOAD_EXAMPLE_LABEL).toBe('Load example data');
     expect(CLEAR_ALL_DATA_LABEL).toBe('Clear all data');
     expect(MONTHLY_REPORT_LABEL).toBe('Monthly report');
