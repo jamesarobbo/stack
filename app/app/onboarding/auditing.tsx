@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
 import { T } from '@/src/components/ui';
@@ -22,17 +23,20 @@ export default function AuditingStep() {
 
   return (
     <OnboardingFrame step="auditing">
-      <T weight="bold" size={30} style={{ letterSpacing: -0.6 }}>
+      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
         Auditing your stack
       </T>
-      <T size={15} color={theme.muted}>
+      <T size={16} color={theme.muted}>
         Checking what you entered.
       </T>
-      <View style={{ gap: 12 }}>
+      <View style={{ gap: 14 }}>
         {AUDIT_CHECKS.slice(0, shown).map((check) => (
-          <T key={check} weight="semibold" size={16}>
-            {check}
-          </T>
+          <View key={check} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Ionicons name="checkmark-circle" size={22} color={theme.teal} />
+            <T weight="semibold" size={16}>
+              {check}
+            </T>
+          </View>
         ))}
       </View>
     </OnboardingFrame>

@@ -1,7 +1,9 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
+import { ScoreHero } from '@/src/components/share';
 import { Button, Card, T } from '@/src/components/ui';
+import { scoreProducts } from '@/src/domain/auditScore';
 import { EXPECTATION } from '@/src/onboarding/answers';
 import { readGoals, readSpend, readWearable } from '@/src/onboarding/storage';
 import { buildOnboardingPreview } from '@/src/onboarding/preview';
@@ -11,16 +13,17 @@ import { theme } from '@/src/theme';
 export default function ResultStep() {
   const app = useApp();
   const preview = buildOnboardingPreview(app.products, readGoals(), readSpend(), readWearable());
+  const scored = scoreProducts(app.products);
 
   return (
     <OnboardingFrame step="result" footer={<Button label="See my full audit" onPress={() => router.push('/onboarding/save')} />}>
-      <T weight="semibold" size={15} color={theme.teal}>
-        {preview.goalLine}
-      </T>
-      <T weight="bold" size={30} style={{ letterSpacing: -0.6 }}>
+      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
         {preview.headline}
       </T>
-      <T size={15} color={theme.muted}>
+      <T size={15} weight="semibold" color={theme.teal}>
+        {preview.goalLine}
+      </T>
+      <T size={16} color={theme.muted}>
         {preview.because}
       </T>
       {preview.empty ? (
@@ -29,12 +32,9 @@ export default function ResultStep() {
             Add a product and Stack will look for duplicate ingredients, overlapping bottles, and doses near common upper limits.
           </T>
         </Card>
-      ) : null}
-      {preview.clean ? (
-        <Card>
-          <T size={15}>No duplicate ingredients, and nothing in this stack is near a published upper limit.</T>
-        </Card>
-      ) : null}
+      ) : (
+        <ScoreHero score={scored.score} summary={scored.summary} reasons={scored.reasons} />
+      )}
       {preview.wastedLabel ? (
         <Card style={{ backgroundColor: theme.amberBg, borderColor: theme.amberBorder }}>
           <T size={13} color={theme.amber}>
@@ -50,11 +50,6 @@ export default function ResultStep() {
           ))}
         </Card>
       ) : null}
-      {preview.limitLines.map((line) => (
-        <Card key={line}>
-          <T size={14}>{line}</T>
-        </Card>
-      ))}
       {preview.spendLine ? (
         <T size={15} color={theme.muted}>
           {preview.spendLine}

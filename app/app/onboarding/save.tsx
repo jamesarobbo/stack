@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput } from 'react-native';
+import { Platform, Pressable, StyleSheet } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
-import { Button, T } from '@/src/components/ui';
+import { Button, LabeledField, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
-import { font, theme } from '@/src/theme';
+import { theme } from '@/src/theme';
 
 export default function SaveStep() {
   const app = useApp();
@@ -22,14 +22,14 @@ export default function SaveStep() {
     <OnboardingFrame
       step="save"
       footer={
-        <Pressable accessibilityRole="button" onPress={next} hitSlop={8}>
-          <T size={14} color={theme.muted} style={{ textAlign: 'center' }}>
+        <Pressable accessibilityRole="button" onPress={next} style={styles.skip}>
+          <T size={15} weight="semibold" color={theme.muted} style={{ textAlign: 'center' }}>
             Not now
           </T>
         </Pressable>
       }
     >
-      <T weight="bold" size={30} style={styles.title}>
+      <T weight="bold" size={32} style={styles.title}>
         Save your stack and audit
       </T>
       <T size={15} color={theme.muted}>
@@ -42,14 +42,13 @@ export default function SaveStep() {
         </>
       ) : (
         <>
-          <TextInput
+          <LabeledField
+            label="Email"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
             placeholder="you@example.com"
-            placeholderTextColor={theme.faint}
-            style={styles.input}
           />
           <Button
             label="Email me a code"
@@ -66,14 +65,7 @@ export default function SaveStep() {
           />
           {sent ? (
             <>
-              <TextInput
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                placeholder="6-digit code"
-                placeholderTextColor={theme.faint}
-                style={styles.input}
-              />
+              <LabeledField label="Code" value={code} onChangeText={setCode} keyboardType="number-pad" placeholder="6-digit code" />
               {devCode ? (
                 <T size={13} color={theme.muted}>
                   {`Development code: ${devCode}. Production does not return this.`}
@@ -124,17 +116,6 @@ export default function SaveStep() {
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6 },
-  input: {
-    minHeight: 52,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E4E7EC',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontFamily: font.regular,
-    fontSize: 16,
-    color: theme.text,
-  },
+  title: { letterSpacing: -0.8 },
+  skip: { minHeight: 44, justifyContent: 'center' },
 });

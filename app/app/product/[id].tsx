@@ -1,14 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
+import { DoseMeters } from '@/src/components/share';
 import { UnitField } from '@/src/components/UnitField';
-import { BackButton, Button, Card, Disclaimer, ProductRow, Screen, T } from '@/src/components/ui';
+import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { applyScreenExit } from '@/src/navigation/exit';
 import { monthlyCostCents } from '@/src/domain/audit';
+import { scoreProducts } from '@/src/domain/auditScore';
 import { formatNumber, formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { font, theme } from '@/src/theme';
 
 export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,10 +29,36 @@ export default function ProductScreen() {
     );
   }
   const monthly = monthlyCostCents(product.priceCents, product.servingsPerContainer, product.servingsPerDay);
+  const totals = scoreProducts([product]).totals;
   return (
     <Screen>
       <BackButton />
-      <ProductRow product={product} />
+      <T weight="bold" size={32} style={styles.title}>
+        {product.name}
+      </T>
+      {product.brand ? (
+        <T size={15} color={theme.muted}>
+          {product.brand}
+        </T>
+      ) : null}
+      {product.priceCents > 0 ? (
+        <View style={{ gap: 2 }}>
+          <T weight="bold" size={36} style={styles.price}>
+            {formatUsd(monthly)}
+          </T>
+          <T size={14} color={theme.muted}>
+            a month, from the price and servings you entered
+          </T>
+        </View>
+      ) : null}
+      {totals.length > 0 ? (
+        <Card>
+          <T weight="semibold" size={17}>
+            Daily dose
+          </T>
+          <DoseMeters totals={totals} />
+        </Card>
+      ) : null}
       <Card>
         {product.priceCents <= 0 ? (
           <View style={{ gap: 8 }}>
@@ -42,9 +70,9 @@ export default function ProductScreen() {
               onChangeText={setPriceText}
               keyboardType="decimal-pad"
               placeholder="0.00"
-              placeholderTextColor={theme.faint}
+              placeholderTextColor={theme.muted}
               accessibilityLabel="Price you paid"
-              style={{ backgroundColor: theme.bg, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 }}
+              style={styles.input}
             />
             <Button
               label="Save price"
@@ -56,7 +84,7 @@ export default function ProductScreen() {
           </View>
         ) : (
           <T size={14} color={theme.muted}>
-            {`Monthly cost ${formatUsd(monthly)} from ${formatUsd(product.priceCents)} / ${product.servingsPerContainer} servings × ${product.servingsPerDay} a day × 30.`}
+            {`${formatUsd(product.priceCents)} for ${product.servingsPerContainer} servings, ${product.servingsPerDay} a day.`}
           </T>
         )}
         <DateField
@@ -95,3 +123,18 @@ export default function ProductScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  title: { letterSpacing: -0.8 },
+  price: { letterSpacing: -1.2, lineHeight: 42 },
+  input: {
+    minHeight: 48,
+    backgroundColor: theme.bg,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontFamily: font.regular,
+    color: theme.text,
+  },
+});

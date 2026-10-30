@@ -39,7 +39,7 @@ export default function WearableStep() {
         </View>
       }
     >
-      <T weight="bold" size={30} style={styles.title}>
+      <T weight="bold" size={32} style={styles.title}>
         Choose a wearable
       </T>
       <T size={15} color={theme.muted}>
@@ -70,11 +70,11 @@ export default function WearableStep() {
             onPress={() => setMessage(`${item.name} is coming soon. Apple Health is available in this version.`)}
             style={styles.wearable}
           >
-            <Ionicons name={item.icon} size={18} color={theme.faint} />
+            <Ionicons name={item.icon} size={18} color={theme.muted} />
             <T weight="semibold" color={theme.muted}>
               {item.name}
             </T>
-            <T size={12} color={theme.faint}>
+            <T size={13} color={theme.muted}>
               Coming soon
             </T>
           </Pressable>
@@ -90,7 +90,7 @@ export default function WearableStep() {
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6 },
+  title: { letterSpacing: -0.8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   wearable: {
     width: '48%',
@@ -102,5 +102,5 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 4,
   },
-  wearableOn: { borderColor: theme.teal, backgroundColor: '#F3FBFA' },
+  wearableOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
 });

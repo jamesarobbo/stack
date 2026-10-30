@@ -21,7 +21,7 @@ const SLATE_DEEP = '#1D2939';
 const INK = '#16181D';
 const MUTED = '#667085';
 const TRACK = '#EEF1F4';
-const OVER = '#C2414A';
+const OVER = '#B42318';
 
 export function scoreTone(score: number): 'good' | 'neutral' {
   return score >= 80 ? 'good' : 'neutral';

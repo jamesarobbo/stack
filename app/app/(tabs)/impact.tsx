@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { BarChart } from '@/src/components/BarChart';
-import { Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
+import { Button, Card, Disclaimer, EmptyLead, Pill, Screen, T } from '@/src/components/ui';
 import { ASSOCIATION } from '@/src/config';
 import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
 import { auditStack, productWastedCents } from '@/src/domain/audit';
@@ -32,17 +32,16 @@ export default function ImpactScreen() {
     const needsProduct = gaps.includes('products');
     return (
       <Screen>
-        <T weight="bold" size={32} style={styles.title}>
-          {needsProduct ? IMPACT_EMPTY.productsTitle : IMPACT_EMPTY.wearableTitle}
-        </T>
-        <T size={15} color={theme.muted}>
-          {needsProduct ? IMPACT_EMPTY.productsBody : IMPACT_EMPTY.wearableBody}
-        </T>
+        <EmptyLead
+          icon={needsProduct ? 'layers-outline' : 'stats-chart-outline'}
+          title={needsProduct ? IMPACT_EMPTY.productsTitle : IMPACT_EMPTY.wearableTitle}
+          body={needsProduct ? IMPACT_EMPTY.productsBody : IMPACT_EMPTY.wearableBody}
+        />
         <T size={15} color={theme.muted}>
           {currentWearableEmptyCopy()}
         </T>
         {needsProduct ? (
-          <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)}>
+          <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)} style={styles.link}>
             <T weight="semibold" color={theme.teal}>
               {GO_TO_STACK_LABEL}
             </T>
@@ -89,12 +88,22 @@ export default function ImpactScreen() {
         {product.name}
       </T>
       <T size={14} color={theme.muted}>
-        {`21-day baseline → 21 days after · ${source}`}
+        {`21 days before, then 21 days after. ${source}.`}
       </T>
       <Pill tone="teal">{ASSOCIATION}</Pill>
 
+      <View style={styles.heroStat}>
+        <T size={13} weight="semibold" color={theme.tealDark}>
+          Deep sleep
+        </T>
+        <T weight="bold" size={40} style={styles.heroValue}>
+          {sleep.after.mean == null ? '-' : formatHours(sleep.after.mean)}
+        </T>
+        <T size={15} weight="semibold" color={deltaColor(sleep.delta, 'teal')}>
+          {sleep.delta == null ? 'No days' : `${signed(sleep.delta)} vs baseline`}
+        </T>
+      </View>
       <View style={styles.stats}>
-        <Stat label="Deep sleep" value={sleep.after.mean == null ? '-' : formatHours(sleep.after.mean)} delta={sleep.delta} deltaLabel={sleep.delta == null ? 'No days' : `${signed(sleep.delta)} vs baseline`} tone="teal" />
         <Stat label="HRV (SDNN)" value={hrv.after.mean == null ? '-' : `${Math.round(hrv.after.mean)} ms`} delta={hrv.delta} deltaLabel={hrv.delta == null ? 'No days' : `${signed(hrv.delta)} ms`} tone="teal" />
         <Stat label="Resting HR" value={rhr.after.mean == null ? '-' : `${Math.round(rhr.after.mean)}`} delta={rhr.delta == null ? null : -rhr.delta} deltaLabel={rhr.delta == null ? 'No days' : `${signed(rhr.delta)} bpm`} tone="blue" />
       </View>
@@ -178,6 +187,12 @@ function formatHours(minutes: number): string {
   return `${h}h ${String(m).padStart(2, '0')}m`;
 }
 
+function deltaColor(delta: number | null, tone: 'teal' | 'blue'): string {
+  if (delta == null || delta === 0) return theme.muted;
+  if (delta > 0) return tone === 'blue' ? theme.blue : theme.teal;
+  return theme.muted;
+}
+
 function Stat({
   label,
   value,
@@ -191,13 +206,13 @@ function Stat({
   deltaLabel: string;
   tone: 'teal' | 'blue';
 }) {
-  const color = delta == null ? theme.muted : delta > 0 ? (tone === 'blue' ? theme.blue : theme.teal) : delta < 0 ? theme.muted : theme.muted;
+  const color = deltaColor(delta, tone);
   return (
     <View style={styles.stat}>
       <T size={12} weight="semibold" color={theme.muted}>
         {label}
       </T>
-      <T weight="bold" size={20}>
+      <T weight="bold" size={22} style={{ letterSpacing: -0.4 }}>
         {value}
       </T>
       <T size={12} weight="semibold" color={color}>
@@ -220,7 +235,7 @@ function Chip({ label }: { label: string }) {
 function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.tagButton}>
-      <T size={12} weight="semibold" color={theme.teal}>
+      <T size={14} weight="semibold" color={theme.teal}>
         {label}
       </T>
     </Pressable>
@@ -228,7 +243,10 @@ function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6, marginTop: 4 },
+  title: { letterSpacing: -0.8, marginTop: 4 },
+  link: { minHeight: 44, justifyContent: 'center' },
+  heroStat: { backgroundColor: theme.tealSoft, borderRadius: 20, padding: 18, gap: 4 },
+  heroValue: { letterSpacing: -1.2, lineHeight: 46 },
   stats: { flexDirection: 'row', gap: 8 },
   stat: {
     flex: 1,
@@ -242,5 +260,14 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderRadius: 999, borderWidth: 1, borderColor: '#E1E4EA', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#fff' },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tagButton: { paddingVertical: 4 },
+  tagButton: {
+    minHeight: 44,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E4E7EC',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

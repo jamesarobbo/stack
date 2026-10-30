@@ -191,7 +191,7 @@ function escapeHtml(value: string): string {
 }
 
 const STYLES = `
-:root { --teal:#0E7C6B; --teal-deep:#0A5C50; --teal-soft:#E5F5F1; --ink:#16181D; --muted:#667085; --line:#EEF0F3; --slate:#344054; --over:#C2414A; --over-soft:#FDECEC; --near:#9A6700; --near-soft:#FFF6E4; }
+:root { --teal:#0E7C6B; --teal-deep:#0A5C50; --teal-soft:#E5F5F1; --ink:#16181D; --muted:#667085; --line:#EEF0F3; --slate:#344054; --over:#B42318; --over-soft:#FDECEC; --near:#7A5200; --near-soft:#FFF6E4; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #FFFFFF; color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 480px; margin: 0 auto; padding: 12px 20px 48px; }

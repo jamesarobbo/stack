@@ -19,8 +19,8 @@ Tokens live in `app/src/theme.ts`. The public page repeats them as CSS variables
 | Teal wash | `theme.tealSoft` | `#E5F5F1` | Result hero, icon bubble, selected row. Teal text on it is 4.5:1. |
 | Slate | `tint.slate` | `#344054` | Scores under 80, so a low score never looks like a success. White on slate is 10.5:1. |
 | Slate deep | `tint.slateDeep` | `#1D2939` | The far end of the low-score panel. |
-| Amber | `theme.amber` | `#9A6700` | Savings and prices only, on `amberBg` `#FFF6E4`. 4.5:1 on that wash. |
-| Flag | `theme.flagText` | `#C2414A` | A dose over the upper limit. On `flagBg` it is 4.4:1, just under the bar, so put flag text on white when you touch it. |
+| Amber | `theme.amber` | `#7A5200` | Savings and prices only. 6.9:1 on white, 6.4:1 on `amberBg` `#FFF6E4`, 5.8:1 on `amberPill` `#FDE8C0`. |
+| Flag | `theme.flagText` | `#B42318` | A dose over the upper limit. 5.8:1 on `flagBg`, 6.6:1 on white. The public page and the preview image use the same red for an over-limit bar. |
 | Near | `tint.nearBar` | `#DC9B04` | The meter fill from 90 percent of the limit. A fill, not a text colour. |
 
 `scoreTone` in `app/src/components/share.tsx` and `server/src/og.ts` returns teal from 80 and slate below. Use it. Do not colour a score any other way.
@@ -75,3 +75,15 @@ The sharing screens do it like this. Copy the pattern instead of decorating.
 - Daily doses are a meter or a composition strip, not a paragraph of numbers.
 - The share card preview mirrors the link image: white, a 4px teal line on the top edge, the name, and a small score panel. That top line belongs to this preview only. Do not put a coloured side stripe on ordinary cards.
 - The score panel may blend teal into `#0A5C50`, or slate into `#1D2939`. That is the only gradient. No gradient text, no rainbow, no background halo.
+
+## Where the same pieces show up
+
+- Audit leads with `ScoreHero`, then the amber savings block, then `DoseMeters`. The dose score is the same `scoreProducts` helper the share screen uses. Price is not an input.
+- My Stack keeps the monthly spend as the largest number. A `ScoreBadge` sits under it and opens Audit. Discover and Share stack are text links in the header, at least 44 points tall.
+- Impact leads with deep sleep on `tealSoft`. The other two metrics sit beside each other. The chart bars are taller, and the tag controls are full chip height.
+- The monthly report is titled "Monthly report" with a Pro pill on the same row. Overlap dollars sit on the amber block. That savings score is the Pro dollar figure, not the dose score, so it does not use the teal ring.
+- Onboarding choices that are a sentence stay full-width rows, with a check when selected and a `tealSoft` fill. Age and sex are short, so they use `Chip`. The result step shows `ScoreHero` once there is a product.
+- Selected plans, wearable cards, and choice rows use `theme.tealSoft`, not a one-off pale hex.
+- Empty audit and impact screens use `EmptyLead`: a teal bubble, one sentence of what is missing, and a link back to My Stack. They do not add a second add button.
+- Sign in and the save step label their fields. Buttons use a minimum height of 52 so larger text can grow.
+- The numeral inside `ScoreRing` and `ScoreBadge` does not scale, because it is sized to the shape. Every other label does.

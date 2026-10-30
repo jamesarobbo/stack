@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { applyScreenExit } from '../navigation/exit';
 import { DISCLAIMER } from '../config';
@@ -17,15 +17,22 @@ export function T({
   weight = 'regular',
   size = 16,
   color = theme.text,
+  scale = true,
   style,
 }: {
   children: ReactNode;
   weight?: Weight;
   size?: number;
   color?: string;
+  /** False only for a numeral sized to a fixed ring or badge. */
+  scale?: boolean;
   style?: StyleProp<TextStyle>;
 }) {
-  return <Text style={[{ fontFamily: font[weight], fontSize: size, color, lineHeight: Math.round(size * 1.35) }, style]}>{children}</Text>;
+  return (
+    <Text allowFontScaling={scale} style={[{ fontFamily: font[weight], fontSize: size, color, lineHeight: Math.round(size * 1.35) }, style]}>
+      {children}
+    </Text>
+  );
 }
 
 export function Screen({
@@ -60,7 +67,7 @@ export function Eyebrow({ left, right }: { left: string; right?: string }) {
         {left}
       </T>
       {right ? (
-        <T size={13} weight="medium" color={theme.faint}>
+        <T size={13} weight="medium" color={theme.muted}>
           {right}
         </T>
       ) : null}
@@ -101,6 +108,56 @@ export function Pill({
     <View style={[styles.pill, { backgroundColor: tones.bg }]}>
       <T size={12} weight="semibold" color={tones.fg}>
         {children}
+      </T>
+    </View>
+  );
+}
+
+export function LabeledField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+  autoCapitalize = 'sentences',
+}: {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder?: string;
+  keyboardType?: 'default' | 'email-address' | 'number-pad' | 'decimal-pad';
+  autoCapitalize?: 'none' | 'sentences';
+}) {
+  return (
+    <View style={{ gap: 6 }}>
+      <T size={13} weight="semibold">
+        {label}
+      </T>
+      <TextInput
+        accessibilityLabel={label}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={theme.muted}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        style={styles.field}
+      />
+    </View>
+  );
+}
+
+export function EmptyLead({ icon, title, body }: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string }) {
+  return (
+    <View style={{ gap: 10 }}>
+      <View style={styles.emptyMark}>
+        <Ionicons name={icon} size={22} color={theme.teal} />
+      </View>
+      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+        {title}
+      </T>
+      <T size={16} color={theme.muted}>
+        {body}
       </T>
     </View>
   );
@@ -238,7 +295,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
-  button: { height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  field: {
+    minHeight: 48,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E4E7EC',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontFamily: font.regular,
+    fontSize: 16,
+    color: theme.text,
+  },
+  emptyMark: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.tealSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   buttonTeal: { backgroundColor: theme.teal },
   buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: '#D9DEE5' },
   disclaimer: {

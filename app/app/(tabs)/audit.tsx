@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
+import { DoseMeters, FadeIn, ScoreHero } from '@/src/components/share';
+import { Card, Disclaimer, EmptyLead, Pill, Screen, T } from '@/src/components/ui';
 import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
 import { auditStack, formatWasted } from '@/src/domain/audit';
+import { scoreProducts } from '@/src/domain/auditScore';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
 import { formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
@@ -12,18 +14,14 @@ import { theme } from '@/src/theme';
 export default function AuditScreen() {
   const app = useApp();
   const audit = useMemo(() => auditStack(app.products), [app.products]);
+  const scored = useMemo(() => scoreProducts(app.products), [app.products]);
   const flagCount = audit.limits.length;
 
   if (app.products.length === 0) {
     return (
       <Screen>
-        <T weight="bold" size={32} style={styles.title}>
-          {AUDIT_EMPTY.title}
-        </T>
-        <T size={15} color={theme.muted}>
-          {AUDIT_EMPTY.body}
-        </T>
-        <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)}>
+        <EmptyLead icon="search-outline" title={AUDIT_EMPTY.title} body={AUDIT_EMPTY.body} />
+        <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)} style={styles.link}>
           <T weight="semibold" color={theme.teal}>
             {GO_TO_STACK_LABEL}
           </T>
@@ -35,21 +33,30 @@ export default function AuditScreen() {
   return (
     <Screen>
       {app.usingSampleData ? <Pill>Example data</Pill> : null}
-      <T weight="bold" size={32} style={styles.title}>
-        Where spend and doses overlap
-      </T>
+      <FadeIn>
+        <ScoreHero score={scored.score} summary={scored.summary} reasons={scored.reasons} />
+      </FadeIn>
       <View style={styles.savings}>
         <Pill tone="amber">Possible savings</Pill>
-        <T weight="bold" size={28} style={styles.savingsTitle}>
-          {audit.wastedCents > 0 ? `You could save ${formatUsd(audit.wastedCents)}/month` : 'No duplicate spend found'}
+        <T weight="bold" size={32} style={styles.savingsTitle}>
+          {audit.wastedCents > 0 ? `You could save ${formatUsd(audit.wastedCents)} a month` : 'No duplicate spend found'}
         </T>
         <T size={14} color={theme.muted}>
           {audit.subtitle}
         </T>
       </View>
 
+      {scored.totals.length > 0 ? (
+        <Card>
+          <T weight="semibold" size={17}>
+            Daily totals
+          </T>
+          <DoseMeters totals={scored.totals} />
+        </Card>
+      ) : null}
+
       <Card>
-        <T weight="semibold" size={16}>
+        <T weight="semibold" size={17}>
           Duplicate ingredients
         </T>
         {audit.duplicates.length === 0 ? (
@@ -77,7 +84,7 @@ export default function AuditScreen() {
 
       <Card>
         <View style={styles.lineHeader}>
-          <T weight="semibold" size={16}>
+          <T weight="semibold" size={17}>
             Near published upper limit
           </T>
           {flagCount > 0 ? <Pill tone="flag">{`${flagCount} flag${flagCount === 1 ? '' : 's'}`}</Pill> : null}
@@ -90,7 +97,7 @@ export default function AuditScreen() {
           audit.limits.map((finding) => (
             <View key={finding.key} style={{ gap: 4 }}>
               <T size={14}>{finding.message}</T>
-              <T size={12} color={theme.faint}>
+              <T size={13} color={theme.muted}>
                 {finding.citation}
               </T>
             </View>
@@ -100,7 +107,7 @@ export default function AuditScreen() {
 
       <Card>
         <View style={styles.lineHeader}>
-          <T weight="semibold" size={16}>
+          <T weight="semibold" size={17}>
             Interaction notes
           </T>
           <Pill>Educational</Pill>
@@ -135,16 +142,16 @@ export default function AuditScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6, marginTop: 4 },
+  link: { minHeight: 44, justifyContent: 'center' },
   savings: {
     backgroundColor: theme.amberBg,
     borderColor: theme.amberBorder,
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    padding: 18,
     gap: 8,
   },
-  savingsTitle: { letterSpacing: -0.4 },
+  savingsTitle: { letterSpacing: -0.6 },
   line: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
   lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   moneyPill: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },

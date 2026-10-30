@@ -16,7 +16,7 @@ export default function SpendStep() {
       step="spend"
       footer={<Button label="Use this spend" disabled={selected == null} onPress={() => void go(selected)} />}
     >
-      <T weight="bold" size={30} style={{ letterSpacing: -0.6 }}>
+      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
         Rough monthly supplement spend
       </T>
       <T size={15} color={theme.muted}>

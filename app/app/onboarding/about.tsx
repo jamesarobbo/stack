@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { Choice, OnboardingFrame } from '@/src/components/OnboardingProgress';
+import { OnboardingFrame } from '@/src/components/OnboardingProgress';
+import { Chip } from '@/src/components/share';
 import { Button, T } from '@/src/components/ui';
 import { syncProfile } from '@/src/data/profile';
 import { localToday } from '@/src/dates';
@@ -20,22 +21,26 @@ export default function AboutStep() {
       step="about"
       footer={<Button label="Continue" disabled={age == null || sex == null} onPress={() => void go(age, sex)} />}
     >
-      <T weight="bold" size={30} style={{ letterSpacing: -0.6 }}>
+      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
         About you
       </T>
-      <T size={15} color={theme.muted}>
+      <T size={16} color={theme.muted}>
         {"Used for Discover's people like you and for grouped results. Never shown on your shared page."}
       </T>
-      <T weight="semibold">Age range</T>
-      <View style={{ gap: 10 }}>
+      <T weight="semibold" size={17} style={{ marginTop: 8 }}>
+        Age range
+      </T>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {AGE_RANGES.map((option) => (
-          <Choice key={option.key} label={option.label} selected={age === option.key} onPress={() => setAge(option.key)} />
+          <Chip key={option.key} label={option.label} selected={age === option.key} onPress={() => setAge(option.key)} />
         ))}
       </View>
-      <T weight="semibold">Sex</T>
-      <View style={{ gap: 10 }}>
+      <T weight="semibold" size={17} style={{ marginTop: 8 }}>
+        Sex
+      </T>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {SEXES.map((option) => (
-          <Choice key={option.key} label={option.label} selected={sex === option.key} onPress={() => setSex(option.key)} />
+          <Chip key={option.key} label={option.label} selected={sex === option.key} onPress={() => setSex(option.key)} />
         ))}
       </View>
     </OnboardingFrame>

@@ -27,11 +27,11 @@ export function BarChart({
       </View>
       <View style={styles.plot}>
         {left.map((value, index) => (
-          <View key={`b-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 112), backgroundColor: '#D5D8DE' }]} />
+          <View key={`b-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 128), backgroundColor: '#D5D8DE' }]} />
         ))}
         <View style={{ width: 14 }} />
         {right.map((value, index) => (
-          <View key={`a-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 112), backgroundColor: theme.teal }]} />
+          <View key={`a-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 128), backgroundColor: theme.teal }]} />
         ))}
       </View>
       <View style={styles.labels}>
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  plot: { height: 120, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 7 },
+  plot: { height: 140, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 7 },
   bar: { width: 14, borderRadius: 5 },
   labels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 },
 });

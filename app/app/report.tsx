@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { BackButton, Button, Card, Disclaimer, Pill, Screen, SectionLabel, T } from '@/src/components/ui';
+import { BackButton, Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { ASSOCIATION } from '@/src/config';
 import { MONTHLY_REPORT_LABEL } from '@/src/copy/labels';
 import { localToday } from '@/src/dates';
@@ -24,11 +24,8 @@ export default function ReportScreen() {
     return (
       <Screen>
         <BackButton label="Close" />
-        <SectionLabel label={MONTHLY_REPORT_LABEL} badge="Pro" />
-        <T weight="bold" size={32} style={styles.title}>
-          The monthly report is part of Pro
-        </T>
-        <T size={15} color={theme.muted}>
+        <ReportTitle />
+        <T size={16} color={theme.muted}>
           It lines up each supplement with a keep, drop, or unclear label, plus the overlap score and the confounders you logged.
         </T>
         <Button label="See Pro" onPress={() => router.push('/paywall')} />
@@ -40,7 +37,7 @@ export default function ReportScreen() {
   return (
     <Screen>
       <BackButton label="Close" />
-      <SectionLabel label={MONTHLY_REPORT_LABEL} badge="Pro" />
+      <ReportTitle />
       {freshStartGaps({ products: app.products.length, wearableSamples: app.samples.length }).length > 0 ? (
         <ReportEmpty products={app.products.length} />
       ) : (
@@ -54,7 +51,7 @@ export default function ReportScreen() {
 function ReportEmpty({ products }: { products: number }) {
   return (
     <>
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="bold" size={28} style={styles.title}>
         {REPORT_EMPTY.title}
       </T>
       {products === 0 ? (
@@ -75,19 +72,14 @@ function ReportEmpty({ products }: { products: number }) {
 function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> }) {
   return (
     <>
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={18} color={theme.muted}>
         {report.month}
       </T>
-      <Card>
-        <T size={13} weight="semibold" color={theme.muted}>
-          Summary
-        </T>
-        <T size={16}>{report.summary}</T>
-        <Pill tone="teal">{ASSOCIATION}</Pill>
-      </Card>
+      <T size={16}>{report.summary}</T>
+      <Pill tone="teal">{ASSOCIATION}</Pill>
 
       <Card>
-        <T weight="semibold" size={16}>
+        <T weight="semibold" size={17}>
           Supplement comparison
         </T>
         <T size={12} color={theme.muted}>
@@ -106,7 +98,7 @@ function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> 
       </Card>
 
       <Card>
-        <T weight="semibold" size={16}>
+        <T weight="semibold" size={17}>
           Keep, drop, or unclear
         </T>
         {report.supplements.map((item) => (
@@ -122,11 +114,11 @@ function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> 
         </T>
       </Card>
 
-      <Card>
-        <T size={13} color={theme.muted}>
+      <View style={styles.savings}>
+        <T size={13} weight="semibold" color={theme.amber}>
           Potential overlap spend
         </T>
-        <T weight="bold" size={28}>
+        <T weight="bold" size={40} color={theme.amber} style={styles.savingsValue}>
           {formatUsd(report.wastedCents)}
         </T>
         <T size={14} color={theme.muted}>
@@ -135,10 +127,10 @@ function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> 
         <T size={14}>
           {`Savings score ${report.savingsScore}. 100 means none of the monthly spend is tied to a duplicate ingredient.`}
         </T>
-      </Card>
+      </View>
 
       <Card>
-        <T weight="semibold" size={16}>
+        <T weight="semibold" size={17}>
           Confounders logged
         </T>
         <T size={14}>{`Hard training days: ${report.hardTrainingDays}`}</T>
@@ -152,6 +144,17 @@ function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> 
   );
 }
 
+function ReportTitle() {
+  return (
+    <View style={styles.titleRow}>
+      <T weight="bold" size={32} style={styles.title}>
+        {MONTHLY_REPORT_LABEL}
+      </T>
+      <Pill tone="teal">Pro</Pill>
+    </View>
+  );
+}
+
 function VerdictPill({ verdict }: { verdict: Verdict }) {
   const tone = verdict === 'keep' ? 'teal' : verdict === 'drop' ? 'amber' : 'grey';
   const label = verdict === 'keep' ? 'Keep' : verdict === 'drop' ? 'Drop' : 'Unclear';
@@ -159,6 +162,16 @@ function VerdictPill({ verdict }: { verdict: Verdict }) {
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  title: { letterSpacing: -0.8, flex: 1 },
+  savings: {
+    backgroundColor: theme.amberBg,
+    borderColor: theme.amberBorder,
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 18,
+    gap: 8,
+  },
+  savingsValue: { letterSpacing: -1.2, lineHeight: 46 },
+  line: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 36 },
 });

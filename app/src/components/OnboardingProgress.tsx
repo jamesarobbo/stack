@@ -68,7 +68,10 @@ export function Choice({ label, selected, onPress }: { label: string; selected: 
       onPress={onPress}
       style={[styles.choice, selected ? styles.choiceOn : null]}
     >
-      <T weight="semibold">{label}</T>
+      <T weight="semibold" style={{ flex: 1 }}>
+        {label}
+      </T>
+      {selected ? <Ionicons name="checkmark-circle" size={20} color={theme.teal} /> : null}
     </Pressable>
   );
 }
@@ -88,7 +91,9 @@ const styles = StyleSheet.create({
     borderColor: '#EEF0F3',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  choiceOn: { borderColor: theme.teal, backgroundColor: '#F3FBFA' },
+  choiceOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
 });

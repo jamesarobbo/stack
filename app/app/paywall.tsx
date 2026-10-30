@@ -68,13 +68,15 @@ export default function PaywallScreen() {
     <Screen>
       {fromOnboarding ? <OnboardingProgress step="paywall" /> : null}
       <BackButton fallback={fromOnboarding ? '/onboarding/save' : '/(tabs)/more'} />
-      <T size={13} weight="semibold" color={theme.teal}>
-        {fromOnboarding ? goalEcho(readGoals()) : 'Stack Pro'}
-      </T>
       <T weight="bold" size={32} style={styles.title}>
         {fromOnboarding ? 'Keep this audit, and the weeks after' : 'See every dollar and every signal'}
       </T>
-      <T size={15} color={theme.muted}>
+      {fromOnboarding ? (
+        <T size={15} weight="semibold" color={theme.teal}>
+          {goalEcho(readGoals())}
+        </T>
+      ) : null}
+      <T size={16} color={theme.muted}>
         {fromOnboarding
           ? `${wearableLine(readWearable())} ${EXPECTATION}`
           : 'Free covers the basics. Pro adds multi-supplement impact, confounder notes, and a monthly report.'}
@@ -106,9 +108,11 @@ export default function PaywallScreen() {
           <T weight="bold" size={18}>
             {formatUsd(PRO_ANNUAL_CENTS)}
           </T>
-          <T size={12} color={theme.teal}>
-            {`Save ${formatUsd(PRO_ANNUAL_SAVINGS_CENTS)}`}
-          </T>
+          <View style={styles.save}>
+            <T size={13} weight="semibold" color={theme.amber}>
+              {`Save ${formatUsd(PRO_ANNUAL_SAVINGS_CENTS)}`}
+            </T>
+          </View>
         </View>
       </Pressable>
 
@@ -175,13 +179,13 @@ export default function PaywallScreen() {
 function Mark({ on }: { on: boolean }) {
   return (
     <View style={styles.col}>
-      <Ionicons name={on ? 'checkmark' : 'remove'} size={16} color={on ? theme.teal : theme.faint} />
+      <Ionicons name={on ? 'checkmark' : 'remove'} size={16} color={on ? theme.teal : theme.muted} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6 },
+  title: { letterSpacing: -0.8 },
   plan: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -192,8 +196,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  planOn: { borderColor: theme.teal, backgroundColor: '#F3FBFA' },
+  planOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
   best: { backgroundColor: theme.tealSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  save: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
   table: { backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#EEF0F3', padding: 14, gap: 10 },
   tableHead: { flexDirection: 'row', alignItems: 'center' },
   tableRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

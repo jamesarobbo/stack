@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
-import { Button, Eyebrow, Pill, T } from '@/src/components/ui';
+import { Button, Pill, T } from '@/src/components/ui';
 import { goalEcho } from '@/src/onboarding/answers';
 import { readGoals } from '@/src/onboarding/storage';
 import { SUPPLEMENT_ENTRY } from '@/src/onboarding/steps';
@@ -31,13 +31,13 @@ export default function SupplementStep() {
         />
       }
     >
-      <T weight="semibold" size={15} color={theme.teal}>
-        {echo}
-      </T>
-      <T weight="bold" size={30} style={styles.title}>
+      <T weight="bold" size={32} style={styles.title}>
         Add your supplements
       </T>
-      <T size={15} color={theme.muted}>
+      <T size={15} weight="semibold" color={theme.teal}>
+        {echo}
+      </T>
+      <T size={16} color={theme.muted}>
         Search the NIH label database, scan a barcode, or type what the bottle says. You still enter the price and the start date.
       </T>
       <View style={styles.list}>
@@ -60,13 +60,15 @@ export default function SupplementStep() {
                 {entry.detail}
               </T>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.faint} />
+            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
           </Pressable>
         ))}
       </View>
       {app.products.length > 0 ? (
         <>
-          <Eyebrow left="In your stack" />
+          <T weight="semibold" size={17}>
+            In your stack
+          </T>
           <View style={styles.chips}>
             {shown.map((product) => (
               <Pill key={product.id} tone="teal">
@@ -86,7 +88,7 @@ export default function SupplementStep() {
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6 },
+  title: { letterSpacing: -0.8 },
   list: { gap: 10 },
   row: {
     minHeight: 72,

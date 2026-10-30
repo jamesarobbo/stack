@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Card, Screen, T } from '@/src/components/ui';
 import { APP_NAME, APP_TAGLINE } from '@/src/config';
@@ -17,21 +18,19 @@ export default function MoreScreen() {
       <T weight="bold" size={32} style={styles.title}>
         {APP_NAME}
       </T>
-      <T size={15} color={theme.muted} style={{ marginTop: -6 }}>
+      <T size={16} color={theme.muted}>
         {APP_TAGLINE}
       </T>
-      {app.previewPro ? (
-        <Row
-          title="Turn off Pro preview"
-          detail="Preview is on for this device. It is not a charge."
-          onPress={() => void app.setPreviewPro(false)}
-        />
-      ) : null}
-      <Row title={app.isPro ? 'Pro is on' : 'Stack Pro'} detail={app.isPro ? 'Multi-compare, confounders, monthly report' : '$7.99/month or $59/year'} onPress={() => router.push('/paywall')} />
-      <Row title="Monthly report" detail={app.isPro ? 'Keep, drop, or unclear' : 'Pro'} onPress={() => router.push('/report')} />
-      <Row title={app.sessionToken ? 'Signed in' : 'Sign in'} detail={app.email || 'Syncs your supplement list only'} onPress={() => router.push('/sign-in')} />
-      <Row title="Settings" detail="Export and delete" onPress={() => router.push('/settings')} />
-      <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} />
+      <View style={styles.menu}>
+        {app.previewPro ? (
+          <Row title="Turn off Pro preview" detail="Preview is on for this device. It is not a charge." onPress={() => void app.setPreviewPro(false)} />
+        ) : null}
+        <Row title={app.isPro ? 'Pro is on' : 'Stack Pro'} detail={app.isPro ? 'Multi-compare, confounders, monthly report' : '$7.99/month or $59/year'} onPress={() => router.push('/paywall')} />
+        <Row title="Monthly report" detail={app.isPro ? 'Keep, drop, or unclear' : 'Pro'} onPress={() => router.push('/report')} />
+        <Row title={app.sessionToken ? 'Signed in' : 'Sign in'} detail={app.email || 'Syncs your supplement list only'} onPress={() => router.push('/sign-in')} />
+        <Row title="Settings" detail="Export and delete" onPress={() => router.push('/settings')} />
+        <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} last />
+      </View>
       <DeveloperTools />
       <Card>
         <T weight="semibold">Wearable reads</T>
@@ -136,26 +135,33 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Row({ title, detail, onPress }: { title: string; detail: string; onPress: () => void }) {
+function Row({ title, detail, onPress, last = false }: { title: string; detail: string; onPress: () => void; last?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress}>
-      <Card>
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <T weight="semibold">{title}</T>
-            <T size={13} color={theme.muted}>
-              {detail}
-            </T>
-          </View>
-          <T color={theme.faint}>›</T>
-        </View>
-      </Card>
+    <Pressable accessibilityRole="button" onPress={onPress} style={[styles.row, last ? styles.rowLast : null]}>
+      <View style={{ flex: 1 }}>
+        <T weight="semibold">{title}</T>
+        <T size={13} color={theme.muted}>
+          {detail}
+        </T>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={theme.muted} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6, marginTop: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  metric: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  title: { letterSpacing: -0.8, marginTop: 4 },
+  menu: { backgroundColor: theme.card, borderRadius: 16, borderWidth: 1, borderColor: '#EEF0F3', overflow: 'hidden' },
+  row: {
+    minHeight: 60,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.line,
+  },
+  rowLast: { borderBottomWidth: 0 },
+  metric: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, minHeight: 28 },
 });

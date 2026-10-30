@@ -246,7 +246,7 @@ function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void;
         </T>
       ) : null}
       {attribution && hits.length > 0 ? (
-        <T size={12} color={theme.faint}>
+        <T size={13} color={theme.muted}>
           {attribution}
         </T>
       ) : null}
@@ -293,7 +293,7 @@ function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }
             {`${ingredient.name} · ${ingredient.amount} ${ingredient.unit}`}
           </T>
         ))}
-        <T size={12} color={theme.faint}>
+        <T size={13} color={theme.muted}>
           {label.dsldId
             ? `Amounts from NIH DSLD ${label.dsldId}. You can change a unit after saving.`
             : 'You entered this label. It is saved for your account when you are signed in.'}
@@ -407,7 +407,7 @@ function ManualAdd({
         </View>
       ) : null}
       {off ? (
-        <T size={12} color={theme.faint}>
+        <T size={13} color={theme.muted}>
           {OFF_ATTRIBUTION}
         </T>
       ) : null}

@@ -117,10 +117,10 @@ export function ScoreRing({
         <Animated.View style={[arc, { position: 'absolute', left: 0, transform: [{ rotate: left }] }]} />
       </View>
       <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-        <T weight="bold" size={size * 0.36} color={textColor} style={{ letterSpacing: -1.5, lineHeight: size * 0.4 }}>
+        <T scale={false} weight="bold" size={size * 0.36} color={textColor} style={{ letterSpacing: -1.5, lineHeight: size * 0.4 }}>
           {String(reduced ? Math.round(target * 100) : shown)}
         </T>
-        <T size={11} weight="medium" color={subColor} style={{ marginTop: -2 }}>
+        <T scale={false} size={11} weight="medium" color={subColor} style={{ marginTop: -2 }}>
           out of 100
         </T>
       </View>
@@ -337,7 +337,7 @@ export function ScoreBadge({ score, size = 56 }: { score: number; size?: number 
       accessible
       accessibilityLabel={`Audit score ${score} out of 100`}
     >
-      <T weight="bold" size={size * 0.4} color="#FFFFFF" style={{ letterSpacing: -0.8, lineHeight: size * 0.46 }}>
+      <T scale={false} weight="bold" size={size * 0.4} color="#FFFFFF" style={{ letterSpacing: -0.8, lineHeight: size * 0.46 }}>
         {String(score)}
       </T>
     </View>

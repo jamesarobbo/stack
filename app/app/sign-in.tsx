@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Platform, StyleSheet, TextInput } from 'react-native';
-import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
+import { Platform, StyleSheet } from 'react-native';
+import { BackButton, Button, Card, LabeledField, Screen, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
-import { font, theme } from '@/src/theme';
+import { theme } from '@/src/theme';
 
 /** Back to the screen that asked for sign-in, for example a shared stack waiting to be copied. */
 function returnAfterSignIn() {
@@ -47,14 +47,13 @@ export default function SignInScreen() {
       <T size={15} color={theme.muted}>
         Email code, or Sign in with Apple on iPhone. Health data is not part of the account.
       </T>
-      <TextInput
+      <LabeledField
+        label="Email"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
         placeholder="you@example.com"
-        placeholderTextColor={theme.faint}
-        style={styles.input}
       />
       <Button
         label="Email me a code"
@@ -71,14 +70,7 @@ export default function SignInScreen() {
       />
       {sent ? (
         <>
-          <TextInput
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            placeholder="6-digit code"
-            placeholderTextColor={theme.faint}
-            style={styles.input}
-          />
+          <LabeledField label="Code" value={code} onChangeText={setCode} keyboardType="number-pad" placeholder="6-digit code" />
           {devCode ? (
             <T size={13} color={theme.muted}>
               {`Development code: ${devCode}. Production does not return this.`}
@@ -127,16 +119,5 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6 },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E4E7EC',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontFamily: font.regular,
-    fontSize: 16,
-    color: theme.text,
-  },
+  title: { letterSpacing: -0.8 },
 });

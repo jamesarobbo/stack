@@ -218,8 +218,8 @@ export default function SettingsScreen() {
           </T>
         </Pressable>
       </Card>
-      <T size={12} color={theme.faint}>
-        {`${APP_NAME} · educational wellness log · not a medical device`}
+      <T size={13} color={theme.muted}>
+        {`${APP_NAME}. Educational wellness log. Not a medical device.`}
       </T>
     </Screen>
   );
