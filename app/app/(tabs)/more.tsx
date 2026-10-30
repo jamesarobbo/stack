@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Card, Eyebrow, Screen, T } from '@/src/components/ui';
+import { Card, Screen, T } from '@/src/components/ui';
 import { APP_NAME, APP_TAGLINE } from '@/src/config';
 import { CLEAR_ALL_DATA_LABEL, LOAD_EXAMPLE_LABEL } from '@/src/copy/labels';
 import { devToolsInProfile, openDevTools } from '@/src/devMenu';
@@ -14,7 +14,6 @@ export default function MoreScreen() {
   const latest = useMemo(() => latestMetrics(app.samples), [app.samples]);
   return (
     <Screen>
-      <Eyebrow left="More" />
       <T weight="bold" size={32} style={styles.title}>
         {APP_NAME}
       </T>

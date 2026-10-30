@@ -1,11 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, Eyebrow, Pill, ProductRow, T } from '@/src/components/ui';
+import { Button, Card, Pill, ProductRow, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
-import { ADD_BUTTON_LABEL, ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
+import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
 import { auditStack } from '@/src/domain/audit';
 import { formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
@@ -20,19 +19,10 @@ export default function StackScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Eyebrow left="My stack" right={app.products.length === 1 ? '1 product' : `${app.products.length} products`} />
-        <View style={styles.titleRow}>
-          <T weight="bold" size={34} style={styles.title}>
-            {title}
-          </T>
-          <Pressable accessibilityRole="button" accessibilityLabel={ADD_SUPPLEMENT_LABEL} onPress={openAdd} style={styles.add}>
-            <Ionicons name="add" size={18} color="#fff" />
-            <T weight="semibold" size={15} color="#fff">
-              {ADD_BUTTON_LABEL}
-            </T>
-          </Pressable>
-        </View>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+        <T weight="bold" size={34} style={styles.title}>
+          {title}
+        </T>
         <T size={14} color={theme.muted}>
           {APP_NAME} adds up what the labels say you pay.
         </T>
@@ -80,17 +70,7 @@ export default function StackScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
   header: { paddingHorizontal: 20, paddingBottom: 8, gap: 4 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  title: { letterSpacing: -0.8, flex: 1 },
-  add: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    backgroundColor: theme.teal,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 40,
-  },
+  title: { letterSpacing: -0.8 },
   scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20, gap: 14 },
   spend: { letterSpacing: -1.2, lineHeight: 46 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },

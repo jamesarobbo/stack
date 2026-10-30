@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { BarChart } from '@/src/components/BarChart';
-import { Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { ASSOCIATION } from '@/src/config';
 import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
 import { auditStack, productWastedCents } from '@/src/domain/audit';
@@ -32,7 +32,6 @@ export default function ImpactScreen() {
     const needsProduct = gaps.includes('products');
     return (
       <Screen>
-        <Eyebrow left="Wearable impact" />
         <T weight="bold" size={32} style={styles.title}>
           {needsProduct ? IMPACT_EMPTY.productsTitle : IMPACT_EMPTY.wearableTitle}
         </T>
@@ -85,7 +84,7 @@ export default function ImpactScreen() {
 
   return (
     <Screen>
-      <Eyebrow left="Wearable impact" right={app.usingSampleData ? 'Example data' : undefined} />
+      {app.usingSampleData ? <Pill>Example data</Pill> : null}
       <T weight="bold" size={32} style={styles.title}>
         {product.name}
       </T>

@@ -1,5 +1,4 @@
 export const ADD_SUPPLEMENT_ROUTE = '/add';
-export const ADD_BUTTON_LABEL = 'Add';
 export const ADD_SUPPLEMENT_LABEL = 'Add supplement';
 export const GO_TO_STACK_LABEL = 'Go to My Stack';
 export const STACK_TAB_HREF = '/(tabs)/stack';

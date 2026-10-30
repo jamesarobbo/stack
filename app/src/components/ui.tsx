@@ -39,11 +39,11 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const body = scroll ? (
-    <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.scroll, { paddingTop: insets.top + 12, flex: 1 }]}>{children}</View>
+    <View style={[styles.scroll, { paddingTop: insets.top + 20, flex: 1 }]}>{children}</View>
   );
   return (
     <View style={styles.screen}>

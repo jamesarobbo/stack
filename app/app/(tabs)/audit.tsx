@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
 import { auditStack, formatWasted } from '@/src/domain/audit';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
@@ -17,7 +17,6 @@ export default function AuditScreen() {
   if (app.products.length === 0) {
     return (
       <Screen>
-        <Eyebrow left="Audit" />
         <T weight="bold" size={32} style={styles.title}>
           {AUDIT_EMPTY.title}
         </T>
@@ -35,7 +34,7 @@ export default function AuditScreen() {
 
   return (
     <Screen>
-      <Eyebrow left="Audit" right={app.usingSampleData ? 'Example data' : undefined} />
+      {app.usingSampleData ? <Pill>Example data</Pill> : null}
       <T weight="bold" size={32} style={styles.title}>
         Where spend and doses overlap
       </T>

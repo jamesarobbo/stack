@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ADD_BUTTON_LABEL,
   ADD_SUPPLEMENT_LABEL,
   ADD_SUPPLEMENT_ROUTE,
   GO_TO_STACK_LABEL,
@@ -21,7 +20,6 @@ describe('stack labels', () => {
   });
 
   it('keeps add and developer actions in sentence case', () => {
-    expect(ADD_BUTTON_LABEL).toBe('Add');
     expect(ADD_SUPPLEMENT_LABEL).toBe('Add supplement');
     expect(ADD_SUPPLEMENT_ROUTE).toBe('/add');
     expect(GO_TO_STACK_LABEL).toBe('Go to My Stack');
@@ -29,7 +27,7 @@ describe('stack labels', () => {
     expect(LOAD_EXAMPLE_LABEL).toBe('Load example data');
     expect(CLEAR_ALL_DATA_LABEL).toBe('Clear all data');
     expect(MONTHLY_REPORT_LABEL).toBe('Monthly report');
-    for (const label of [ADD_BUTTON_LABEL, ADD_SUPPLEMENT_LABEL, LOAD_EXAMPLE_LABEL, CLEAR_ALL_DATA_LABEL, MONTHLY_REPORT_LABEL]) {
+    for (const label of [ADD_SUPPLEMENT_LABEL, LOAD_EXAMPLE_LABEL, CLEAR_ALL_DATA_LABEL, MONTHLY_REPORT_LABEL, GO_TO_STACK_LABEL]) {
       expect(label).not.toMatch(/^[A-Z0-9 \-]+$/);
     }
   });

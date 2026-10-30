@@ -10,11 +10,20 @@ function source(relativePath: string): string {
 }
 
 describe('where add controls live', () => {
-  it('keeps the header Add and the sticky Add bar on My Stack', () => {
+  it('keeps the sticky Add bar and the empty-state add control on My Stack', () => {
     const stack = source('app/(tabs)/stack.tsx');
-    expect(stack).toContain('ADD_BUTTON_LABEL');
     expect(stack).toContain('ADD_SUPPLEMENT_LABEL');
+    expect(stack).toContain('Add a supplement');
     expect(stack).toContain('ADD_SUPPLEMENT_ROUTE');
+    expect(stack).not.toContain('ADD_BUTTON_LABEL');
+  });
+
+  it('does not repeat the tab name in a header eyebrow', () => {
+    for (const file of ['app/(tabs)/stack.tsx', 'app/(tabs)/audit.tsx', 'app/(tabs)/impact.tsx', 'app/(tabs)/more.tsx']) {
+      expect(source(file)).not.toContain('<Eyebrow');
+    }
+    expect(source('app/report.tsx')).toContain('MONTHLY_REPORT_LABEL');
+    expect(source('app/settings.tsx')).toContain('Settings');
   });
 
   it('does not put add controls on Audit, Impact, More, or the report', () => {
