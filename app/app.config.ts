@@ -2,7 +2,20 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { ANDROID_PACKAGE, APP_NAME, APP_SCHEME, APP_SLUG, IOS_BUNDLE_ID } from './brand.cjs';
 
 const healthUsage =
-  `${APP_NAME} reads sleep, heart rate variability, resting heart rate, VO2 max, steps, and active energy to show associations with supplements you log. It can also read date of birth and biological sex to prefill an age range and sex. Educational only, not medical advice.`;
+  `${APP_NAME} reads sleep, heart rate variability, resting heart rate, VO2 max, steps, and active energy to show associations with supplements you log and to work out before and after results on this iPhone. It also reads date of birth and biological sex to suggest an age range and sex. Health data stays on this iPhone and is never used for advertising or analytics. Educational only, not medical advice.`;
+
+/** Universal links for shared stacks. Served by the Worker at /.well-known/apple-app-site-association. */
+function linkHost(): string | null {
+  const raw = process.env.EXPO_PUBLIC_SHARE_HOST || process.env.EXPO_PUBLIC_API_URL;
+  if (!raw) return null;
+  try {
+    const host = new URL(raw.includes('://') ? raw : `https://${raw}`).hostname;
+    return host && host !== 'localhost' && host !== '127.0.0.1' ? host : null;
+  } catch {
+    return null;
+  }
+}
+const sharedLinkHost = linkHost();
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -24,6 +37,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: false,
     bundleIdentifier: IOS_BUNDLE_ID,
     usesAppleSignIn: true,
+    ...(sharedLinkHost ? { associatedDomains: [`applinks:${sharedLinkHost}`] } : {}),
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSHealthShareUsageDescription: healthUsage,

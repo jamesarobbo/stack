@@ -1,8 +1,14 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, StyleSheet, TextInput } from 'react-native';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
 import { font, theme } from '@/src/theme';
+
+/** Back to the screen that asked for sign-in, for example a shared stack waiting to be copied. */
+function returnAfterSignIn() {
+  if (router.canGoBack()) router.back();
+}
 
 export default function SignInScreen() {
   const app = useApp();
@@ -24,7 +30,7 @@ export default function SignInScreen() {
         </T>
         <Card>
           <T size={14}>
-            Signing in syncs the supplement list you typed. Sleep, heart rate, steps, and the other wearable samples stay on this device.
+            Signing in syncs the supplement list you typed. Sleep, heart rate, steps, and the other wearable samples stay on this device. A shared result sends only its headline, and only when you choose it.
           </T>
         </Card>
         <Button label="Sign out" tone="ghost" onPress={() => void app.signOut()} />
@@ -84,6 +90,7 @@ export default function SignInScreen() {
               setError(null);
               try {
                 await app.verifyEmailCode(email.trim(), code.trim());
+                returnAfterSignIn();
               } catch (err) {
                 setError(err instanceof Error ? err.message : 'That code did not work.');
               }
@@ -99,6 +106,7 @@ export default function SignInScreen() {
             setError(null);
             try {
               await app.signInWithApple();
+              returnAfterSignIn();
             } catch (err) {
               setError(err instanceof Error ? err.message : 'Apple sign-in failed.');
             }

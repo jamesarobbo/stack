@@ -1,18 +1,47 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
+import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Chip } from '@/src/components/share';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
+import { api, ApiError } from '@/src/api';
 import { APP_NAME } from '@/src/config';
+import { syncProfile } from '@/src/data/profile';
+import { AGE_RANGES, SEXES, isAgeRange, isSex } from '@/src/health/demographics';
 import { DSLD_ATTRIBUTION, DSLD_URL, OFF_ATTRIBUTION, OFF_URL } from '@/src/data/labels';
 import { useApp } from '@/src/state';
-import { settingsDriverKind } from '@/src/settings';
+import { getSetting, setSetting, settingsDriverKind } from '@/src/settings';
 import { font, theme } from '@/src/theme';
 
 export default function SettingsScreen() {
   const app = useApp();
   const [name, setName] = useState(app.displayName);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [ageRange, setAgeRange] = useState(getSetting('ageRange'));
+  const [sex, setSex] = useState(getSetting('sex'));
+  const [confirmAccount, setConfirmAccount] = useState(false);
+  const [accountNote, setAccountNote] = useState<string | null>(null);
+
+  async function saveAbout(next: { ageRange?: string; sex?: string }) {
+    if (next.ageRange && isAgeRange(next.ageRange)) {
+      setAgeRange(next.ageRange);
+      await setSetting('ageRange', next.ageRange);
+    }
+    if (next.sex && isSex(next.sex)) {
+      setSex(next.sex);
+      await setSetting('sex', next.sex);
+    }
+    await syncProfile(app.sessionToken).catch(() => undefined);
+  }
+
+  async function clearBlocks() {
+    try {
+      await api('/v1/me/blocks', { method: 'DELETE', token: app.sessionToken });
+      setAccountNote('Blocked creators cleared.');
+    } catch (error) {
+      setAccountNote(error instanceof ApiError ? error.message : 'That did not work. Try again.');
+    }
+  }
 
   async function exportData() {
     const json = await app.exportData();
@@ -44,8 +73,33 @@ export default function SettingsScreen() {
         <T size={12} weight="semibold" color={theme.muted}>
           Name on the stack
         </T>
-        <TextInput value={name} onChangeText={setName} style={styles.input} />
+        <TextInput value={name} onChangeText={setName} style={styles.input} accessibilityLabel="Name on the stack" />
+        <T size={13} color={theme.muted}>
+          Only shown on a shared stack when you turn it on while sharing. Leave it empty to clear it.
+        </T>
         <Button label="Save name" onPress={() => void app.setName(name)} />
+      </Card>
+      <Card>
+        <T weight="semibold">About you</T>
+        <T size={13} color={theme.muted}>
+          {"Used for Discover's people like you and for grouped results. Never shown on a shared page or sent to analytics."}
+        </T>
+        <T size={13} weight="semibold" color={theme.muted}>
+          Age range
+        </T>
+        <View style={styles.chips}>
+          {AGE_RANGES.map((option) => (
+            <Chip key={option.key} label={option.label} selected={ageRange === option.key} onPress={() => void saveAbout({ ageRange: option.key })} />
+          ))}
+        </View>
+        <T size={13} weight="semibold" color={theme.muted}>
+          Sex
+        </T>
+        <View style={styles.chips}>
+          {SEXES.map((option) => (
+            <Chip key={option.key} label={option.label} selected={sex === option.key} onPress={() => void saveAbout({ sex: option.key })} />
+          ))}
+        </View>
       </Card>
       <Card>
         <T weight="semibold">On this device</T>
@@ -94,11 +148,31 @@ export default function SettingsScreen() {
               Download saved stack
             </T>
           </Pressable>
-          <Pressable accessibilityRole="button" onPress={() => void app.deleteAccount()}>
-            <T weight="semibold" color={theme.flagText}>
-              Delete account
+          <Pressable accessibilityRole="button" onPress={() => void clearBlocks()}>
+            <T weight="semibold" color={theme.teal}>
+              Clear blocked creators
             </T>
           </Pressable>
+          {confirmAccount ? (
+            <>
+              <T size={14} color={theme.muted}>
+                This deletes your account, your shared link, saves, copies, and any results you sent. This device keeps its data.
+              </T>
+              <Button label="Delete my account" onPress={() => void app.deleteAccount().then(() => setConfirmAccount(false))} />
+              <Button label="Cancel" tone="ghost" onPress={() => setConfirmAccount(false)} />
+            </>
+          ) : (
+            <Pressable accessibilityRole="button" onPress={() => setConfirmAccount(true)}>
+              <T weight="semibold" color={theme.flagText}>
+                Delete account
+              </T>
+            </Pressable>
+          )}
+          {accountNote ? (
+            <T size={13} color={theme.muted}>
+              {accountNote}
+            </T>
+          ) : null}
         </Card>
       ) : null}
       <Card>
@@ -153,6 +227,7 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   title: { letterSpacing: -0.6 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   input: {
     backgroundColor: theme.bg,
     borderRadius: 12,

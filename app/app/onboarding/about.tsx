@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View } from 'react-native';
 import { Choice, OnboardingFrame } from '@/src/components/OnboardingProgress';
 import { Button, T } from '@/src/components/ui';
@@ -11,22 +11,9 @@ import { track } from '@/src/telemetry';
 import { theme } from '@/src/theme';
 
 export default function AboutStep() {
-  const [age, setAge] = useState<AgeRange | null>(null);
-  const [sex, setSex] = useState<Sex | null>(null);
-
-  useEffect(() => {
-    const savedAge = getSetting('ageRange');
-    const savedSex = getSetting('sex');
-    if (isAgeRange(savedAge)) setAge(savedAge);
-    if (isSex(savedSex)) setSex(savedSex);
-    if (savedAge || savedSex) return;
-    // Read with the single Apple Health permission sheet on the wearable step. Stays on this device.
-    const birthDate = getSetting('healthBirthDate');
-    const range = birthDate ? ageRangeFromBirthDate(birthDate, localToday()) : null;
-    const filledSex = prefillSex(getSetting('healthSex'));
-    if (range) setAge(range);
-    if (filledSex) setSex(filledSex);
-  }, []);
+  const [initial] = useState(initialAnswers);
+  const [age, setAge] = useState<AgeRange | null>(initial.age);
+  const [sex, setSex] = useState<Sex | null>(initial.sex);
 
   return (
     <OnboardingFrame
@@ -37,7 +24,7 @@ export default function AboutStep() {
         About you
       </T>
       <T size={15} color={theme.muted}>
-        Used for Discover's people like you and for grouped results. Never shown on your shared page.
+        {"Used for Discover's people like you and for grouped results. Never shown on your shared page."}
       </T>
       <T weight="semibold">Age range</T>
       <View style={{ gap: 10 }}>
@@ -53,6 +40,18 @@ export default function AboutStep() {
       </View>
     </OnboardingFrame>
   );
+}
+
+/** Saved answers first. Otherwise a suggestion from the single Apple Health sheet on the wearable step, which stays on this device. */
+function initialAnswers(): { age: AgeRange | null; sex: Sex | null } {
+  const savedAge = getSetting('ageRange');
+  const savedSex = getSetting('sex');
+  if (savedAge || savedSex) return { age: isAgeRange(savedAge) ? savedAge : null, sex: isSex(savedSex) ? savedSex : null };
+  const birthDate = getSetting('healthBirthDate');
+  return {
+    age: birthDate ? ageRangeFromBirthDate(birthDate, localToday()) : null,
+    sex: prefillSex(getSetting('healthSex')),
+  };
 }
 
 async function go(age: AgeRange | null, sex: Sex | null) {

@@ -30,7 +30,7 @@ export default function PrivacyScreen() {
           A shared link shows the product names, brands, and daily doses you share, the audit score, your name only if you turn it on, and a personal result line only if you add one after a review step. Prices and wearable samples are never sent.
         </T>
         <T size={14} color={theme.muted}>
-          If you agree when copying someone's stack, the phone works out your before and after change after 14 weeks and sends only the summary: the measure, a whole percent, and the device type. Grouped results appear in the app in ranges, never on the web page, and never for fewer than 10 people. You can turn this off for each copied stack.
+          {"If you agree when copying someone's stack, the phone works out your before and after change after 14 weeks and sends only the summary: the measure, a whole percent, and the device type. Grouped results appear in the app in ranges, never on the web page, and never for fewer than 10 people. You can turn this off for each copied stack."}
         </T>
       </Card>
       <Card>

@@ -9,10 +9,12 @@ import { router, Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Boot } from '@/src/components/ui';
+import { claimDeferredLink, takePendingSlug } from '@/src/data/sharing';
+import { getSetting } from '@/src/settings';
 import { hideFloatingDevTools } from '@/src/devMenu';
 import { redirectOnLaunch } from '@/src/navigation/exit';
 import { openStackDatabase, migrations, type AppDatabase } from '@/src/db/client';
@@ -95,6 +97,22 @@ function RootNav() {
     checkedLaunch.current = true;
     const next = redirectOnLaunch(pathname, app.onboardingComplete);
     if (next) router.replace(next);
+  }, [app.onboardingComplete, app.ready, pathname]);
+
+  const launched = useRef(false);
+  useEffect(() => {
+    if (!app.ready || launched.current) return;
+    launched.current = true;
+    if (Platform.OS !== 'web') void claimDeferredLink();
+    void app.backgroundRefresh();
+  }, [app]);
+
+  // A stack link that installed the app opens once onboarding is done.
+  useEffect(() => {
+    if (!app.ready || !app.onboardingComplete || !getSetting('pendingSlug')) return;
+    void takePendingSlug().then((slug) => {
+      if (slug) router.push(`/s/${slug}`);
+    });
   }, [app.onboardingComplete, app.ready, pathname]);
 
   if (app.bootError) return <Boot message={app.bootError} />;
