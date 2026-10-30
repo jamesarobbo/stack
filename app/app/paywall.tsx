@@ -114,7 +114,7 @@ export default function PaywallScreen() {
         ))}
       </View>
 
-      <Button label={app.previewPro ? 'Turn off preview' : `Start Pro — ${price}`} onPress={() => void start()} />
+      <Button label={app.previewPro ? 'Turn off preview' : `Start Pro: ${price}`} onPress={() => void start()} />
       <Pressable
         accessibilityRole="button"
         onPress={async () => {

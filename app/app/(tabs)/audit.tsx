@@ -103,7 +103,7 @@ export default function AuditScreen() {
           <Card>
             <T weight="semibold">Savings score is part of Pro</T>
             <T size={14} color={theme.muted}>
-              The dollar overlap above is included. Pro adds a 0–100 savings score on the monthly report.
+              The dollar overlap above is included. Pro adds a 0 to 100 savings score on the monthly report.
             </T>
           </Card>
         </Pressable>

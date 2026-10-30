@@ -8,8 +8,8 @@ This is an educational log. It is not a medical device, not medical advice, and 
 
 ## Layout
 
-- `app/` — Expo SDK 58, TypeScript, Expo Router
-- `server/` — Cloudflare Worker (Hono) and D1
+- `app/`: Expo SDK 58, TypeScript, Expo Router
+- `server/`: Cloudflare Worker (Hono) and D1
 
 Health samples stay on the device. After sign-in, only the supplement list you typed can sync.
 
@@ -113,24 +113,28 @@ npx wrangler secret put REVENUECAT_WEBHOOK_AUTH
 - `POST /v1/auth/email/start` and `/v1/auth/email/verify`
 - `POST /v1/auth/apple` with `{ identityToken, rawNonce }`
 - `POST /v1/auth/signout`, `GET /v1/me`, `DELETE /v1/account`
-- `PUT` and `GET /v1/sync/stack` — supplement list only. A body that includes health samples is rejected.
-- `POST /v1/webhooks/revenuecat` — `Authorization: Bearer <REVENUECAT_WEBHOOK_AUTH>`. Updates `subscriptions` for entitlement `pro`.
+- `PUT` and `GET /v1/sync/stack`: supplement list only. A body that includes health samples is rejected.
+- `POST /v1/webhooks/revenuecat`: `Authorization: Bearer <REVENUECAT_WEBHOOK_AUTH>`. Updates `subscriptions` for entitlement `pro`.
 
 Call `Purchases.logIn(userId)` with the Stack user id so the webhook's `app_user_id` matches. The app does that after sign-in when RevenueCat is configured.
 
 ## What the screens do
 
-1. **Onboarding** — connect Apple Health (or sample data) and add products by search or by typing the label.
-2. **My Stack** — each product's monthly cost and the total. Monthly cost is `(price / servings) × servings per day × 30`.
-3. **Audit** — rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
-4. **Impact** — 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
-5. **Pro** — confounder notes (training load, alcohol, travel), multi-supplement comparison, savings score, and a monthly report with keep / drop / unclear. Drop means the overlap dollars sit on that bottle and the wearable window did not move. It is not advice to stop.
+1. **Onboarding:** connect Apple Health (or sample data) and add products by search or by typing the label.
+2. **My Stack:** each product's monthly cost and the total. Monthly cost is `(price / servings) × servings per day × 30`.
+3. **Audit:** rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
+4. **Impact:** 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
+5. **Pro:** confounder notes (training load, alcohol, travel), multi-supplement comparison, savings score, and a monthly report with keep / drop / unclear. Drop means the overlap dollars sit on that bottle and the wearable window did not move. It is not advice to stop.
 
 Free is the stack log, the duplicate dollars, the upper-limit flags, and a single before/after.
 
 ## CI
 
-`.github/workflows/ci.yml` typechecks, lints, and tests the app and the Worker, then runs gitleaks and Semgrep. A push to `main` deploys the Worker only after those checks pass and only when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set. If either secret is missing, deploy is skipped.
+`.github/workflows/ci.yml` typechecks, lints, and tests the app and the Worker, then runs gitleaks, Semgrep, and `npm run check:dashes`. A push to `main` deploys the Worker only after those checks pass and only when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set. If either secret is missing, deploy is skipped.
+
+## House rule
+
+Do not use an em dash (U+2014) or an en dash (U+2013) anywhere in this project: UI copy, strings, seed data, docs, comments, commit messages, or pull request text. Use a comma, full stop, colon, parentheses, or a plain hyphen. Write a range as "2 to 4", not with an en dash. `npm run check:dashes` fails if a tracked text file contains either character. Lockfiles and vendored files are excluded.
 
 ## What's stubbed
 

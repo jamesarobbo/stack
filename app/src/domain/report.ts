@@ -95,7 +95,7 @@ export function reportSummary(items: SupplementReport[]): string {
   if (quieter) parts.push(`${shortName(quieter.name)} weeks showed lower resting heart rate`);
   if (flat) parts.push(`${shortName(flat.name)} weeks had no clear wearable shift`);
   if (parts.length === 0) {
-    return 'No clear wearable shift stood out this month. Association only — not proof of causation.';
+    return 'No clear wearable shift stood out this month. Association only, not proof of causation.';
   }
   return `${parts.join('; ')}.`;
 }

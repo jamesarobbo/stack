@@ -67,9 +67,9 @@ export default function ImpactScreen() {
       <Pill tone="teal">{ASSOCIATION}</Pill>
 
       <View style={styles.stats}>
-        <Stat label="Deep sleep" value={sleep.after.mean == null ? '—' : formatHours(sleep.after.mean)} delta={sleep.delta} deltaLabel={sleep.delta == null ? 'No days' : `${signed(sleep.delta)} vs baseline`} tone="teal" />
-        <Stat label="HRV (SDNN)" value={hrv.after.mean == null ? '—' : `${Math.round(hrv.after.mean)} ms`} delta={hrv.delta} deltaLabel={hrv.delta == null ? 'No days' : `${signed(hrv.delta)} ms`} tone="teal" />
-        <Stat label="Resting HR" value={rhr.after.mean == null ? '—' : `${Math.round(rhr.after.mean)}`} delta={rhr.delta == null ? null : -rhr.delta} deltaLabel={rhr.delta == null ? 'No days' : `${signed(rhr.delta)} bpm`} tone="blue" />
+        <Stat label="Deep sleep" value={sleep.after.mean == null ? '-' : formatHours(sleep.after.mean)} delta={sleep.delta} deltaLabel={sleep.delta == null ? 'No days' : `${signed(sleep.delta)} vs baseline`} tone="teal" />
+        <Stat label="HRV (SDNN)" value={hrv.after.mean == null ? '-' : `${Math.round(hrv.after.mean)} ms`} delta={hrv.delta} deltaLabel={hrv.delta == null ? 'No days' : `${signed(hrv.delta)} ms`} tone="teal" />
+        <Stat label="Resting HR" value={rhr.after.mean == null ? '-' : `${Math.round(rhr.after.mean)}`} delta={rhr.delta == null ? null : -rhr.delta} deltaLabel={rhr.delta == null ? 'No days' : `${signed(rhr.delta)} bpm`} tone="blue" />
       </View>
 
       <BarChart title="Deep sleep (hrs / night)" baseline={sleep.baseline.series.map((value) => value / 60)} after={sleep.after.series.map((value) => value / 60)} />

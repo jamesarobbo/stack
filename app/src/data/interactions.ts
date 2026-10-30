@@ -15,25 +15,25 @@ export const INTERACTION_RULES: InteractionRule[] = [
     id: 'resveratrol-anticoagulants',
     allOf: ['resveratrol'],
     message:
-      'Resveratrol + common blood thinners: published literature exists — discuss with a clinician. Not a dosing recommendation.',
+      'Resveratrol + common blood thinners: published literature exists. Discuss with a clinician. Not a dosing recommendation.',
   },
   {
     id: 'omega-3-anticoagulants',
     allOf: ['omega-3'],
     message:
-      'Omega-3 and anticoagulant medicines: published literature exists — discuss with a clinician. Not a dosing recommendation.',
+      'Omega-3 and anticoagulant medicines: published literature exists. Discuss with a clinician. Not a dosing recommendation.',
   },
   {
     id: 'berberine-glucose-medicines',
     allOf: ['berberine'],
     message:
-      'Berberine and glucose-lowering medicines: published literature exists — discuss with a clinician. Not a dosing recommendation.',
+      'Berberine and glucose-lowering medicines: published literature exists. Discuss with a clinician. Not a dosing recommendation.',
   },
   {
     id: 'vitamin-k-antagonists',
     allOf: ['vitamin-k'],
     message:
-      'Vitamin K and vitamin K antagonist medicines (such as warfarin): published literature exists — discuss with a clinician. Not a dosing recommendation.',
+      'Vitamin K and vitamin K antagonist medicines (such as warfarin): published literature exists. Discuss with a clinician. Not a dosing recommendation.',
   },
   {
     id: 'calcium-iron-absorption',
@@ -45,6 +45,6 @@ export const INTERACTION_RULES: InteractionRule[] = [
     id: 'zinc-copper',
     allOf: ['zinc'],
     message:
-      'Zinc taken for a long time without copper: published literature describes an effect on copper status — discuss with a clinician. Not a dosing recommendation.',
+      'Zinc taken for a long time without copper: published literature describes an effect on copper status. Discuss with a clinician. Not a dosing recommendation.',
   },
 ];

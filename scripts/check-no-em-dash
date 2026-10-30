@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+/**
+ * Fail if a tracked text file contains U+2014 or U+2013.
+ * Lockfiles and vendored trees are skipped. The characters are written as
+ * escapes here so this file does not contain them.
+ */
+const { execFileSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const FORBIDDEN = [
+  { name: 'U+2014', char: '\u2014' },
+  { name: 'U+2013', char: '\u2013' },
+];
+
+const SKIP_PATH = [
+  /(^|\/)package-lock\.json$/,
+  /(^|\/)yarn\.lock$/,
+  /(^|\/)pnpm-lock\.yaml$/,
+  /(^|\/)bun\.lockb?$/,
+  /(^|\/)node_modules\//,
+  /(^|\/)vendor\//,
+  /(^|\/)third_party\//,
+  /(^|\/)third-party\//,
+];
+
+const BINARY_EXT = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.ico',
+  '.ttf',
+  '.otf',
+  '.woff',
+  '.woff2',
+  '.mp4',
+  '.pdf',
+  '.zip',
+  '.gz',
+]);
+
+function trackedFiles() {
+  const out = execFileSync('git', ['ls-files', '-z'], { encoding: 'buffer' });
+  return out.toString('utf8').split('\0').filter(Boolean);
+}
+
+const hits = [];
+for (const file of trackedFiles()) {
+  if (SKIP_PATH.some((pattern) => pattern.test(file))) continue;
+  if (BINARY_EXT.has(path.extname(file).toLowerCase())) continue;
+  const bytes = fs.readFileSync(file);
+  if (bytes.includes(0)) continue;
+  const text = bytes.toString('utf8');
+  if (!FORBIDDEN.some((item) => text.includes(item.char))) continue;
+  text.split('\n').forEach((line, index) => {
+    for (const item of FORBIDDEN) {
+      if (line.includes(item.char)) hits.push(`${file}:${index + 1}: ${item.name}`);
+    }
+  });
+}
+
+if (hits.length > 0) {
+  console.error('Tracked text files must not contain an em dash (U+2014) or an en dash (U+2013).');
+  console.error(hits.join('\n'));
+  process.exit(1);
+}

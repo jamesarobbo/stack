@@ -64,6 +64,9 @@ jobs:
           python3 -m pip install --disable-pip-version-check semgrep
           semgrep scan --config .semgrep.yml --error --metrics=off
 
+      - name: No em dash or en dash
+        run: npm run check:dashes
+
   deploy:
     name: Deploy Worker
     needs: check

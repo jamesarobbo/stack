@@ -207,7 +207,7 @@ export function limitFindings(products: ProductInput[]): LimitFinding[] {
       ul: row.ul,
       citation: row.citation,
       sourceUrl: row.sourceUrl,
-      message: `${row.name} ${totalLabel} daily is ${relation} the NIH ODS upper limit (${ulLabel}). Soft flag with citation — discuss with a clinician. Not a dosing recommendation.`,
+      message: `${row.name} ${totalLabel} daily is ${relation} the NIH ODS upper limit (${ulLabel}). Soft flag with citation. Discuss with a clinician. Not a dosing recommendation.`,
     });
   }
   return findings;

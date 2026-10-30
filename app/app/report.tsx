@@ -60,7 +60,7 @@ export default function ReportScreen() {
               {item.name}
             </T>
             <T weight="semibold" size={14} color={item.deepSleepDelta != null && item.deepSleepDelta > 0 ? theme.teal : theme.text}>
-              {item.deepSleepDelta == null ? '—' : `${signed(item.deepSleepDelta)} min`}
+              {item.deepSleepDelta == null ? '-' : `${signed(item.deepSleepDelta)} min`}
             </T>
           </View>
         ))}

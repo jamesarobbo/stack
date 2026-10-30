@@ -152,10 +152,10 @@ export function verdictFor(input: {
 
 export function associationSentence(productName: string, deepSleepDelta: number | null): string {
   if (deepSleepDelta != null && deepSleepDelta >= STRONG_SLEEP_MIN) {
-    return `Deep sleep was higher in the 21 days after you started ${productName} than in the 21 days before. Association only — not proof of causation.`;
+    return `Deep sleep was higher in the 21 days after you started ${productName} than in the 21 days before. Association only, not proof of causation.`;
   }
   if (deepSleepDelta != null && deepSleepDelta <= -STRONG_SLEEP_MIN) {
-    return `Deep sleep was lower in the 21 days after you started ${productName} than in the 21 days before. Association only — not proof of causation.`;
+    return `Deep sleep was lower in the 21 days after you started ${productName} than in the 21 days before. Association only, not proof of causation.`;
   }
-  return `Deep sleep showed no clear difference after you started ${productName} compared with the 21 days before. Association only — not proof of causation.`;
+  return `Deep sleep showed no clear difference after you started ${productName} compared with the 21 days before. Association only, not proof of causation.`;
 }

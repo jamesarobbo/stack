@@ -8,5 +8,5 @@ module.exports = {
   APP_SCHEME: 'stack',
   IOS_BUNDLE_ID: 'app.stack.mobile',
   ANDROID_PACKAGE: 'app.stack.mobile',
-  APP_TAGLINE: 'Know what you take — and if it shows.',
+  APP_TAGLINE: 'Know what you take, and if it shows.',
 };

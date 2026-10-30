@@ -96,7 +96,7 @@ export const UPPER_LIMITS: UpperLimit[] = [
     unit: 'mg',
     ul: 2500,
     nearFrom: 0.9,
-    citation: 'NIH ODS Calcium fact sheet, UL 2,500 mg for adults 19–50.',
+    citation: 'NIH ODS Calcium fact sheet, UL 2,500 mg for adults 19 to 50.',
     sourceUrl: 'https://ods.od.nih.gov/factsheets/Calcium-HealthProfessional/',
   },
   {
