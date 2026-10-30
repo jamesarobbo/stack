@@ -74,7 +74,7 @@ The first launch loads a fictional stack (Alex) so the screens have something to
 
 | Piece | Env | Notes |
 | --- | --- | --- |
-| API | `EXPO_PUBLIC_API_URL` | Defaults to `http://localhost:8787` |
+| API | `EXPO_PUBLIC_API_URL` | Defaults to `http://localhost:8787`. The deployed API is `https://stack-api.jamesarobinson6.workers.dev`. The EAS preview profile receives `EXPO_PUBLIC_API_URL` from an EAS project environment variable. App code leaves it unset. |
 | RevenueCat | `EXPO_PUBLIC_REVENUECAT_IOS_KEY` | Entitlement id `pro`. Products `stack_pro_monthly` ($7.99) and `stack_pro_annual` ($59). Needs a dev build. |
 | PostHog | `EXPO_PUBLIC_POSTHOG_KEY`, optional `EXPO_PUBLIC_POSTHOG_HOST` | Off when the key is empty. Events are screen and product actions, not health samples. |
 | Sentry | `EXPO_PUBLIC_SENTRY_DSN` | Off when empty. The native plugin is added only when the DSN is set at config time. |
@@ -97,10 +97,11 @@ npm run dev
 
 In development, `POST /v1/auth/email/start` includes `devCode` in the JSON so you can sign in without an email provider. Production (`ENVIRONMENT=production`) does not return the code. Wire your own mailer before you rely on that route in production.
 
-Create the remote database and put the id in `server/wrangler.toml`:
+The deployed API is `https://stack-api.jamesarobinson6.workers.dev`. `server/wrangler.toml` points at D1 database `stack` (`f77ceacc-e4ee-4542-9c77-546661462f76`).
+
+`AUTH_PEPPER` and `REVENUECAT_WEBHOOK_AUTH` are Worker secrets. Set them with `wrangler secret put` only.
 
 ```bash
-npx wrangler d1 create stack
 npx wrangler d1 migrations apply stack --remote
 npx wrangler secret put AUTH_PEPPER
 npx wrangler secret put REVENUECAT_WEBHOOK_AUTH

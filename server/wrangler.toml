@@ -7,9 +7,9 @@ compatibility_flags = ["nodejs_compat"]
 ENVIRONMENT = "development"
 APPLE_AUDIENCE = "app.stack.mobile"
 
-# Replace database_id after `wrangler d1 create stack`.
+# D1 database `stack`.
 [[d1_databases]]
 binding = "DB"
 database_name = "stack"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "f77ceacc-e4ee-4542-9c77-546661462f76"
 migrations_dir = "migrations"
