@@ -23,7 +23,7 @@ export const SUPPLEMENT_ENTRY = [
   {
     key: 'scan',
     title: 'Scan a barcode',
-    detail: 'UPC or EAN, looked up in the NIH database',
+    detail: 'UPC or EAN, looked up in the NIH database, then Open Food Facts',
     path: '/scan',
     mode: null,
   },

@@ -34,10 +34,8 @@ describe('unit conversion', () => {
     expect(toCanonical('magnesium', 0, 'mg')).toBeNull();
   });
 
-  it('converts vitamin A IU and mcg RAE into mcg', () => {
-    const fromIu = toCanonical('vitamin-a', 1000, 'IU');
-    expect(fromIu?.unit).toBe('mcg');
-    expect(fromIu?.amount).toBeCloseTo(300, 5);
+  it('converts vitamin A mcg RAE into mcg and leaves IU unchecked', () => {
+    expect(toCanonical('vitamin-a', 1000, 'IU')).toBeNull();
     expect(toCanonical('vitamin-a', 3000, 'mcg RAE')).toEqual({ amount: 3000, unit: 'mcg' });
   });
 

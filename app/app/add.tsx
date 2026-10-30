@@ -495,7 +495,7 @@ function ManualAdd({
             servingsPerContainer,
             servingsPerDay,
             startDate: clampStartDate(startDate),
-            catalogueId: digits ? `upc:${digits}` : null,
+            catalogueId: digits ? `${off ? 'off' : 'upc'}:${digits}` : null,
             note: productNote(digits, off),
             ingredients: cleaned.map((ingredient) => ({ ...ingredient, costWeight: 1 })),
           });
