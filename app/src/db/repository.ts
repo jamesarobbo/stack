@@ -1,6 +1,5 @@
 import { and, eq } from 'drizzle-orm';
 import { buildExample } from '../data/example';
-import type { CatalogueItem } from '../data/catalogue';
 import { coerceUnit } from '../data/units';
 import { clampStartDate, localToday } from '../dates';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from '../domain/types';
@@ -185,22 +184,6 @@ export async function addProduct(input: {
     new Date().toISOString(),
   );
   await setSetting('usingSampleData', '0');
-}
-
-export async function addCatalogueProduct(item: CatalogueItem, startDate: string) {
-  const existing = await db.select().from(products);
-  if (existing.some((row) => row.catalogueId === item.id)) return;
-  await addProduct({
-    name: item.name,
-    brand: item.brand,
-    note: null,
-    priceCents: item.priceCents,
-    servingsPerContainer: item.servingsPerContainer,
-    servingsPerDay: item.servingsPerDay,
-    startDate,
-    catalogueId: item.id,
-    ingredients: item.ingredients.map((ingredient) => ({ ...ingredient, costWeight: ingredient.costWeight || 1 })),
-  });
 }
 
 export async function updateProductStartDate(id: string, startDate: string) {

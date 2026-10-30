@@ -1,10 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 import { api, stackSyncBody } from './api';
-import type { CatalogueItem } from './data/catalogue';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from './domain/types';
 import {
-  addCatalogueProduct,
   addProduct,
   addTag,
   connectHealth,
@@ -41,13 +39,15 @@ type AppState = {
   refresh: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   connectWearable: () => Promise<string>;
-  addFromCatalogue: (item: CatalogueItem, startDate: string) => Promise<void>;
   addManual: (input: {
     name: string;
+    brand?: string | null;
+    note?: string | null;
     priceCents: number;
     servingsPerContainer: number;
     servingsPerDay: number;
     startDate: string;
+    catalogueId?: string | null;
     ingredients: IngredientInput[];
   }) => Promise<void>;
   remove: (id: string) => Promise<void>;
@@ -167,10 +167,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         track('health_connect');
         await applySnapshot();
         return message;
-      },
-      addFromCatalogue: async (item, startDate) => {
-        await addCatalogueProduct(item, startDate);
-        await afterWrite();
       },
       addManual: async (input) => {
         await addProduct(input);

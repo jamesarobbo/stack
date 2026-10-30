@@ -89,6 +89,7 @@ function RootNav() {
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="add" />
+      <Stack.Screen name="scan" />
       <Stack.Screen name="paywall" />
       <Stack.Screen name="report" />
       <Stack.Screen name="settings" />

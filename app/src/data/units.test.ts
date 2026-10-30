@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CATALOGUE } from './catalogue';
+import { COMMON_INGREDIENTS } from './commonIngredients';
 import { buildExample } from './example';
 import { UNIT_OPTIONS, coerceUnit } from './units';
 
@@ -15,10 +15,10 @@ describe('ingredient unit options', () => {
     expect(coerceUnit('ml')).toBe('mL');
   });
 
-  it('keeps catalogue and example units on the same list', () => {
+  it('keeps example and fallback units on the same list', () => {
     const units = [
       ...buildExample('2026-10-30').products.flatMap((product) => product.ingredients.map((ingredient) => ingredient.unit)),
-      ...CATALOGUE.flatMap((item) => item.ingredients.map((ingredient) => ingredient.unit)),
+      ...COMMON_INGREDIENTS.map((ingredient) => ingredient.unit),
     ];
     for (const unit of units) expect(UNIT_OPTIONS).toContain(unit);
     expect(units).toContain('other');

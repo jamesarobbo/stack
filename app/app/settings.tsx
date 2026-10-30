@@ -1,9 +1,10 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
+import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
+import { DSLD_ATTRIBUTION, DSLD_URL } from '@/src/data/labels';
 import { useApp } from '@/src/state';
 import { settingsDriverKind } from '@/src/settings';
 import { font, theme } from '@/src/theme';
@@ -116,6 +117,20 @@ export default function SettingsScreen() {
             </T>
           </Pressable>
         )}
+      </Card>
+      <Card>
+        <T weight="semibold">About label data</T>
+        <T size={14} color={theme.muted}>
+          Product search and barcode lookup use the NIH Office of Dietary Supplements Dietary Supplement Label Database. The app asks our server, which caches labels, so your phone does not call NIH directly.
+        </T>
+        <T size={13} color={theme.muted}>
+          {DSLD_ATTRIBUTION}
+        </T>
+        <Pressable accessibilityRole="button" onPress={() => void Linking.openURL(DSLD_URL)}>
+          <T weight="semibold" color={theme.teal}>
+            dsld.od.nih.gov
+          </T>
+        </Pressable>
       </Card>
       <T size={12} color={theme.faint}>
         {`${APP_NAME} · educational wellness log · not a medical device`}

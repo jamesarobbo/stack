@@ -1,99 +1,344 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
 import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
-import { searchCatalogue, type CatalogueItem } from '@/src/data/catalogue';
+import { COMMON_INGREDIENTS, type CommonIngredient } from '@/src/data/commonIngredients';
+import { getDsldLabel, lookupUpc, saveUserLabel, searchLabels, type LabelHit, type RemoteLabel } from '@/src/data/labels';
 import { DEFAULT_UNIT } from '@/src/data/units';
 import { clampStartDate, localToday } from '@/src/dates';
 import type { IngredientInput } from '@/src/domain/types';
+import { ApiError } from '@/src/api';
 import { useApp } from '@/src/state';
 import { font, theme } from '@/src/theme';
 
+function one(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? '';
+  return value ?? '';
+}
+
 export default function AddScreen() {
-  const params = useLocalSearchParams<{ mode?: string }>();
-  const initial = params.mode === 'manual' ? 'manual' : 'search';
-  const [mode, setMode] = useState<'search' | 'manual'>(initial);
+  const app = useApp();
+  const params = useLocalSearchParams<{ mode?: string; upc?: string; dsld?: string }>();
+  const initialMode = one(params.mode) === 'manual' ? 'manual' : 'search';
+  const [mode, setMode] = useState<'search' | 'manual'>(initialMode);
+  const [seed, setSeed] = useState<CommonIngredient | null>(null);
+  const [barcode, setBarcode] = useState(one(params.upc));
+  const [prefill, setPrefill] = useState<RemoteLabel | null>(null);
+  const [loadingLabel, setLoadingLabel] = useState(() => Boolean(one(params.dsld) || one(params.upc)));
+  const [labelError, setLabelError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const dsld = one(params.dsld);
+    const upc = one(params.upc);
+    if (!dsld && !upc) return;
+    let cancel = false;
+    const timer = setTimeout(() => {
+      if (cancel) return;
+      setLoadingLabel(true);
+      setLabelError(null);
+      const job = dsld
+        ? getDsldLabel(dsld).then((result) => result.label)
+        : lookupUpc(upc, app.sessionToken).then((result) => {
+            if (!result.found || !result.label) {
+              if (!cancel) {
+                setMode('manual');
+                setBarcode(result.upc || upc);
+                setLabelError('This barcode is not in the NIH database. Enter what the bottle says.');
+              }
+              return null;
+            }
+            return result.label;
+          });
+      void job
+        .then((label) => {
+          if (!cancel && label) setPrefill(label);
+        })
+        .catch((error: unknown) => {
+          if (cancel) return;
+          setLabelError(error instanceof ApiError ? error.message : 'The label could not be loaded.');
+          if (upc) setMode('manual');
+        })
+        .finally(() => {
+          if (!cancel) setLoadingLabel(false);
+        });
+    }, 0);
+    return () => {
+      cancel = true;
+      clearTimeout(timer);
+    };
+  }, [app.sessionToken, params.dsld, params.upc]);
+
   return (
     <Screen>
       <BackButton />
       <T weight="bold" size={30} style={styles.title}>
         Add a product
       </T>
-      <View style={styles.switch}>
-        <Pressable accessibilityRole="button" onPress={() => setMode('search')} style={[styles.switchItem, mode === 'search' && styles.switchOn]}>
-          <T weight="semibold" size={14} color={mode === 'search' ? '#fff' : theme.text}>
-            Search
-          </T>
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => setMode('manual')} style={[styles.switchItem, mode === 'manual' && styles.switchOn]}>
-          <T weight="semibold" size={14} color={mode === 'manual' ? '#fff' : theme.text}>
-            Manual
-          </T>
-        </Pressable>
-      </View>
-      {mode === 'search' ? <SearchAdd /> : <ManualAdd />}
+      {prefill ? (
+        <Prefill label={prefill} onClear={() => setPrefill(null)} />
+      ) : (
+        <>
+          <View style={styles.switch}>
+            <Pressable accessibilityRole="button" onPress={() => setMode('search')} style={[styles.switchItem, mode === 'search' && styles.switchOn]}>
+              <T weight="semibold" size={14} color={mode === 'search' ? '#fff' : theme.text}>
+                Search
+              </T>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={() => setMode('manual')} style={[styles.switchItem, mode === 'manual' && styles.switchOn]}>
+              <T weight="semibold" size={14} color={mode === 'manual' ? '#fff' : theme.text}>
+                Manual
+              </T>
+            </Pressable>
+          </View>
+          {loadingLabel ? (
+            <T size={14} color={theme.muted}>
+              Looking up that label...
+            </T>
+          ) : null}
+          {labelError ? (
+            <T size={13} color={theme.flagText}>
+              {labelError}
+            </T>
+          ) : null}
+          {mode === 'search' ? (
+            <SearchAdd
+              onPick={setPrefill}
+              onManual={(ingredient) => {
+                setSeed(ingredient);
+                setMode('manual');
+              }}
+            />
+          ) : (
+            <ManualAdd barcode={barcode} onBarcode={setBarcode} seed={seed} />
+          )}
+        </>
+      )}
     </Screen>
   );
 }
 
-function SearchAdd() {
-  const app = useApp();
+function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void; onManual: (ingredient: CommonIngredient | null) => void }) {
   const [query, setQuery] = useState('');
-  const [startDate, setStartDate] = useState(localToday());
-  const results = useMemo(() => searchCatalogue(query).slice(0, 30), [query]);
-  const owned = new Set(app.products.map((product) => product.catalogueId).filter(Boolean));
+  const [hits, setHits] = useState<LabelHit[]>([]);
+  const [attribution, setAttribution] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) return;
+    let cancel = false;
+    const timer = setTimeout(() => {
+      setSearching(true);
+      void searchLabels(q)
+        .then((result) => {
+          if (cancel) return;
+          setHits(result.hits);
+          setAttribution(result.attribution);
+          setError(null);
+        })
+        .catch((reason: unknown) => {
+          if (cancel) return;
+          setHits([]);
+          setError(reason instanceof ApiError ? reason.message : 'Label search is offline. Type the bottle in, or start from a common ingredient.');
+        })
+        .finally(() => {
+          if (!cancel) setSearching(false);
+        });
+    }, 300);
+    return () => {
+      cancel = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
   return (
     <View style={{ gap: 12 }}>
       <TextInput
         value={query}
-        onChangeText={setQuery}
-        placeholder="NMN, TMG, magnesium…"
+        onChangeText={(value) => {
+          setQuery(value);
+          if (value.trim().length < 2) {
+            setHits([]);
+            setError(null);
+            setSearching(false);
+          }
+        }}
+        placeholder="Magnesium, vitamin D, brand"
         placeholderTextColor={theme.faint}
         style={styles.input}
         autoCapitalize="none"
       />
-      <DateField label="Start date" value={startDate} onChange={setStartDate} />
+      <Pressable accessibilityRole="button" onPress={() => router.push('/scan')} style={styles.scanLink}>
+        <Ionicons name="barcode-outline" size={18} color={theme.teal} />
+        <T weight="semibold" color={theme.teal}>
+          Scan a barcode
+        </T>
+      </Pressable>
       <T size={12} color={theme.muted}>
-        Amounts are examples from a fictional label, not a suggestion. The start date is the day you want the before/after window to use.
+        Search uses the NIH Dietary Supplement Label Database. You still enter the price and the start date. Amounts are what the label says, not a suggestion.
       </T>
-      {results.map((item) => (
-        <CatalogueRow
-          key={item.id}
-          item={item}
-          added={owned.has(item.id)}
-          onAdd={async () => {
-            await app.addFromCatalogue(item, clampStartDate(startDate));
-          }}
-        />
+      {searching ? (
+        <T size={13} color={theme.muted}>
+          Searching labels...
+        </T>
+      ) : null}
+      {error ? (
+        <T size={13} color={theme.flagText}>
+          {error}
+        </T>
+      ) : null}
+      {hits.map((hit) => (
+        <Card key={hit.dsldId}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              setOpening(hit.dsldId);
+              void getDsldLabel(hit.dsldId)
+                .then((result) => onPick(result.label))
+                .catch((reason: unknown) => setError(reason instanceof ApiError ? reason.message : 'That label could not be opened.'))
+                .finally(() => setOpening(null));
+            }}
+          >
+            <T weight="semibold">{hit.name}</T>
+            <T size={13} color={theme.muted}>
+              {hit.brand || 'Brand not listed'}
+              {hit.keyIngredients.length > 0 ? ` · ${hit.keyIngredients.join(', ')}` : ''}
+            </T>
+            {opening === hit.dsldId ? (
+              <T size={12} color={theme.teal}>
+                Opening label...
+              </T>
+            ) : null}
+          </Pressable>
+        </Card>
       ))}
+      {query.trim().length >= 2 && !searching && hits.length === 0 && !error ? (
+        <T size={14} color={theme.muted}>
+          No labels matched. Try the brand, or add it by hand.
+        </T>
+      ) : null}
+      {attribution && hits.length > 0 ? (
+        <T size={12} color={theme.faint}>
+          {attribution}
+        </T>
+      ) : null}
+      <T weight="semibold">Common ingredients</T>
+      <T size={12} color={theme.muted}>
+        These stay on the phone for when search is offline. They are names only. You type the amount.
+      </T>
+      <View style={styles.chips}>
+        {COMMON_INGREDIENTS.map((ingredient) => (
+          <Pressable key={ingredient.key} accessibilityRole="button" onPress={() => onManual(ingredient)} style={styles.chip}>
+            <T size={13} weight="semibold">
+              {ingredient.name}
+            </T>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
 
-function CatalogueRow({ item, added, onAdd }: { item: CatalogueItem; added: boolean; onAdd: () => void }) {
-  const amount = item.ingredients.map((ingredient) => `${ingredient.amount} ${ingredient.unit} ${ingredient.name}`).join(', ');
+function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }) {
+  const app = useApp();
+  const [price, setPrice] = useState('');
+  const [servings, setServings] = useState(String(label.servingsPerContainer));
+  const [perDay, setPerDay] = useState(String(label.servingsPerDay));
+  const [startDate, setStartDate] = useState(localToday());
+  const [error, setError] = useState<string | null>(null);
+  const catalogueId = label.dsldId ? `dsld:${label.dsldId}` : label.upc ? `upc:${label.upc}` : null;
+  const owned = catalogueId ? app.products.some((product) => product.catalogueId === catalogueId) : false;
+
   return (
-    <Card>
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <T weight="semibold">{item.name}</T>
-          <T size={13} color={theme.muted}>
-            {`${item.brand} · ${amount}`}
+    <View style={{ gap: 10 }}>
+      <Card>
+        <T weight="semibold">{label.name}</T>
+        <T size={13} color={theme.muted}>
+          {label.brand || 'Brand not listed'}
+          {label.upc ? ` · ${label.upc}` : ''}
+        </T>
+        <T size={13} color={theme.muted}>
+          {`Serving size ${label.servingSize}.`}
+        </T>
+        {label.ingredients.map((ingredient) => (
+          <T key={`${ingredient.key}-${ingredient.name}`} size={14}>
+            {`${ingredient.name} · ${ingredient.amount} ${ingredient.unit}`}
           </T>
-        </View>
-        <Pressable accessibilityRole="button" disabled={added} onPress={onAdd}>
-          <T weight="semibold" color={added ? theme.faint : theme.teal}>
-            {added ? 'Added' : 'Add'}
-          </T>
-        </Pressable>
-      </View>
-    </Card>
+        ))}
+        <T size={12} color={theme.faint}>
+          {label.dsldId
+            ? `Amounts from NIH DSLD ${label.dsldId}. You can change a unit after saving.`
+            : 'You entered this label. It is saved for your account when you are signed in.'}
+        </T>
+      </Card>
+      {!label.servingsCounted ? (
+        <T size={13} color={theme.muted}>
+          DSLD did not list a serving count, so 30 is a placeholder. Check the bottle.
+        </T>
+      ) : null}
+      <Field label="Price (USD)" value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
+      <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
+      <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" />
+      <DateField label="Start date" value={startDate} onChange={setStartDate} />
+      {owned ? (
+        <T size={13} color={theme.flagText}>
+          This label is already in your stack.
+        </T>
+      ) : null}
+      {error ? (
+        <T size={13} color={theme.flagText}>
+          {error}
+        </T>
+      ) : null}
+      <Button
+        label="Save product"
+        disabled={owned}
+        onPress={async () => {
+          const priceCents = Math.round(Number(price) * 100);
+          const servingsPerContainer = Number(servings);
+          const servingsPerDay = Number(perDay);
+          if (!Number.isFinite(priceCents) || priceCents <= 0) {
+            setError('Add the price you paid.');
+            return;
+          }
+          if (!Number.isFinite(servingsPerContainer) || servingsPerContainer <= 0 || !Number.isFinite(servingsPerDay) || servingsPerDay <= 0) {
+            setError('Servings need to be numbers above zero.');
+            return;
+          }
+          const note = label.dsldId
+            ? `NIH DSLD ${label.dsldId}. Serving size: ${label.servingSize}.`
+            : label.upc
+              ? `Barcode ${label.upc}. Serving size: ${label.servingSize}.`
+              : null;
+          await app.addManual({
+            name: label.name,
+            brand: label.brand || null,
+            note,
+            priceCents,
+            servingsPerContainer,
+            servingsPerDay,
+            startDate: clampStartDate(startDate),
+            catalogueId,
+            ingredients: label.ingredients.map((ingredient) => ({ ...ingredient, costWeight: 1 })),
+          });
+          router.back();
+        }}
+      />
+      <Pressable accessibilityRole="button" onPress={onClear}>
+        <T weight="semibold" color={theme.teal}>
+          Choose a different label
+        </T>
+      </Pressable>
+    </View>
   );
 }
 
-function ManualAdd() {
+function ManualAdd({ barcode, onBarcode, seed }: { barcode: string; onBarcode: (value: string) => void; seed: CommonIngredient | null }) {
   const app = useApp();
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
@@ -101,7 +346,9 @@ function ManualAdd() {
   const [perDay, setPerDay] = useState('1');
   const [startDate, setStartDate] = useState(localToday());
   const [ingredients, setIngredients] = useState<IngredientInput[]>([
-    { key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 },
+    seed
+      ? { key: seed.key, name: seed.name, amount: 0, unit: seed.unit, costWeight: 1 }
+      : { key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 },
   ]);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,16 +356,35 @@ function ManualAdd() {
     setIngredients((current) => current.map((ingredient, i) => (i === index ? { ...ingredient, ...patch } : ingredient)));
   }
 
+  function addCommon(ingredient: CommonIngredient) {
+    setIngredients((current) => {
+      if (current.some((row) => row.key === ingredient.key && row.name === ingredient.name)) return current;
+      const empty = current.length === 1 && !current[0]?.name && !current[0]?.amount;
+      const next = { key: ingredient.key, name: ingredient.name, amount: 0, unit: ingredient.unit, costWeight: 1 };
+      return empty ? [next] : [...current, next];
+    });
+  }
+
   return (
     <View style={{ gap: 10 }}>
       <Field label="Product" value={name} onChangeText={setName} placeholder="What the bottle says" />
+      <Field label="Barcode (optional)" value={barcode} onChangeText={onBarcode} placeholder="088395056116" keyboard="number-pad" />
       <Field label="Price (USD)" value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
       <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
       <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" />
       <DateField label="Start date" value={startDate} onChange={setStartDate} />
       <T weight="semibold">Ingredients on the label</T>
+      <View style={styles.chips}>
+        {COMMON_INGREDIENTS.map((ingredient) => (
+          <Pressable key={ingredient.key} accessibilityRole="button" onPress={() => addCommon(ingredient)} style={styles.chip}>
+            <T size={13} weight="semibold">
+              {ingredient.name}
+            </T>
+          </Pressable>
+        ))}
+      </View>
       {ingredients.map((ingredient, index) => (
-        <Card key={index}>
+        <Card key={`${ingredient.key}-${index}`}>
           <Field label="Name" value={ingredient.name} onChangeText={(value) => update(index, { name: value, key: slug(value) })} placeholder="Magnesium" />
           <Field
             label="Amount"
@@ -149,6 +415,7 @@ function ManualAdd() {
           const servingsPerContainer = Number(servings);
           const servingsPerDay = Number(perDay);
           const cleaned = ingredients.filter((ingredient) => ingredient.name.trim() && ingredient.amount > 0);
+          const digits = barcode.replace(/\D/g, '');
           if (!name.trim() || !Number.isFinite(priceCents) || priceCents <= 0) {
             setError('Add a product name and a price.');
             return;
@@ -161,19 +428,50 @@ function ManualAdd() {
             setError('Add at least one ingredient and the amount on the label.');
             return;
           }
+          if (barcode.trim() && (digits.length < 8 || digits.length > 14)) {
+            setError('A barcode needs 8 to 14 digits, or leave it blank.');
+            return;
+          }
           await app.addManual({
             name: name.trim(),
             priceCents,
             servingsPerContainer,
             servingsPerDay,
             startDate: clampStartDate(startDate),
+            catalogueId: digits ? `upc:${digits}` : null,
+            note: digits ? `Barcode ${digits}. Not in the NIH DSLD.` : null,
             ingredients: cleaned.map((ingredient) => ({ ...ingredient, costWeight: 1 })),
           });
+          if (digits && app.sessionToken) {
+            const remote: RemoteLabel = {
+              dsldId: null,
+              name: name.trim(),
+              brand: '',
+              upc: digits,
+              servingSize: '1 serving',
+              servingsPerContainer,
+              servingsPerDay,
+              servingsCounted: true,
+              source: 'user',
+              ingredients: cleaned.map((ingredient) => ({
+                key: ingredient.key,
+                name: ingredient.name,
+                amount: ingredient.amount,
+                unit: ingredient.unit,
+                costWeight: 1,
+              })),
+            };
+            try {
+              await saveUserLabel(remote, app.sessionToken);
+            } catch {
+              // The product is already on this device. Account reuse can wait.
+            }
+          }
           router.back();
         }}
       />
       <T size={12} color={theme.muted}>
-        This records what you typed. It does not calculate a dose.
+        This records what you typed. It does not calculate a dose. Sign in to reuse a barcode you entered.
       </T>
     </View>
   );
@@ -222,5 +520,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.text,
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  scanLink: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { backgroundColor: '#fff', borderRadius: 999, borderWidth: 1, borderColor: '#E4E7EC', paddingHorizontal: 12, paddingVertical: 6 },
 });

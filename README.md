@@ -115,12 +115,18 @@ npx wrangler secret put REVENUECAT_WEBHOOK_AUTH
 - `POST /v1/auth/signout`, `GET /v1/me`, `DELETE /v1/account`
 - `PUT` and `GET /v1/sync/stack`: supplement list only. A body that includes health samples is rejected.
 - `POST /v1/webhooks/revenuecat`: `Authorization: Bearer <REVENUECAT_WEBHOOK_AUTH>`. Updates `subscriptions` for entitlement `pro`.
+- `GET /v1/labels/search?q=`, `GET /v1/labels/dsld/:id`, and `GET /v1/labels/upc/:code`: NIH DSLD search and barcode lookup, cached on the Worker.
+- `PUT /v1/labels/upc/:code`: signed-in users can store a label the database did not have, keyed by UPC.
 
 Call `Purchases.logIn(userId)` with the Stack user id so the webhook's `app_user_id` matches. The app does that after sign-in when RevenueCat is configured.
 
+## Labels
+
+Product search and barcode lookup call the Worker, which calls the NIH Dietary Supplement Label Database (`https://api.ods.od.nih.gov/dsld/v9/`) and caches the normalised label in D1 and the Cache API. The Worker stops new NIH calls after 800 in an hour, under the public limit of 1,000 per hour per IP. DSLD stores UPC-A with spaces, and a lot of labels have no barcode. CFU is often only in the ingredient notes. The phone keeps a short list of common ingredient names for manual entry when search is offline. Settings cites DSLD.
+
 ## What the screens do
 
-1. **Onboarding:** connect Apple Health (or sample data) and add products by search or by typing the label.
+1. **Onboarding:** connect Apple Health (or sample data) and add products by NIH label search, barcode, or by typing the label.
 2. **My Stack:** each product's monthly cost and the total. Monthly cost is `(price / servings) × servings per day × 30`.
 3. **Audit:** rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
 4. **Impact:** 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
@@ -139,7 +145,7 @@ Do not use an em dash (U+2014) or an en dash (U+2013) anywhere in this project: 
 ## What's stubbed
 
 - Oura, WHOOP, and Garmin connections
-- Label scan
+- Photographing a supplement label (barcode lookup against NIH DSLD is implemented)
 - Email delivery (development returns the code; production does not send mail)
 - RevenueCat products and the iOS SDK key (the paywall, entitlement id, and webhook are wired)
 - PostHog and Sentry (wired, disabled without keys)

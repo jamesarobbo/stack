@@ -28,6 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       ITSAppUsesNonExemptEncryption: false,
       NSHealthShareUsageDescription: healthUsage,
       NSHealthUpdateUsageDescription: `${APP_NAME} does not write health data.`,
+      NSCameraUsageDescription: `${APP_NAME} uses the camera to read a supplement barcode. It does not save photos.`,
     },
   },
   android: {
@@ -76,6 +77,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ...(process.env.EXPO_PUBLIC_SENTRY_DSN ? ['@sentry/react-native' as const] : []),
     'expo-apple-authentication',
     '@react-native-community/datetimepicker',
+    [
+      'expo-camera',
+      {
+        cameraPermission: `${APP_NAME} uses the camera to read a supplement barcode. It does not save photos.`,
+        recordAudioAndroid: false,
+        barcodeScannerEnabled: true,
+      },
+    ],
   ],
   experiments: {
     typedRoutes: false,

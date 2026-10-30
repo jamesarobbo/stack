@@ -44,7 +44,7 @@ export default function StackScreen() {
         <Card>
           <T weight="semibold">Nothing logged yet</T>
           <T size={14} color={theme.muted}>
-            Search the catalogue or add a bottle by hand. You can also load the example stack from More.
+            Search the NIH label database, scan a barcode, or add a bottle by hand. You can also load the example stack from More.
           </T>
         </Card>
       ) : (
@@ -52,11 +52,18 @@ export default function StackScreen() {
           <ProductRow key={product.id} product={product} onPress={() => router.push(`/product/${product.id}`)} />
         ))
       )}
-      <Pressable accessibilityRole="button" onPress={() => router.push('/add')} style={styles.add}>
-        <T weight="semibold" color={theme.teal}>
-          Add a product
-        </T>
-      </Pressable>
+      <View style={styles.actions}>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/add')}>
+          <T weight="semibold" color={theme.teal}>
+            Add a product
+          </T>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/scan')}>
+          <T weight="semibold" color={theme.teal}>
+            Scan a barcode
+          </T>
+        </Pressable>
+      </View>
     </Screen>
   );
 }
@@ -65,5 +72,5 @@ const styles = StyleSheet.create({
   title: { letterSpacing: -0.8, marginTop: 4 },
   spend: { letterSpacing: -1.2, lineHeight: 46 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
-  add: { alignItems: 'center', paddingVertical: 8 },
+  actions: { flexDirection: 'row', justifyContent: 'center', gap: 18 },
 });
