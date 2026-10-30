@@ -137,13 +137,19 @@ DSLD stores UPC-A with spaces, and a lot of labels have no barcode. CFU is often
 
 ## What the screens do
 
-1. **Onboarding:** eight short screens. Goal, rough monthly spend, a wearable (or skip), supplements (NIH search, barcode, or typing), a short audit loader, a result that uses the real audit, sign-in to save it, then the Pro paywall with Continue with Free. Progress reads 1 of 8. A reload never opens on the monthly report. The report has a Close control, and Pro preview can be turned off from More.
-2. **My Stack:** each product's monthly cost and the total. Add is the bar above the tabs, and the empty state has its own add control. Monthly cost is `(price / servings) × servings per day × 30`. Tab screens do not repeat the tab name at the top.
+1. **Onboarding:** nine short screens. Goal, rough monthly spend, a wearable (or skip), age range and sex (each with prefer not to say), supplements (NIH search, barcode, or typing), a short audit loader, a result that uses the real audit, sign-in to save it, then the Pro paywall with Continue with Free. Progress reads 1 of 9. The age and sex screen says why: so results can be compared with people like you. If Apple Health is connected outside Expo Go, date of birth and biological sex prefill the choices. A reload never opens on the monthly report. The report has a Close control, and Pro preview can be turned off from More.
+2. **My Stack:** each product's monthly cost and the total. Add is the bar above the tabs, and the empty state has its own add control. Share stack, when the stack has products, creates a link. Monthly cost is `(price / servings) × servings per day × 30`. Tab screens do not repeat the tab name at the top.
 3. **Audit:** rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
 4. **Impact:** 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
 5. **Pro:** confounder notes (training load, alcohol, travel), multi-supplement comparison, savings score, and a monthly report with keep / drop / unclear. Drop means the overlap dollars sit on that bottle and the wearable window did not move. It is not advice to stop.
 
 Free is the stack log, the duplicate dollars, the upper-limit flags, and a single before/after.
+
+## Sharing
+
+Share stack publishes products and doses, an audit score, and an optional personal headline. Prices, paid amounts, and raw health samples are not in the snapshot. The score is documented in `docs/audit-score.md` and uses dose overlap only. The personal headline is documented in `docs/personal-outcome.md`. It needs 60 days before the stack started and enough days after, and it always reads as one person, not a trial.
+
+The public page is `GET /s/<slug>` on the Worker. It is `noindex` until the owner allows search engines. The owner can update or unshare the link. Copy to my stack adds the products with empty prices and counts each other person once. An average across copiers is shown only when at least 10 people have a 90 day window, including a people like you filter. Stacks are not ranked against each other.
 
 ## CI
 

@@ -2,18 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { ONBOARDING_STEPS, SUPPLEMENT_ENTRY, onboardingProgress, previousOnboardingStep } from './steps';
 
 describe('onboarding steps', () => {
-  it('keeps wearable and supplements as separate steps, in that order', () => {
+  it('keeps wearable, about you, and supplements as separate steps, in that order', () => {
     const keys = ONBOARDING_STEPS.map((step) => step.key);
     expect(keys.indexOf('wearable')).toBeGreaterThan(keys.indexOf('spend'));
-    expect(keys.indexOf('supplements')).toBe(keys.indexOf('wearable') + 1);
-    expect(keys).toEqual(['goal', 'spend', 'wearable', 'supplements', 'auditing', 'result', 'save', 'paywall']);
+    expect(keys.indexOf('about')).toBe(keys.indexOf('wearable') + 1);
+    expect(keys.indexOf('supplements')).toBe(keys.indexOf('about') + 1);
+    expect(keys).toEqual(['goal', 'spend', 'wearable', 'about', 'supplements', 'auditing', 'result', 'save', 'paywall']);
   });
 
   it('labels progress as 1 of N', () => {
-    expect(onboardingProgress('goal')).toEqual({ current: 1, total: 8, label: '1 of 8', filled: 1 });
-    expect(onboardingProgress('wearable').label).toBe('3 of 8');
-    expect(onboardingProgress('supplements').label).toBe('4 of 8');
-    expect(onboardingProgress('paywall')).toEqual({ current: 8, total: 8, label: '8 of 8', filled: 8 });
+    expect(onboardingProgress('goal')).toEqual({ current: 1, total: 9, label: '1 of 9', filled: 1 });
+    expect(onboardingProgress('wearable').label).toBe('3 of 9');
+    expect(onboardingProgress('about').label).toBe('4 of 9');
+    expect(onboardingProgress('supplements').label).toBe('5 of 9');
+    expect(onboardingProgress('paywall')).toEqual({ current: 9, total: 9, label: '9 of 9', filled: 9 });
   });
 
   it('offers a back target for every step after the first', () => {

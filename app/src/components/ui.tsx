@@ -197,9 +197,15 @@ export function ProductRow({ product, onPress }: { product: ProductInput; onPres
           </T>
         ) : null}
       </View>
-      <T weight="bold" size={16}>
-        {formatUsd(monthly)}
-      </T>
+      {product.priceCents <= 0 ? (
+        <T size={14} color={theme.muted}>
+          Add price
+        </T>
+      ) : (
+        <T weight="bold" size={16}>
+          {formatUsd(monthly)}
+        </T>
+      )}
     </Pressable>
   );
 }

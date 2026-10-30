@@ -14,10 +14,12 @@ import {
   removeProduct,
   replaceProductsFromSync,
   updateIngredientUnit,
+  updateProductPrice,
   updateProductStartDate,
   clearUntouchedSampleOnce,
 } from './db/repository';
 import { configurePurchases, purchasePlan, restorePurchases, revenueCatIsPro, type PurchaseResult } from './purchases';
+import { syncProfile } from './data/profile';
 import { getSetting, setSetting } from './settings';
 import { initTelemetry, track } from './telemetry';
 
@@ -53,6 +55,7 @@ type AppState = {
   remove: (id: string) => Promise<void>;
   setStartDate: (id: string, startDate: string) => Promise<void>;
   setIngredientUnit: (productId: string, key: string, name: string, unit: string) => Promise<void>;
+  setPrice: (id: string, priceCents: number) => Promise<void>;
   logTag: (kind: TagKind) => Promise<void>;
   setPreviewPro: (on: boolean) => Promise<void>;
   setName: (name: string) => Promise<void>;
@@ -184,6 +187,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await updateIngredientUnit(productId, key, name, unit);
         await afterWrite();
       },
+      setPrice: async (id, priceCents) => {
+        await updateProductPrice(id, priceCents);
+        await afterWrite();
+      },
       logTag: async (kind) => {
         await addTag(kind);
         await applySnapshot();
@@ -223,6 +230,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (result.user.email) await setSetting('email', result.user.email);
         await configurePurchases(result.user.id);
         await applySnapshot();
+        await syncProfile(result.token).catch(() => undefined);
         await pushSilent(products);
         track('sign_in', { method: 'email' });
       },
@@ -248,6 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (result.user.email) await setSetting('email', result.user.email);
         await configurePurchases(result.user.id);
         await applySnapshot();
+        await syncProfile(result.token).catch(() => undefined);
         await pushSilent(products);
         track('sign_in', { method: 'apple' });
       },

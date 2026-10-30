@@ -2,7 +2,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { ANDROID_PACKAGE, APP_NAME, APP_SCHEME, APP_SLUG, IOS_BUNDLE_ID } from './brand.cjs';
 
 const healthUsage =
-  `${APP_NAME} reads sleep, heart rate variability, resting heart rate, VO2 max, steps, and active energy to show associations with supplements you log. Educational only, not medical advice.`;
+  `${APP_NAME} reads sleep, heart rate variability, resting heart rate, VO2 max, steps, and active energy to show associations with supplements you log. It can also read date of birth and biological sex to prefill an age range and sex. Educational only, not medical advice.`;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,

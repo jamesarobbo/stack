@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Pill, ProductRow, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
+import { SHARE_STACK_LABEL } from '@/src/copy/sharing';
 import { auditStack } from '@/src/domain/audit';
 import { formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
@@ -44,6 +45,13 @@ export default function StackScreen() {
                 </T>
               </Pressable>
             </View>
+          ) : null}
+          {app.products.length > 0 ? (
+            <Pressable accessibilityRole="button" onPress={() => router.push('/share')}>
+              <T size={14} weight="semibold" color={theme.teal}>
+                {SHARE_STACK_LABEL}
+              </T>
+            </Pressable>
           ) : null}
         </Card>
         {app.products.length === 0 ? (

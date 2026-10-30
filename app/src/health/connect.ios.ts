@@ -119,3 +119,36 @@ export async function connectAppleHealth(): Promise<HealthConnection> {
     };
   }
 }
+
+export type HealthDemographics = {
+  birthDate: string | null;
+  sex: 'female' | 'male' | 'other' | 'notSet' | null;
+};
+
+export async function readHealthDemographics(): Promise<HealthDemographics> {
+  const empty: HealthDemographics = { birthDate: null, sex: null };
+  const expoGo = Constants.executionEnvironment === 'storeClient';
+  if (expoGo || Platform.OS !== 'ios') return empty;
+  try {
+    const Healthkit = require('@kingstinct/react-native-healthkit') as {
+      isHealthDataAvailableAsync: () => Promise<boolean>;
+      requestAuthorization: (options: { toRead: readonly string[] }) => Promise<boolean>;
+      getDateOfBirthAsync: () => Promise<Date | undefined>;
+      getBiologicalSexAsync: () => Promise<number>;
+    };
+    const available = await Healthkit.isHealthDataAvailableAsync();
+    if (!available) return empty;
+    await Healthkit.requestAuthorization({
+      toRead: ['HKCharacteristicTypeIdentifierDateOfBirth', 'HKCharacteristicTypeIdentifierBiologicalSex'],
+    });
+    const birth = await Healthkit.getDateOfBirthAsync();
+    const sexValue = await Healthkit.getBiologicalSexAsync();
+    const sex = sexValue === 1 ? 'female' : sexValue === 2 ? 'male' : sexValue === 3 ? 'other' : 'notSet';
+    return {
+      birthDate: birth ? dayKey(birth) : null,
+      sex,
+    };
+  } catch {
+    return empty;
+  }
+}

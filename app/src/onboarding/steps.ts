@@ -2,6 +2,7 @@ export const ONBOARDING_STEPS = [
   { key: 'goal', path: '/onboarding', title: 'What do you want your stack to do?' },
   { key: 'spend', path: '/onboarding/spend', title: 'Rough monthly supplement spend' },
   { key: 'wearable', path: '/onboarding/wearable', title: 'Choose a wearable' },
+  { key: 'about', path: '/onboarding/about', title: 'About you' },
   { key: 'supplements', path: '/onboarding/supplements', title: 'Add your supplements' },
   { key: 'auditing', path: '/onboarding/auditing', title: 'Auditing your stack' },
   { key: 'result', path: '/onboarding/result', title: 'Your audit' },

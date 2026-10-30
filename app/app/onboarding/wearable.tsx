@@ -26,7 +26,7 @@ export default function WearableStep() {
   async function go(choice: WearableChoice) {
     await writeWearable(choice);
     track('onboarding_answer', { step: 'wearable', value: choice });
-    router.push('/onboarding/supplements');
+    router.push('/onboarding/about');
   }
 
   return (

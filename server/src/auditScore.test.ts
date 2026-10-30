@@ -1,0 +1,52 @@
+import { describe, expect, it } from 'vitest';
+import { auditScoreParts, type ScoreProduct } from './auditScore';
+
+function bottle(id: string, ingredients: { key: string; amount: number; unit?: string }[], servingsPerDay = 1): ScoreProduct {
+  return {
+    id,
+    servingsPerDay,
+    ingredients: ingredients.map((ingredient) => ({ key: ingredient.key, amount: ingredient.amount, unit: ingredient.unit ?? 'mg' })),
+  };
+}
+
+describe('audit score', () => {
+  it('starts at 100 when nothing overlaps or exceeds a limit', () => {
+    expect(auditScoreParts([]).score).toBe(100);
+    expect(auditScoreParts([bottle('a', [{ key: 'magnesium', amount: 200 }])])).toEqual({
+      score: 100,
+      duplicate: 0,
+      limits: 0,
+      redundant: 0,
+    });
+  });
+
+  it('penalises duplicate ingredients and redundant products, not price', () => {
+    const stack = [
+      bottle('a', [{ key: 'magnesium', amount: 100 }]),
+      bottle('b', [{ key: 'magnesium', amount: 100 }]),
+    ];
+    expect(auditScoreParts(stack)).toEqual({ score: 58, duplicate: 12, limits: 0, redundant: 30 });
+  });
+
+  it('flags a dose above the upper limit and a dose in the near band', () => {
+    expect(auditScoreParts([bottle('a', [{ key: 'zinc', amount: 50 }])])).toMatchObject({ score: 80, limits: 20 });
+    expect(auditScoreParts([bottle('a', [{ key: 'zinc', amount: 36 }])])).toMatchObject({ score: 92, limits: 8 });
+    expect(auditScoreParts([bottle('a', [{ key: 'zinc', amount: 40 }])])).toMatchObject({ score: 92, limits: 8 });
+  });
+
+  it('converts vitamin D micrograms into the IU limit', () => {
+    expect(auditScoreParts([bottle('a', [{ key: 'vitamin-d', amount: 100, unit: 'mcg' }])])).toMatchObject({ limits: 8 });
+    expect(auditScoreParts([bottle('a', [{ key: 'vitamin-d', amount: 101, unit: 'mcg' }])])).toMatchObject({ limits: 20 });
+  });
+
+  it('does not call a product redundant when it still has a unique ingredient', () => {
+    const parts = auditScoreParts([
+      bottle('a', [
+        { key: 'magnesium', amount: 200 },
+        { key: 'vitamin-c', amount: 100 },
+      ]),
+      bottle('b', [{ key: 'magnesium', amount: 100 }]),
+    ]);
+    expect(parts).toEqual({ score: 73, duplicate: 12, limits: 0, redundant: 15 });
+  });
+});

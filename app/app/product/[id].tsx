@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { View } from 'react-native';
+import { useState } from 'react';
+import { TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
 import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Disclaimer, ProductRow, Screen, T } from '@/src/components/ui';
@@ -12,6 +13,7 @@ import { theme } from '@/src/theme';
 export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const app = useApp();
+  const [priceText, setPriceText] = useState('');
   const product = app.products.find((item) => item.id === id);
   if (!product) {
     return (
@@ -30,9 +32,33 @@ export default function ProductScreen() {
       <BackButton />
       <ProductRow product={product} />
       <Card>
-        <T size={14} color={theme.muted}>
-          {`Monthly cost ${formatUsd(monthly)} from ${formatUsd(product.priceCents)} / ${product.servingsPerContainer} servings × ${product.servingsPerDay} a day × 30.`}
-        </T>
+        {product.priceCents <= 0 ? (
+          <View style={{ gap: 8 }}>
+            <T size={14} color={theme.muted}>
+              Add the price you paid.
+            </T>
+            <TextInput
+              value={priceText}
+              onChangeText={setPriceText}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              placeholderTextColor={theme.faint}
+              accessibilityLabel="Price you paid"
+              style={{ backgroundColor: theme.bg, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 }}
+            />
+            <Button
+              label="Save price"
+              onPress={() => {
+                const dollars = Number(priceText);
+                if (Number.isFinite(dollars) && dollars > 0) void app.setPrice(product.id, Math.round(dollars * 100));
+              }}
+            />
+          </View>
+        ) : (
+          <T size={14} color={theme.muted}>
+            {`Monthly cost ${formatUsd(monthly)} from ${formatUsd(product.priceCents)} / ${product.servingsPerContainer} servings × ${product.servingsPerDay} a day × 30.`}
+          </T>
+        )}
         <DateField
           label="Start date"
           value={product.startDate}

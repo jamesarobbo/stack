@@ -112,6 +112,8 @@ function RootNav() {
       <Stack.Screen name="sign-in" />
       <Stack.Screen name="privacy" />
       <Stack.Screen name="product/[id]" />
+      <Stack.Screen name="share" />
+      <Stack.Screen name="s/[slug]" />
     </Stack>
   );
 }

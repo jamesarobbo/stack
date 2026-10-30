@@ -200,6 +200,12 @@ export async function addProduct(input: {
   await setSetting('usingSampleData', '0');
 }
 
+export async function updateProductPrice(id: string, priceCents: number) {
+  const cents = Math.max(0, Math.round(priceCents));
+  await db.update(products).set({ priceCents: cents }).where(eq(products.id, id));
+  await setSetting('usingSampleData', '0');
+}
+
 export async function updateProductStartDate(id: string, startDate: string) {
   await db.update(products).set({ startDate: clampStartDate(startDate) }).where(eq(products.id, id));
   await setSetting('usingSampleData', '0');

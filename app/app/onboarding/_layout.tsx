@@ -7,6 +7,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="spend" />
       <Stack.Screen name="wearable" />
+      <Stack.Screen name="about" />
       <Stack.Screen name="supplements" />
       <Stack.Screen name="auditing" />
       <Stack.Screen name="result" />
