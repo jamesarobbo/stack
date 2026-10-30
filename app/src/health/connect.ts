@@ -1,7 +1,7 @@
 import { healthConnectFailureCopy } from './emptyCopy';
-import type { HealthConnection } from './types';
+import type { HealthConnection, HealthDemographics } from './types';
 
-export type { HealthConnection };
+export type { HealthConnection, HealthDemographics };
 
 /** Android, web, and any build without the iOS HealthKit module. */
 export async function connectAppleHealth(): Promise<HealthConnection> {
@@ -11,12 +11,6 @@ export async function connectAppleHealth(): Promise<HealthConnection> {
   };
 }
 
-export type HealthDemographics = {
-  birthDate: string | null;
-  sex: 'female' | 'male' | 'other' | 'notSet' | null;
-};
-
-/** Expo Go, Android, and web have no HealthKit profile to prefill. */
-export async function readHealthDemographics(): Promise<HealthDemographics> {
-  return { birthDate: null, sex: null };
+export async function refreshAppleHealth(): Promise<HealthConnection | null> {
+  return null;
 }

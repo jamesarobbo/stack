@@ -3,7 +3,8 @@ import { buildExample } from '../data/example';
 import { coerceUnit } from '../data/units';
 import { clampStartDate, localToday } from '../dates';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from '../domain/types';
-import { connectAppleHealth } from '../health/connect';
+import { connectAppleHealth, refreshAppleHealth } from '../health/connect';
+import type { HealthConnection } from '../health/types';
 import { randomId } from '../id';
 import { clearSettings, getSetting, registerSettingsPersistence, setSetting } from '../settings';
 import { sampleSeedAction, shouldClearExampleHealthSource, shouldResetSeededName } from './sampleSeed';
@@ -233,13 +234,90 @@ export async function addTag(kind: TagKind, date = localToday()) {
 
 export async function connectHealth(): Promise<string> {
   const result = await connectAppleHealth();
-  if (result.mode === 'healthkit') {
-    await db.delete(healthSamples);
-    if (result.samples && result.samples.length > 0) await insertSamples(result.samples, 'healthkit');
-    await setSetting('healthSource', 'healthkit');
-    await setSetting('usingSampleData', '0');
-  }
+  if (result.mode === 'healthkit') await storeHealth(result);
   return result.message;
+}
+
+const HEALTH_REFRESH_MS = 12 * 60 * 60 * 1000;
+
+/** Re-reads Apple Health on launch at most twice a day, without showing a permission sheet. */
+export async function refreshHealthIfStale(now = Date.now()): Promise<boolean> {
+  if (getSetting('healthSource') !== 'healthkit') return false;
+  const last = Date.parse(getSetting('healthReadAt') ?? '');
+  if (Number.isFinite(last) && now - last < HEALTH_REFRESH_MS) return false;
+  const result = await refreshAppleHealth();
+  if (!result || result.mode !== 'healthkit' || !result.samples || result.samples.length === 0) return false;
+  await storeHealth(result);
+  return true;
+}
+
+async function storeHealth(result: HealthConnection) {
+  await db.delete(healthSamples);
+  if (result.samples && result.samples.length > 0) await insertSamples(result.samples, 'healthkit');
+  await setSetting('healthSource', 'healthkit');
+  await setSetting('usingSampleData', '0');
+  await setSetting('healthReadAt', new Date().toISOString());
+  if (result.device) await setSetting('healthDevice', result.device);
+  if (result.demographics?.birthDate) await setSetting('healthBirthDate', result.demographics.birthDate);
+  if (result.demographics?.sex) await setSetting('healthSex', result.demographics.sex);
+}
+
+export type NewProduct = {
+  name: string;
+  brand?: string | null;
+  note?: string | null;
+  priceCents: number;
+  servingsPerContainer: number;
+  servingsPerDay: number;
+  startDate: string;
+  catalogueId?: string | null;
+  ingredients: IngredientInput[];
+};
+
+/** Adds several products in one transaction, so a copy lands whole or not at all. */
+export async function addProducts(list: NewProduct[], options: { replaceIds?: string[] } = {}) {
+  const now = Date.now();
+  db.transaction((tx) => {
+    for (const id of options.replaceIds ?? []) {
+      tx.delete(productIngredients).where(eq(productIngredients.productId, id)).run();
+      tx.delete(products).where(eq(products.id, id)).run();
+    }
+    list.forEach((input, index) => {
+      const id = randomId();
+      tx.insert(products)
+        .values({
+          id,
+          catalogueId: input.catalogueId ?? null,
+          name: input.name.trim(),
+          brand: input.brand ?? null,
+          note: input.note ?? null,
+          priceCents: Math.max(0, Math.round(input.priceCents)),
+          servingsPerContainer: input.servingsPerContainer,
+          servingsPerDay: input.servingsPerDay,
+          startDate: clampStartDate(input.startDate),
+          createdAt: new Date(now + index).toISOString(),
+        })
+        .run();
+      if (input.ingredients.length === 0) return;
+      tx.insert(productIngredients)
+        .values(
+          input.ingredients.map((ingredient) => ({
+            id: randomId(),
+            productId: id,
+            key: ingredient.key,
+            name: ingredient.name,
+            amount: ingredient.amount,
+            unit: coerceUnit(ingredient.unit),
+            costWeight: ingredient.costWeight,
+            summary: ingredient.summary ?? null,
+            family: ingredient.family ?? null,
+            familyLabel: ingredient.familyLabel ?? null,
+          })),
+        )
+        .run();
+    });
+  });
+  await setSetting('usingSampleData', '0');
 }
 
 export async function deleteLocalData() {

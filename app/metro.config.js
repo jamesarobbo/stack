@@ -1,4 +1,5 @@
 const http = require('http');
+const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
 // Expo serves the web HTML document before Metro middleware, so Metro headers
@@ -16,6 +17,8 @@ http.ServerResponse.prototype.end = function (...args) {
 
 const config = getDefaultConfig(__dirname);
 config.resolver.sourceExts.push('sql');
+// Dose limits, the audit score, and the outcome maths live in ../shared so the Worker and the app agree.
+config.watchFolders = [...(config.watchFolders ?? []), path.resolve(__dirname, '../shared')];
 
 if (!config.resolver.assetExts.includes('wasm')) {
   config.resolver.assetExts.push('wasm');
