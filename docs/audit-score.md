@@ -1,21 +1,27 @@
 # Audit score
 
-The audit score is a number from 0 to 100. It describes dose overlap only. It does not use price, monthly spend, or the Pro savings score (that older number is overlap dollars divided by monthly spend).
+The audit score is a number from 0 to 100, shown as "72 out of 100" with its reasons next to it. It describes daily doses and overlaps only. It does not use price, monthly spend, or the Pro savings score.
 
-A stack with nothing to flag scores 100. The score is clamped to 0 to 100 after the penalties below.
+There is one implementation, `shared/auditScore.ts`. The Worker stores the published score with it and the app previews with the same file, so the two cannot drift. Upper limits and unit factors live in `shared/doses.ts`, and a test checks they match the in-app audit table.
 
-## What counts as an ingredient
+A stack with nothing to flag scores 100. Scores from 80 are shown in teal. Lower scores are shown in slate, so a low score never looks like a success.
 
-An ingredient counts when its amount is a finite number above zero. The identity is the ingredient key, such as `magnesium` or `vitamin-d`. The product id distinguishes bottles. Servings per day scale the daily dose used for upper limits. They do not change whether an ingredient is present.
+## Daily totals
 
-## Penalties
+Each ingredient's daily total is the label amount times servings per day, added across products and converted into the unit of the NIH Office of Dietary Supplements adult upper limit. Vitamin D converts at 1 mcg = 40 IU and vitamin E at 1 IU = 0.67 mg. Vitamin A in IU is not converted, because the limit covers preformed retinol and an IU amount can be beta-carotene. A dose in a unit that cannot be converted is listed as not checked and costs nothing.
 
-Each part is capped so one kind of issue cannot zero the score by itself.
+Ingredients group by `family` when the label has one, so the score and the in-app audit agree about duplicates.
 
-1. Duplicate ingredients. For each key that appears in two or more products, add 12 points for every product beyond the first. Cap this part at 48.
-2. Upper limits. Daily total is the label amount times servings per day, converted into the unit used by the NIH Office of Dietary Supplements adult upper limit (the same factors as the in-app audit). Above the upper limit costs 20 points for that key. At or above 90 percent of the upper limit, and not above it, costs 8 points. Keys with no published upper limit in that table are ignored. Cap this part at 40.
-3. Redundant products. A product is redundant when it has at least one counted ingredient and every one of those keys also appears on another product. Each redundant product costs 15 points. Cap this part at 30.
+## Reasons and points
 
-Score = 100 minus those three parts, then clamped to 0 to 100.
+1. Above the upper limit: 20 points per ingredient, at most 40 in total.
+2. Close to the upper limit (from 90 percent): 5 points per ingredient, at most 15.
+3. Doubled up: an ingredient family with no upper limit in more than one product costs 8 points for each product beyond the first, at most 24.
 
-Prices are not an input. Two stacks with the same doses and the same bottles score the same if one of them has blank prices.
+An ingredient with an upper limit that appears in several products but stays within the limit in total is listed as "within the limit in total" and costs nothing. A multivitamin plus a single magnesium under the limit is not a problem. An ingredient that is already above or close to its limit is not also charged as doubled.
+
+Score = 100 minus the three parts, clamped to 0 to 100.
+
+A stack with any ingredient above twice its upper limit can still be shared by link, but it is not listed in Discover.
+
+Prices are not an input. Two stacks with the same doses score the same if one of them has blank prices.

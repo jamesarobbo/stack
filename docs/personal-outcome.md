@@ -1,33 +1,45 @@
-# Personal outcome and copier aggregate
+# Personal outcome and copier results
 
-A personal result is optional. The person sharing a stack can attach one headline, or none.
+All results are worked out on the phone from Apple Health. No wearable samples leave the phone. The Worker receives only the derived headline fields (metric, direction, whole percent, within normal variation, window length, device type), checks them with `validateOutcomeFields` in `shared/outcome.ts`, and writes the sentence itself.
 
-## Eligibility
+## Reading Apple Health
 
-The stack start date is the earliest product start date.
+The app asks once, with a single permission sheet that also covers date of birth and biological sex. It reads 400 days of history with statistics queries, so steps from an iPhone and a Watch are not counted twice. Deep sleep keeps the source with the most deep sleep for each night instead of adding sources together. Apple Health is read again on launch at most every 12 hours, without a new permission sheet.
 
-Before the start date, the baseline is the mean of daily values in the 90 days immediately before that date. At least 60 of those days must have a value.
+Date of birth and biological sex only suggest an age range and sex on the about you screen. They are stored on the phone and never sent to analytics.
 
-After the start date, the comparison window is the first 90 days from the start date. It becomes eligible once 60 calendar days have elapsed and at least 21 of the days in that window have a value. The headline says how many days that window covers (60 to 90).
+## Measures
 
-Relative change is (after mean minus before mean) divided by the before mean. The before mean must be above zero. The percent is rounded to the nearest whole number. Down, up, or about the same is a description of that number. It is not a claim that a supplement caused it.
+Resting heart rate, heart rate variability, and deep sleep. Steps, active energy, and VO2 max are not used for results: the first two are behaviour rather than outcome, and VO2 max is too sparse.
 
-The headline names the metric, the percent, the window, and the device. The screen always adds "1 person, not a trial" and the label "What changed for me".
+## Windows
 
-Raw samples are sent only so the server can compute the headline. They are not stored, and they are not part of the shared snapshot.
+The start is the earliest product start date for the person sharing, and the server's copy date for a copier.
 
-Example data and a build without Apple Health (including Expo Go) do not invent a result. The screen says there is not enough data.
+- Before: the 84 days before the start, with at least 56 measured days.
+- Settling in: the first 14 days after the start are skipped.
+- After: days 15 to 98, with at least 42 measured days. A result is ready on day 98.
 
-## Copier aggregate
+The change is the median of the after window against the median of the before window, as a whole percent. 84 days is 3 menstrual cycles on each side.
 
-A copier can submit the same kind of summary after they copy a stack. The server stores the percent, metric, window length, device, age range, and sex. It does not store the day by day samples.
+## Normal variation
 
-The average is shown only when at least 10 copied users have an eligible result for the same metric, each with a window of at least 90 days. Shorter windows stay out of the average so a menstrual cycle is less likely to dominate the number.
+The same change is measured at earlier pretend start dates, every 2 weeks, entirely inside the person's own history. A change smaller than the 80th percentile of those changes, or smaller than a floor (3 percent for resting heart rate, 8 for heart rate variability, 10 for deep sleep), reads as "stayed within normal variation". That is an honest result and can be shared. The Worker rejects a change outside normal variation that is below the floor, and any change above 60 percent.
 
-The line names the cohort mix, for example "mostly men 30 to 39", when one age and sex group is at least 40 percent of those people. Otherwise it says the group is mixed.
+## Sharing your own result
 
-A "people like you" filter uses the viewer's age range and sex. That slice is shown only when it also has at least 10 people. Fewer than 10 is reported as not enough, without the count.
+Optional. The share screen lists the results that are ready and a review step shows exactly what will be public before anything is published. Updating a share keeps the published result unless the person picks another one or removes it.
 
-Stacks are not ranked against each other by these numbers.
+The in-app page shows the result as "What changed for Sam" with "1 person, not a trial". The public web page only says that the person tracked a result, with no number, and the link preview image has none.
 
-The public wording is "Real-world data, not a trial."
+## Copier results
+
+When copying, the person can agree to add their result to the stack's group. They can turn it off later on the stack page, which deletes what they sent. After day 98 from the copy date, the app sends the fields above for each measure that is ready, at most once a day. Results are tied to the version of the stack that was copied. A change of ingredients or doses starts a new group.
+
+## Groups
+
+Results are shown in the app only, to signed-in people, never on the web page. Groups are fixed: everyone, by sex, and by sex and age group (under 40, 40 to 59, 60 plus). There is no free filter.
+
+A group is shown only with at least 10 people, and only when the people in its parent group who fall outside the shown groups are none or at least 10. That stops two groups being subtracted to reveal one person. The middle value is shown as a 5 point range and the head count as a range. Groups are recomputed once a day from results sent before that day began.
+
+The wording is "Real-world data from people who copied this stack, not a trial". Stacks are not ranked by these numbers.

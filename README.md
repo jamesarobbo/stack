@@ -97,16 +97,26 @@ npm run dev
 
 `GET /health` returns `{ "ok": true }`.
 
-In development, `POST /v1/auth/email/start` includes `devCode` in the JSON so you can sign in without an email provider. Production (`ENVIRONMENT=production`) does not return the code. Wire your own mailer before you rely on that route in production.
+`POST /v1/auth/email/start` includes `devCode` in the JSON only when `ENVIRONMENT` is `development` and the request reaches the Worker on localhost (`wrangler dev`). A deployed Worker never returns it, whatever its vars say. No email provider is wired yet.
+
+To sign in on a preview build without email, set two production secrets: `TEST_EMAILS`, a comma separated list of addresses on reserved test domains only (`example.com`, `example.org`, `example.net`, or a `.test`, `.example`, or `.invalid` domain), and `TEST_SIGN_IN_CODE`, a 6 digit code. Only those addresses accept that code, nobody can receive mail there, and the code is never in a response. Any other address needs a real code, which is not sent until a mailer is added. Code requests and attempts are rate limited per address and per IP.
 
 The deployed API is `https://stack-api.jamesarobinson6.workers.dev`. `server/wrangler.toml` points at D1 database `stack` (`f77ceacc-e4ee-4542-9c77-546661462f76`).
 
-`AUTH_PEPPER` and `REVENUECAT_WEBHOOK_AUTH` are Worker secrets. Set them with `wrangler secret put` only.
+Production settings live in `[env.production]` (Worker `stack-api`, `ENVIRONMENT = "production"`, a daily cron at 03:17 UTC). A plain `wrangler deploy` goes to `stack-api-dev`, so it cannot overwrite production with development vars. `npm run deploy` and CI use `--env production`.
+
+Secrets, set with `wrangler secret put --env production` only:
+
+- `AUTH_PEPPER` and `REVENUECAT_WEBHOOK_AUTH`, as before.
+- `ADMIN_TOKEN`: bearer token for the report queue, `GET /v1/admin/reports` and `POST /v1/admin/shares/:slug` with `{ action: "restore" | "hide" | "remove" }`.
+- `TEST_EMAILS` and `TEST_SIGN_IN_CODE`: optional, for preview sign-in as above.
+
+Optional vars in `[env.production.vars]`: `APP_STORE_ID` (numeric, turns on the Smart App Banner and the App Store redirect), `APPLE_TEAM_ID` (turns on universal links in `/.well-known/apple-app-site-association`), and `PUBLIC_BASE_URL` (the https origin used in share links, if it is not the Worker host).
 
 ```bash
-npx wrangler d1 migrations apply stack --remote
-npx wrangler secret put AUTH_PEPPER
-npx wrangler secret put REVENUECAT_WEBHOOK_AUTH
+npx wrangler d1 migrations apply stack --remote --env production
+npx wrangler secret put AUTH_PEPPER --env production
+npx wrangler secret put ADMIN_TOKEN --env production
 ```
 
 `APPLE_AUDIENCE` in `wrangler.toml` must match the iOS bundle id (`app.stack.mobile` unless you changed `IOS_BUNDLE_ID`).
@@ -127,9 +137,9 @@ Call `Purchases.logIn(userId)` with the Stack user id so the webhook's `app_user
 
 Product search calls the Worker, which calls the NIH Dietary Supplement Label Database (`https://api.ods.od.nih.gov/dsld/v9/`) and caches the normalised label in D1 (`dsld_cache`) and the Cache API. The Worker stops new NIH calls after 800 in an hour, under the public limit of 1,000 per hour per IP.
 
-Barcode lookup checks the signed-in user's own saved label, then NIH DSLD, then Open Food Facts (`https://world.openfoodfacts.org/api/v2/product/<ean>.json`). Open Food Facts fills the name and brand for a UK or EU barcode. A vitamin or mineral amount is copied only when the response has `_serving` in grams (`_unit` of `g`). A per-100g figure, an IU or microgram unit, or a dose written in the product name is left blank. The add screen asks you to check or add the doses from the bottle before saving. The saved product goes to that account only (`contributed_labels`).
+Barcode lookup checks the signed-in user's own saved label, then NIH DSLD, then Open Food Facts (`https://world.openfoodfacts.org/api/v2/product/<ean>.json`). Open Food Facts fills the name and brand for a UK or EU barcode. A vitamin or mineral amount comes only from `_serving`, which Open Food Facts stores in grams, and is rescaled to the unit the contributor typed (`_unit`, any mass unit). IU, percent of daily value, a per-100g figure, a dose written in the product name, and a gram value above 5 g (someone typed micrograms into the gram field) are left blank. The add screen asks you to check or add the doses from the bottle before saving. The saved product goes to that account only (`contributed_labels`).
 
-Open Food Facts rows live in `off_cache` for 24 hours, with `source` set to `off`. They are not mixed into the DSLD catalogue. The database is ODbL. The add screen and Settings show: Product data from Open Food Facts, available under the ODbL.
+Open Food Facts rows live in `off_cache` for 24 hours, with `source` set to `off`, and the daily task deletes rows older than 30 days. They are not mixed into the DSLD catalogue. The database is ODbL. The add screen and Settings show: Product data from Open Food Facts, available under the ODbL.
 
 The Worker sends `User-Agent: Stack/0.1 (<CONTACT_EMAIL>)`. `CONTACT_EMAIL` in `server/wrangler.toml` is the address or URL in that header. Replace it with a monitored contact.
 
@@ -137,7 +147,7 @@ DSLD stores UPC-A with spaces, and a lot of labels have no barcode. CFU is often
 
 ## What the screens do
 
-1. **Onboarding:** nine short screens. Goal, rough monthly spend, a wearable (or skip), age range and sex (each with prefer not to say), supplements (NIH search, barcode, or typing), a short audit loader, a result that uses the real audit, sign-in to save it, then the Pro paywall with Continue with Free. Progress reads 1 of 9. The age and sex screen says why: so results can be compared with people like you. If Apple Health is connected outside Expo Go, date of birth and biological sex prefill the choices. A reload never opens on the monthly report. The report has a Close control, and Pro preview can be turned off from More.
+1. **Onboarding:** nine short screens. Goal, rough monthly spend, a wearable (or skip), age range and sex (each with prefer not to say), supplements (NIH search, barcode, or typing), a short audit loader, a result that uses the real audit, sign-in to save it, then the Pro paywall with Continue with Free. Progress reads 1 of 9. The age and sex screen says why: Discover's people like you and grouped results. If Apple Health is connected outside Expo Go, date of birth and biological sex, read with the same single permission sheet, suggest the choices. They stay on the phone and are not sent to analytics. Settings can change them later. A reload never opens on the monthly report. The report has a Close control, and Pro preview can be turned off from More.
 2. **My Stack:** each product's monthly cost and the total. Add is the bar above the tabs, and the empty state has its own add control. Share stack, when the stack has products, creates a link. Monthly cost is `(price / servings) × servings per day × 30`. Tab screens do not repeat the tab name at the top.
 3. **Audit:** rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
 4. **Impact:** 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
@@ -147,11 +157,15 @@ Free is the stack log, the duplicate dollars, the upper-limit flags, and a singl
 
 ## Sharing
 
-Share stack publishes products and doses, an audit score, and an optional personal headline. Prices, paid amounts, and raw health samples are not in the snapshot. The score is documented in `docs/audit-score.md` and uses dose overlap only. The personal headline is documented in `docs/personal-outcome.md`. It needs 60 days before the stack started and enough days after, and it always reads as one person, not a trial.
+Share stack publishes products and daily doses, the audit score with its reasons, and an optional personal headline. Prices, notes, start dates, and wearable samples are never sent. The name is hidden unless the person turns it on, and a review step lists everything that will be public before publishing. Example data cannot be shared. Publishing opens the share sheet with the link. The score is documented in `docs/audit-score.md`, results and groups in `docs/personal-outcome.md`.
 
-The public page is `GET /s/<slug>` on the Worker. It is `noindex` until the owner lists the stack. Link only is the default. The owner can update, unlist, or unshare the link. Copy to my stack adds the products with empty prices and counts each other person once. An average across copiers is shown only when at least 10 people have a 90 day window, including a people like you filter. Stacks are not ranked against each other.
+Every edit that changes something creates a new version, and the page shows "Updated on" with a short list of changes. A change of ingredients or doses restarts the kept count and the copier group, so an edit cannot inherit them.
 
-Discover is a link on My Stack, not another tab. It has New, Top, and Saved. Top ranks copies from the last 30 days. Search covers the stack name, up to 3 goal tags, an ingredient (`has magnesium`), and the creator name. People can save or report a stack. Unlisting removes it from Saved. The rules are in `docs/stack-library.md`.
+The public page is `GET /s/<slug>` on the Worker, on a white background with a Smart App Banner, Open Graph and Twitter tags, and a 1200 by 630 preview image (`/s/<slug>/og.png`, cached per version). The page shows what the stack is, the score and why, and one action. It carries no results numbers and no health claims. The action, `/s/<slug>/get`, remembers the slug for 2 hours against a hashed address and opens the App Store, so a new install opens that stack after onboarding. With the app installed, universal links open it directly. Universal links need `APPLE_TEAM_ID` on the Worker and a new native build (the app's `associatedDomains` comes from `EXPO_PUBLIC_SHARE_HOST` or `EXPO_PUBLIC_API_URL`).
+
+Copy to my stack shows a preview first: products you already take, overlaps, what is new, and your score after. Each row can be added, skipped, or replace yours. The products are written in one transaction with `catalogueId` `share:<slug>`, so the copy lands whole or not at all, and it can be copied again after deleting them. Copying works before sign-in and counts once the person signs in.
+
+Discover is a link on My Stack, not another tab. One control switches New, Most kept, People like you, and Saved. The rules are in `docs/stack-library.md`.
 
 ## CI
 
