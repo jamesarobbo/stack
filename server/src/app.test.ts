@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { describe, expect, it } from 'vitest';
@@ -8,7 +8,10 @@ import { subscriptionFromEvent, subscriptionIsPro } from './revenuecat';
 
 function createTestEnv() {
   const sqlite = new DatabaseSync(':memory:');
-  sqlite.exec(readFileSync(new URL('../migrations/0001_init.sql', import.meta.url), 'utf8'));
+  const migrations = new URL('../migrations/', import.meta.url);
+  for (const name of readdirSync(migrations).filter((file) => file.endsWith('.sql')).sort()) {
+    sqlite.exec(readFileSync(new URL(name, migrations), 'utf8'));
+  }
   const DB = {
     prepare(query: string) {
       return {

@@ -1,0 +1,79 @@
+{
+  "id": 213414,
+  "fullName": "Folate 800 mcg DFE",
+  "brandName": "Nature's Way",
+  "upcSku": "0 33674 40451 5",
+  "servingsPerContainer": null,
+  "servingSizes": [
+    {
+      "order": 1,
+      "minQuantity": 1,
+      "maxQuantity": 1,
+      "minDailyServings": 1,
+      "maxDailyServings": 1,
+      "unit": "Capsule(s)",
+      "inSFB": true
+    }
+  ],
+  "netContents": [
+    {
+      "order": 1,
+      "quantity": 100,
+      "unit": "Capsule(s)",
+      "display": "100 Capsule(s)"
+    }
+  ],
+  "offMarket": 0,
+  "ingredientRows": [
+    {
+      "order": 1,
+      "ingredientId": 278757,
+      "notes": "",
+      "quantity": [
+        {
+          "servingSizeOrder": 1,
+          "servingSizeQuantity": 1,
+          "operator": "=",
+          "quantity": 800,
+          "unit": "mcg DFE",
+          "dailyValueTargetGroup": [
+            {
+              "name": "Adults and children 4 or more years of age",
+              "operator": "=",
+              "percent": 200,
+              "footnote": null
+            }
+          ],
+          "servingSizeUnit": "Capsule(s)"
+        }
+      ],
+      "nestedRows": [
+        {
+          "order": 2,
+          "ingredientId": 279040,
+          "notes": "",
+          "quantity": [
+            {
+              "servingSizeOrder": 1,
+              "servingSizeQuantity": 1,
+              "operator": "=",
+              "quantity": 480,
+              "unit": "mcg",
+              "dailyValueTargetGroup": [],
+              "servingSizeUnit": "Capsule(s)"
+            }
+          ],
+          "nestedRows": [],
+          "name": "Folic Acid",
+          "category": "vitamin",
+          "ingredientGroup": "Folate",
+          "forms": []
+        }
+      ],
+      "name": "Folate",
+      "category": "vitamin",
+      "ingredientGroup": "Folate",
+      "forms": []
+    }
+  ]
+}

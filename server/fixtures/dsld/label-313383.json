@@ -1,0 +1,135 @@
+{
+  "id": 313383,
+  "fullName": "Probiotic 2 Billion CFU Raspberry Flavor",
+  "brandName": "Lifeable",
+  "upcSku": "8 10102 73085 5",
+  "servingsPerContainer": "30",
+  "servingSizes": [
+    {
+      "order": 1,
+      "minQuantity": 2,
+      "maxQuantity": 2,
+      "minDailyServings": 1,
+      "maxDailyServings": 1,
+      "unit": "Gummy(ies)",
+      "notes": "",
+      "inSFB": true
+    }
+  ],
+  "netContents": [
+    {
+      "order": 1,
+      "quantity": 60,
+      "unit": "Gummy(ies)",
+      "display": "60 Gummy(ies)"
+    }
+  ],
+  "offMarket": 0,
+  "ingredientRows": [
+    {
+      "order": 1,
+      "ingredientId": 284519,
+      "notes": "",
+      "quantity": [
+        {
+          "servingSizeOrder": 1,
+          "servingSizeQuantity": 2,
+          "operator": "=",
+          "quantity": 15,
+          "unit": "Calorie(s)",
+          "dailyValueTargetGroup": [],
+          "servingSizeUnit": "Gummy(ies)"
+        }
+      ],
+      "nestedRows": [],
+      "name": "Calories",
+      "category": "other",
+      "ingredientGroup": "Calories",
+      "forms": []
+    },
+    {
+      "order": 2,
+      "ingredientId": 283702,
+      "notes": "",
+      "quantity": [
+        {
+          "servingSizeOrder": 1,
+          "servingSizeQuantity": 2,
+          "operator": "=",
+          "quantity": 4,
+          "unit": "Gram(s)",
+          "dailyValueTargetGroup": [
+            {
+              "name": "Adults and children 4 or more years of age",
+              "operator": "<",
+              "percent": 2,
+              "footnote": null
+            }
+          ],
+          "servingSizeUnit": "Gummy(ies)"
+        }
+      ],
+      "nestedRows": [],
+      "name": "Total Carbohydrates",
+      "category": "sugar",
+      "ingredientGroup": "Carbohydrate",
+      "forms": []
+    },
+    {
+      "order": 3,
+      "ingredientId": 292597,
+      "notes": "",
+      "quantity": [
+        {
+          "servingSizeOrder": 1,
+          "servingSizeQuantity": 2,
+          "operator": "=",
+          "quantity": 5,
+          "unit": "mg",
+          "dailyValueTargetGroup": [
+            {
+              "name": "Adults and children 4 or more years of age",
+              "operator": "<",
+              "percent": 1,
+              "footnote": null
+            }
+          ],
+          "servingSizeUnit": "Gummy(ies)"
+        }
+      ],
+      "nestedRows": [],
+      "name": "Sodium",
+      "category": "mineral",
+      "ingredientGroup": "Sodium",
+      "forms": []
+    },
+    {
+      "order": 4,
+      "ingredientId": 290538,
+      "notes": "Probiotic, 2 billion CFU",
+      "quantity": [
+        {
+          "servingSizeOrder": 1,
+          "servingSizeQuantity": 2,
+          "operator": "=",
+          "quantity": 0,
+          "unit": "NP",
+          "dailyValueTargetGroup": [
+            {
+              "name": "Adults and children 4 or more years of age",
+              "operator": null,
+              "percent": null,
+              "footnote": "Daily Value not established"
+            }
+          ],
+          "servingSizeUnit": "Gummy(ies)"
+        }
+      ],
+      "nestedRows": [],
+      "name": "Bacillus coagulans",
+      "category": "bacteria",
+      "ingredientGroup": "Bacillus Coagulans",
+      "forms": []
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "hits": [
+    {
+      "_id": "33919",
+      "_source": {
+        "fullName": "Magnesium Glycinate",
+        "brandName": "Vinco's",
+        "offMarket": 0,
+        "allIngredients": [
+          {
+            "name": "Magnesium Glycinate",
+            "category": "non-nutrient/non-botanical",
+            "ingredientGroup": "Magnesium"
+          },
+          {
+            "name": "Magnesium",
+            "category": "mineral",
+            "ingredientGroup": "Magnesium"
+          },
+          {
+            "name": "Xylitol",
+            "category": "non-nutrient/non-botanical",
+            "ingredientGroup": "Xylitol"
+          }
+        ]
+      }
+    },
+    {
+      "_id": "25018",
+      "_source": {
+        "fullName": "Magnesium Glycinate",
+        "brandName": "Metabolic Maintenance",
+        "offMarket": 0,
+        "allIngredients": [
+          {
+            "name": "Vitamin C",
+            "category": "vitamin",
+            "ingredientGroup": "Vitamin C"
+          },
+          {
+            "name": "Magnesium",
+            "category": "mineral",
+            "ingredientGroup": "Magnesium"
+          },
+          {
+            "name": "vegetarian capsule",
+            "category": "other",
+            "ingredientGroup": "capsule"
+          }
+        ]
+      }
+    }
+  ],
+  "stats": {
+    "count": 14034,
+    "pct": 0.06534127944873824
+  }
+}
