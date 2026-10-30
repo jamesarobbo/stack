@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { buildExample } from '../data/example';
 import type { CatalogueItem } from '../data/catalogue';
-import { localToday } from '../dates';
+import { clampStartDate, localToday } from '../dates';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from '../domain/types';
 import { connectAppleHealth } from '../health/connect';
 import { randomId } from '../id';
@@ -177,7 +177,7 @@ export async function addProduct(input: {
       priceCents: input.priceCents,
       servingsPerContainer: input.servingsPerContainer,
       servingsPerDay: input.servingsPerDay,
-      startDate: input.startDate,
+      startDate: clampStartDate(input.startDate),
       catalogueId: input.catalogueId ?? null,
       ingredients: input.ingredients,
     },
@@ -200,6 +200,11 @@ export async function addCatalogueProduct(item: CatalogueItem, startDate: string
     catalogueId: item.id,
     ingredients: item.ingredients.map((ingredient) => ({ ...ingredient, costWeight: ingredient.costWeight || 1 })),
   });
+}
+
+export async function updateProductStartDate(id: string, startDate: string) {
+  await db.update(products).set({ startDate: clampStartDate(startDate) }).where(eq(products.id, id));
+  await setSetting('usingSampleData', '0');
 }
 
 export async function removeProduct(id: string) {

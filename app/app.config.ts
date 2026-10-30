@@ -75,6 +75,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     ...(process.env.EXPO_PUBLIC_SENTRY_DSN ? ['@sentry/react-native' as const] : []),
     'expo-apple-authentication',
+    '@react-native-community/datetimepicker',
   ],
   experiments: {
     typedRoutes: false,

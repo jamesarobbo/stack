@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { DateField } from '@/src/components/DateField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { searchCatalogue, type CatalogueItem } from '@/src/data/catalogue';
-import { localToday } from '@/src/dates';
+import { clampStartDate, localToday } from '@/src/dates';
 import type { IngredientInput } from '@/src/domain/types';
 import { useApp } from '@/src/state';
 import { font, theme } from '@/src/theme';
@@ -51,7 +52,7 @@ function SearchAdd() {
         style={styles.input}
         autoCapitalize="none"
       />
-      <TextInput value={startDate} onChangeText={setStartDate} placeholder="Start date YYYY-MM-DD" placeholderTextColor={theme.faint} style={styles.input} />
+      <DateField label="Start date" value={startDate} onChange={setStartDate} />
       <T size={12} color={theme.muted}>
         Amounts are examples from a fictional label, not a suggestion. The start date is the day you want the before/after window to use.
       </T>
@@ -61,7 +62,7 @@ function SearchAdd() {
           item={item}
           added={owned.has(item.id)}
           onAdd={async () => {
-            await app.addFromCatalogue(item, startDate || localToday());
+            await app.addFromCatalogue(item, clampStartDate(startDate));
           }}
         />
       ))}
@@ -112,7 +113,7 @@ function ManualAdd() {
       <Field label="Price (USD)" value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
       <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
       <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" />
-      <Field label="Start date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" />
+      <DateField label="Start date" value={startDate} onChange={setStartDate} />
       <T weight="semibold">Ingredients on the label</T>
       {ingredients.map((ingredient, index) => (
         <Card key={index}>
@@ -154,10 +155,6 @@ function ManualAdd() {
             setError('Servings need to be numbers above zero.');
             return;
           }
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
-            setError('Use a start date like 2026-10-01.');
-            return;
-          }
           if (cleaned.length === 0) {
             setError('Add at least one ingredient and the amount on the label.');
             return;
@@ -167,7 +164,7 @@ function ManualAdd() {
             priceCents,
             servingsPerContainer,
             servingsPerDay,
-            startDate,
+            startDate: clampStartDate(startDate),
             ingredients: cleaned.map((ingredient) => ({ ...ingredient, costWeight: 1 })),
           });
           router.back();

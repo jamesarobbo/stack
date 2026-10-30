@@ -15,6 +15,7 @@ import {
   prepareSettings,
   removeProduct,
   replaceProductsFromSync,
+  updateProductStartDate,
   seedIfEmpty,
 } from './db/repository';
 import { configurePurchases, purchasePlan, restorePurchases, revenueCatIsPro, type PurchaseResult } from './purchases';
@@ -49,6 +50,7 @@ type AppState = {
     ingredients: IngredientInput[];
   }) => Promise<void>;
   remove: (id: string) => Promise<void>;
+  setStartDate: (id: string, startDate: string) => Promise<void>;
   logTag: (kind: TagKind) => Promise<void>;
   setPreviewPro: (on: boolean) => Promise<void>;
   setName: (name: string) => Promise<void>;
@@ -174,6 +176,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       remove: async (id) => {
         await removeProduct(id);
+        await afterWrite();
+      },
+      setStartDate: async (id, startDate) => {
+        await updateProductStartDate(id, startDate);
         await afterWrite();
       },
       logTag: async (kind) => {

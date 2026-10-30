@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { DateField } from '@/src/components/DateField';
 import { BackButton, Button, Card, Disclaimer, ProductRow, Screen, T } from '@/src/components/ui';
 import { monthlyCostCents } from '@/src/domain/audit';
 import { formatNumber, formatUsd } from '@/src/format';
@@ -26,9 +27,13 @@ export default function ProductScreen() {
         <T size={14} color={theme.muted}>
           {`Monthly cost ${formatUsd(monthly)} from ${formatUsd(product.priceCents)} / ${product.servingsPerContainer} servings × ${product.servingsPerDay} a day × 30.`}
         </T>
-        <T size={14} color={theme.muted}>
-          {`Start date ${product.startDate}`}
-        </T>
+        <DateField
+          label="Start date"
+          value={product.startDate}
+          onChange={(iso) => {
+            if (iso !== product.startDate) void app.setStartDate(product.id, iso);
+          }}
+        />
         {product.ingredients.map((ingredient) => (
           <T key={`${ingredient.key}-${ingredient.name}`} size={14}>
             {`${ingredient.name} · ${formatNumber(ingredient.amount, ingredient.amount < 1 ? 1 : 0)} ${ingredient.unit}`}

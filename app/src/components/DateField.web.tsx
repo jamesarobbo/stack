@@ -1,0 +1,67 @@
+import { createElement } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { clampStartDate, formatUsDate, localToday } from '../dates';
+import { font, theme } from '../theme';
+import { T } from './ui';
+
+/**
+ * Web fallback. The browser date input stores YYYY-MM-DD.
+ * The line above it is the US display (for example Oct 30, 2026).
+ */
+export function DateField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (iso: string) => void;
+}) {
+  const today = localToday();
+  const iso = clampStartDate(value, today);
+
+  return (
+    <View style={styles.wrap}>
+      <T size={12} weight="semibold" color={theme.muted}>
+        {label}
+      </T>
+      <View style={styles.field}>
+        <T weight="semibold">{formatUsDate(iso)}</T>
+        {createElement('input', {
+          type: 'date',
+          lang: 'en-US',
+          value: iso,
+          max: today,
+          'aria-label': label,
+          onChange: (event: { target: { value: string } }) => {
+            if (!event.target.value) return;
+            onChange(clampStartDate(event.target.value, today));
+          },
+          style: {
+            marginTop: 8,
+            width: '100%',
+            boxSizing: 'border-box',
+            border: 'none',
+            background: 'transparent',
+            color: theme.text,
+            fontFamily: font.regular,
+            fontSize: 16,
+            padding: 0,
+          },
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { gap: 4 },
+  field: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E4E7EC',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+});
