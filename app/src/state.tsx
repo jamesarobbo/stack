@@ -4,6 +4,7 @@ import { api, stackSyncBody } from './api';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from './domain/types';
 import {
   addProduct,
+  addProducts,
   addTag,
   connectHealth,
   deleteLocalData,
@@ -17,9 +18,12 @@ import {
   updateProductPrice,
   updateProductStartDate,
   clearUntouchedSampleOnce,
+  refreshHealthIfStale,
+  type NewProduct,
 } from './db/repository';
 import { configurePurchases, purchasePlan, restorePurchases, revenueCatIsPro, type PurchaseResult } from './purchases';
 import { syncProfile } from './data/profile';
+import { flushPendingCopies, submitCopierResults } from './data/sharing';
 import { getSetting, setSetting } from './settings';
 import { initTelemetry, track } from './telemetry';
 
@@ -52,6 +56,10 @@ type AppState = {
     catalogueId?: string | null;
     ingredients: IngredientInput[];
   }) => Promise<void>;
+  /** Adds the chosen products in one transaction, replacing the given ids. */
+  addMany: (list: NewProduct[], replaceIds: string[]) => Promise<void>;
+  /** Re-reads Apple Health when the last read is stale, then sends any copier results that are due. */
+  backgroundRefresh: () => Promise<void>;
   remove: (id: string) => Promise<void>;
   setStartDate: (id: string, startDate: string) => Promise<void>;
   setIngredientUnit: (productId: string, key: string, name: string, unit: string) => Promise<void>;
@@ -175,6 +183,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await addProduct(input);
         await afterWrite();
       },
+      addMany: async (list, replaceIds) => {
+        await addProducts(list, { replaceIds });
+        await afterWrite();
+      },
+      backgroundRefresh: async () => {
+        if (await refreshHealthIfStale().catch(() => false)) await applySnapshot();
+        const snapshot = await loadSnapshot();
+        const token = getSetting('sessionToken');
+        await flushPendingCopies(token, snapshot.products).catch(() => undefined);
+        await submitCopierResults(token, snapshot.samples).catch(() => undefined);
+      },
       remove: async (id) => {
         await removeProduct(id);
         await afterWrite();
@@ -202,6 +221,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setName: async (name) => {
         await setSetting('displayName', name.trim());
         await applySnapshot();
+        await syncProfile(getSetting('sessionToken')).catch(() => undefined);
       },
       exportData: async () => JSON.stringify(await exportPayload(), null, 2),
       deleteLocal: async () => {
@@ -232,6 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await applySnapshot();
         await syncProfile(result.token).catch(() => undefined);
         await pushSilent(products);
+        await flushPendingCopies(result.token, products).catch(() => undefined);
         track('sign_in', { method: 'email' });
       },
       signInWithApple: async () => {
@@ -258,6 +279,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await applySnapshot();
         await syncProfile(result.token).catch(() => undefined);
         await pushSilent(products);
+        await flushPendingCopies(result.token, products).catch(() => undefined);
         track('sign_in', { method: 'apple' });
       },
       signOut: async () => {

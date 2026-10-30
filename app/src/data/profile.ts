@@ -13,7 +13,7 @@ export async function syncProfile(token: string | null) {
     body: {
       ageRange: isAgeRange(ageRange) ? ageRange : undefined,
       sex: isSex(sex) ? sex : undefined,
-      displayName: displayName || undefined,
+      displayName: displayName || null,
     },
   });
 }
