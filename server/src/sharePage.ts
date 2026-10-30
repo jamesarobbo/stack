@@ -1,3 +1,4 @@
+import { GOAL_LABELS, LIBRARY_GOALS, type LibraryGoal } from './library';
 import type { AggregateResult, PersonalResult } from './outcome';
 
 export type ShareViewProduct = {
@@ -10,6 +11,8 @@ export type ShareViewProduct = {
 export type ShareView = {
   slug: string;
   displayName: string | null;
+  stackName: string | null;
+  goals: string[];
   products: ShareViewProduct[];
   auditScore: number;
   result: PersonalResult | null;
@@ -50,6 +53,12 @@ ${body}
 
 function pageBody(view: ShareView): string {
   const who = view.displayName ? escapeHtml(view.displayName) : 'A Stack user';
+  const title = view.stackName ? escapeHtml(view.stackName) : 'Shared stack';
+  const goalLine = view.goals
+    .filter((goal): goal is LibraryGoal => (LIBRARY_GOALS as readonly string[]).includes(goal))
+    .map((goal) => GOAL_LABELS[goal])
+    .join(', ');
+  const goals = goalLine ? `<p class="muted">${escapeHtml(goalLine)}</p>` : '';
   const products = view.products
     .map((product) => {
       const doses = product.ingredients
@@ -66,8 +75,9 @@ function pageBody(view: ShareView): string {
     ? `<div class="card"><h2>People who copied this</h2><p>${escapeHtml(view.aggregate.line)}</p><p class="muted">${escapeHtml(view.aggregate.disclaimer)}</p></div>`
     : '';
   return `<main>
-<h1>Shared stack</h1>
+<h1>${title}</h1>
 <p class="muted">${who}</p>
+${goals}
 <div class="card"><p class="muted">Audit score</p><p class="score">${view.auditScore}</p><p class="muted">From doses and overlaps only. Price is not part of this score.</p></div>
 ${products}
 ${result}

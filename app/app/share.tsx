@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Share, View } from 'react-native';
+import { Share, TextInput, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { API_URL } from '@/src/config';
+import { LIBRARY_GOALS, type LibraryGoalKey } from '@/src/copy/library';
 import {
   EXAMPLE_NOT_PERSONAL,
   NOT_ENOUGH_OUTCOME,
@@ -21,7 +22,7 @@ import { theme } from '@/src/theme';
 
 type Preview = { metric: OutcomeMetricKey; line: string };
 
-type CurrentShare = { slug: string; copyCount: number; publicIndex: boolean };
+type CurrentShare = { slug: string; copyCount: number; publicIndex: boolean; stackName: string | null; goals: string[] };
 
 export default function ShareScreen() {
   const app = useApp();
@@ -32,6 +33,8 @@ export default function ShareScreen() {
   }, [app.products]);
   const [selected, setSelected] = useState<'none' | OutcomeMetricKey>('none');
   const [publicIndex, setPublicIndex] = useState(false);
+  const [stackName, setStackName] = useState('');
+  const [goals, setGoals] = useState<LibraryGoalKey[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
@@ -47,6 +50,8 @@ export default function ShareScreen() {
         setLink(`${API_URL}/s/${body.share.slug}`);
         setCopyCount(body.share.copyCount);
         setPublicIndex(body.share.publicIndex);
+        setStackName(body.share.stackName ?? '');
+        setGoals(body.share.goals.filter((goal): goal is LibraryGoalKey => LIBRARY_GOALS.some((item) => item.key === goal)));
       })
       .catch(() => undefined);
   }, [app.sessionToken]);
@@ -91,6 +96,8 @@ export default function ShareScreen() {
         token: app.sessionToken,
         body: {
           displayName: app.displayName || null,
+          stackName: stackName.trim() || null,
+          goals,
           publicIndex,
           products: app.products.map((product) => ({
             id: product.id,
@@ -209,9 +216,44 @@ export default function ShareScreen() {
         ))}
       </Card>
       <Card>
-        <T weight="semibold">Search engines</T>
-        <Choice label="Keep this page out of search engines" selected={!publicIndex} onPress={() => setPublicIndex(false)} />
-        <Choice label="Allow search engines to index this page" selected={publicIndex} onPress={() => setPublicIndex(true)} />
+        <T weight="semibold">Stack name</T>
+        <TextInput
+          value={stackName}
+          onChangeText={setStackName}
+          placeholder="Evening magnesium"
+          placeholderTextColor={theme.faint}
+          accessibilityLabel="Stack name"
+          style={{ backgroundColor: theme.bg, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, color: theme.text }}
+        />
+        <T weight="semibold">Goals</T>
+        <T size={13} color={theme.muted}>
+          Up to 3. People can search by these.
+        </T>
+        {LIBRARY_GOALS.map((goal) => (
+          <Choice
+            key={goal.key}
+            label={goal.label}
+            selected={goals.includes(goal.key)}
+            onPress={() =>
+              setGoals((current) => {
+                if (current.includes(goal.key)) return current.filter((item) => item !== goal.key);
+                if (current.length >= 3) return current;
+                return [...current, goal.key];
+              })
+            }
+          />
+        ))}
+      </Card>
+      <Card>
+        <T weight="semibold">Who can find this</T>
+        <Choice label="Link only" selected={!publicIndex} onPress={() => setPublicIndex(false)} />
+        <T size={13} color={theme.muted}>
+          Only people with the link. The page stays out of search engines.
+        </T>
+        <Choice label="List in Discover" selected={publicIndex} onPress={() => setPublicIndex(true)} />
+        <T size={13} color={theme.muted}>
+          People can find this stack. The page can be indexed.
+        </T>
       </Card>
       {link ? (
         <Card>

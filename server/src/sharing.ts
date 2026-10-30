@@ -10,6 +10,7 @@ import {
   type OutcomeRow,
   type PersonalResult,
 } from './outcome';
+import { dropFromLibrary, indexShare, ingredientSearchText, parseLibraryGoals, defaultStackName } from './library';
 import { renderSharePage, type ShareView } from './sharePage';
 
 export const AGE_RANGES = ['18_29', '30_39', '40_49', '50_59', '60_plus', 'unspecified'] as const;
@@ -29,6 +30,8 @@ export type StoredProduct = {
 
 export type ShareSnapshot = {
   displayName: string | null;
+  stackName: string;
+  goals: string[];
   products: StoredProduct[];
   auditScore: number;
   result: PersonalResult | null;
@@ -85,6 +88,9 @@ export async function upsertShare(
   const products = parseProducts(input.products);
   if (!products) return { ok: false, error: 'Add at least one product before sharing.' };
   const displayName = cleanName(input.displayName);
+  const goals = parseLibraryGoals(input.goals);
+  const named = cleanName(input.stackName);
+  const stackName = named ?? defaultStackName(displayName, products[0]?.name ?? null);
   const scored = auditScore(scoreInputs(products));
   const result = computeResult(input.result, typeof input.asOf === 'string' ? input.asOf : todayIso());
   if (input.result && result === 'invalid') return { ok: false, error: 'That personal result could not be read.' };
@@ -93,6 +99,8 @@ export async function upsertShare(
   }
   const snapshot: ShareSnapshot = {
     displayName,
+    stackName,
+    goals,
     products,
     auditScore: scored,
     result: result && typeof result === 'object' && result.eligible ? result : null,
@@ -107,6 +115,15 @@ export async function upsertShare(
       .prepare('UPDATE shares SET snapshot = ?, public_index = ?, updated_at = ? WHERE id = ?')
       .bind(payload, publicIndex, now, existing.id)
       .run();
+    await indexShare(db, {
+      id: existing.id,
+      listed: publicIndex === 1,
+      stackName,
+      creatorName: displayName ?? '',
+      goals,
+      ingredients: ingredientSearchText(products),
+      auditScore: scored,
+    });
     return { ok: true, share: await present(db, { ...existing, snapshot: payload, public_index: publicIndex }) };
   }
   const created: ShareRow = {
@@ -124,6 +141,15 @@ export async function upsertShare(
   if (displayName) {
     await db.prepare('UPDATE users SET display_name = ? WHERE id = ?').bind(displayName, userId).run();
   }
+  await indexShare(db, {
+    id: created.id,
+    listed: publicIndex === 1,
+    stackName,
+    creatorName: displayName ?? '',
+    goals,
+    ingredients: ingredientSearchText(products),
+    auditScore: scored,
+  });
   return { ok: true, share: await present(db, created) };
 }
 
@@ -149,6 +175,7 @@ export async function revokeShare(db: D1Database, userId: string): Promise<boole
   const row = await activeShare(db, userId);
   if (!row) return false;
   await db.prepare('UPDATE shares SET revoked_at = ?, updated_at = ? WHERE id = ?').bind(new Date().toISOString(), new Date().toISOString(), row.id).run();
+  await dropFromLibrary(db, row.id);
   return true;
 }
 
@@ -351,6 +378,8 @@ async function present(db: D1Database, row: ShareRow): Promise<ShareView> {
   return {
     slug: row.slug,
     displayName: snapshot?.displayName ?? null,
+    stackName: snapshot?.stackName ?? null,
+    goals: Array.isArray(snapshot?.goals) ? snapshot.goals : [],
     products: (snapshot?.products ?? []).map((product) => ({
       name: product.name,
       brand: product.brand,

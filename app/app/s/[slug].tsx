@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
+import { LIBRARY_GOALS, REPORT_REASONS } from '@/src/copy/library';
 import {
   COPIED_CREDIT_FALLBACK,
   DOCTOR_LINE,
@@ -28,6 +29,8 @@ type SharedResult = { framing: string; line: string; disclaimer: string } | null
 type SharedAggregate = { line: string; disclaimer: string; cohort: string } | null;
 type SharedStack = {
   displayName: string | null;
+  stackName: string | null;
+  goals: string[];
   products: SharedProduct[];
   auditScore: number;
   result: SharedResult;
@@ -43,6 +46,9 @@ export default function SharedStackScreen() {
   const [note, setNote] = useState<string | null>(null);
   const [likeYou, setLikeYou] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [reportNote, setReportNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -125,16 +131,41 @@ export default function SharedStackScreen() {
     );
   }
 
+  async function toggleSave() {
+    if (!slug) return;
+    if (!app.sessionToken) {
+      router.push('/sign-in');
+      return;
+    }
+    await api(`/v1/shares/${slug}/save`, { method: saved ? 'DELETE' : 'POST', token: app.sessionToken });
+    setSaved((current) => !current);
+  }
+
+  async function sendReport(reason: string) {
+    if (!slug || !app.sessionToken) {
+      router.push('/sign-in');
+      return;
+    }
+    await api(`/v1/shares/${slug}/report`, { method: 'POST', token: app.sessionToken, body: { reason } });
+    setReporting(false);
+    setReportNote('Report sent.');
+  }
+
   const who = stack.displayName || 'A Stack user';
   return (
     <Screen footer={<Button label={app.sessionToken ? 'Copy to my stack' : 'Sign in to copy'} disabled={busy} onPress={() => void copyStack()} />}>
       <BackButton />
       <T weight="bold" size={32} style={{ letterSpacing: -0.6 }}>
-        Shared stack
+        {stack.stackName || 'Shared stack'}
       </T>
       <T size={15} color={theme.muted}>
         {who}
       </T>
+      {(stack.goals ?? []).length > 0 ? (
+        <T size={14} color={theme.muted}>
+          {(stack.goals ?? []).map((goal) => LIBRARY_GOALS.find((item) => item.key === goal)?.label ?? goal).join(', ')}
+        </T>
+      ) : null}
       <Card>
         <T size={13} color={theme.muted}>
           Audit score
@@ -196,6 +227,16 @@ export default function SharedStackScreen() {
       {note ? (
         <T size={14} color={theme.muted}>
           {note}
+        </T>
+      ) : null}
+      <Button label={saved ? 'Saved' : 'Save'} tone="ghost" onPress={() => void toggleSave()} />
+      <Button label="Report this stack" tone="ghost" onPress={() => setReporting((current) => !current)} />
+      {reporting
+        ? REPORT_REASONS.map((reason) => <Button key={reason} label={reason} tone="ghost" onPress={() => void sendReport(reason)} />)
+        : null}
+      {reportNote ? (
+        <T size={14} color={theme.muted}>
+          {reportNote}
         </T>
       ) : null}
       <T>{DOCTOR_LINE}</T>

@@ -14,6 +14,7 @@ import {
 } from './dsld';
 import { OFF_ATTRIBUTION, loadOffUpc, offUserAgent } from './off';
 import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from './revenuecat';
+import { reportShare, searchLibrary, setSaved } from './library';
 import {
   aggregateForShare,
   copyShare,
@@ -276,6 +277,9 @@ app.delete('/v1/account', async (c) => {
   await c.env.DB.prepare('DELETE FROM subscriptions WHERE user_id = ?').bind(user.id).run();
   await c.env.DB.prepare('DELETE FROM synced_stacks WHERE user_id = ?').bind(user.id).run();
   await c.env.DB.prepare('DELETE FROM contributed_labels WHERE user_id = ?').bind(user.id).run();
+  await c.env.DB.prepare('DELETE FROM share_search WHERE share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id).run();
+  await c.env.DB.prepare('DELETE FROM share_saves WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
+  await c.env.DB.prepare('DELETE FROM share_reports WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
   await c.env.DB.prepare('DELETE FROM share_copies WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
   await c.env.DB.prepare('DELETE FROM share_outcomes WHERE user_id = ? OR share_id IN (SELECT id FROM shares WHERE user_id = ?)').bind(user.id, user.id).run();
   await c.env.DB.prepare('DELETE FROM shares WHERE user_id = ?').bind(user.id).run();
@@ -376,6 +380,50 @@ app.get('/v1/shares/:slug/aggregate', async (c) => {
   const sex = c.req.query('sex') ?? null;
   const aggregate = await aggregateForShare(c.env.DB, c.req.param('slug'), { ageRange, sex });
   return c.json({ aggregate });
+});
+
+app.get('/v1/library', async (c) => {
+  const user = await userFromRequest(c);
+  const tab = c.req.query('tab');
+  const sort = c.req.query('sort');
+  const page = await searchLibrary(c.env.DB, {
+    tab: tab === 'top' || tab === 'saved' ? tab : 'new',
+    q: c.req.query('q') ?? '',
+    goal: c.req.query('goal') ?? '',
+    sort: sort === 'score' || sort === 'copies' || sort === 'like_you' || sort === 'newest' ? sort : undefined,
+    ageRange: c.req.query('ageRange'),
+    sex: c.req.query('sex'),
+    limit: Number(c.req.query('limit') ?? 20),
+    offset: Number(c.req.query('offset') ?? 0),
+    viewerId: user?.id ?? null,
+    now: c.req.query('now') ?? undefined,
+  });
+  return c.json(page);
+});
+
+app.post('/v1/shares/:slug/save', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const saved = await setSaved(c.env.DB, c.req.param('slug'), user.id, true);
+  if (!saved.ok) return c.json({ error: saved.error }, saved.status as 400);
+  return c.json({ saved: true });
+});
+
+app.delete('/v1/shares/:slug/save', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const saved = await setSaved(c.env.DB, c.req.param('slug'), user.id, false);
+  if (!saved.ok) return c.json({ error: saved.error }, saved.status as 400);
+  return c.json({ saved: false });
+});
+
+app.post('/v1/shares/:slug/report', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const body = await readJson(c);
+  const reported = await reportShare(c.env.DB, c.req.param('slug'), user.id, body.reason);
+  if (!reported.ok) return c.json({ error: reported.error }, reported.status as 400);
+  return c.json({ ok: true });
 });
 
 app.get('/s/:slug', async (c) => {

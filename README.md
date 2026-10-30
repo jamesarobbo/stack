@@ -149,7 +149,9 @@ Free is the stack log, the duplicate dollars, the upper-limit flags, and a singl
 
 Share stack publishes products and doses, an audit score, and an optional personal headline. Prices, paid amounts, and raw health samples are not in the snapshot. The score is documented in `docs/audit-score.md` and uses dose overlap only. The personal headline is documented in `docs/personal-outcome.md`. It needs 60 days before the stack started and enough days after, and it always reads as one person, not a trial.
 
-The public page is `GET /s/<slug>` on the Worker. It is `noindex` until the owner allows search engines. The owner can update or unshare the link. Copy to my stack adds the products with empty prices and counts each other person once. An average across copiers is shown only when at least 10 people have a 90 day window, including a people like you filter. Stacks are not ranked against each other.
+The public page is `GET /s/<slug>` on the Worker. It is `noindex` until the owner lists the stack. Link only is the default. The owner can update, unlist, or unshare the link. Copy to my stack adds the products with empty prices and counts each other person once. An average across copiers is shown only when at least 10 people have a 90 day window, including a people like you filter. Stacks are not ranked against each other.
+
+Discover is a link on My Stack, not another tab. It has New, Top, and Saved. Top ranks copies from the last 30 days. Search covers the stack name, up to 3 goal tags, an ingredient (`has magnesium`), and the creator name. People can save or report a stack. Unlisting removes it from Saved. The rules are in `docs/stack-library.md`.
 
 ## CI
 
