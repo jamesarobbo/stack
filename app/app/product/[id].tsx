@@ -43,7 +43,7 @@ export default function ProductScreen() {
       ) : null}
       {product.priceCents > 0 ? (
         <View style={{ gap: 2 }}>
-          <T weight="bold" size={36} style={styles.price}>
+          <T weight="bold" size={36} color={theme.amber} style={styles.price}>
             {formatUsd(monthly)}
           </T>
           <T size={14} color={theme.muted}>

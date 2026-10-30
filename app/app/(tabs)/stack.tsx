@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottleShelf, EmptyBottles } from '@/src/components/illustrations';
 import { ScoreBadge } from '@/src/components/share';
 import { Button, Card, Pill, ProductRow, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
@@ -24,7 +24,10 @@ export default function StackScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+      <View style={{ paddingTop: insets.top }}>
+        <BottleShelf />
+      </View>
+      <View style={styles.header}>
         <T weight="bold" size={34} style={styles.title}>
           {title}
         </T>
@@ -73,9 +76,7 @@ export default function StackScreen() {
         </Card>
         {app.products.length === 0 ? (
           <Card>
-            <View style={styles.emptyMark}>
-              <Ionicons name="layers-outline" size={22} color={theme.teal} />
-            </View>
+            <EmptyBottles />
             <T weight="semibold" size={18}>
               Nothing in your stack yet
             </T>
@@ -98,7 +99,7 @@ export default function StackScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
-  header: { paddingHorizontal: 20, paddingBottom: 8, gap: 4 },
+  header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 4 },
   title: { letterSpacing: -0.8 },
   links: { flexDirection: 'row', gap: 16 },
   link: { minHeight: 44, justifyContent: 'center' },
@@ -113,14 +114,6 @@ const styles = StyleSheet.create({
     borderTopColor: theme.line,
     paddingTop: 12,
     marginTop: 4,
-  },
-  emptyMark: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.tealSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   footer: {
     paddingHorizontal: 20,

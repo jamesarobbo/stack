@@ -151,7 +151,7 @@ function Row({ title, detail, onPress, last = false }: { title: string; detail: 
 
 const styles = StyleSheet.create({
   title: { letterSpacing: -0.8, marginTop: 4 },
-  menu: { backgroundColor: theme.card, borderRadius: 16, borderWidth: 1, borderColor: '#EEF0F3', overflow: 'hidden' },
+  menu: { backgroundColor: theme.card, borderRadius: 16, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
   row: {
     minHeight: 60,
     paddingHorizontal: 16,

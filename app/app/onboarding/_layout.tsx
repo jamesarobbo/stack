@@ -5,6 +5,7 @@ export default function OnboardingLayout() {
   return (
     <Stack screenOptions={{ headerShown: false, gestureEnabled: true, contentStyle: { backgroundColor: theme.bg } }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="goal" />
       <Stack.Screen name="spend" />
       <Stack.Screen name="wearable" />
       <Stack.Screen name="about" />

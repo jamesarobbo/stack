@@ -8,6 +8,7 @@ import { DISCLAIMER } from '../config';
 import { monthlyCostCents } from '../domain/audit';
 import type { ProductInput } from '../domain/types';
 import { formatUsd } from '../format';
+import { Bottle, EmptyBottles } from './illustrations';
 import { font, theme } from '../theme';
 
 type Weight = keyof typeof font;
@@ -147,12 +148,10 @@ export function LabeledField({
   );
 }
 
-export function EmptyLead({ icon, title, body }: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string }) {
+export function EmptyLead({ title, body }: { title: string; body: string }) {
   return (
     <View style={{ gap: 10 }}>
-      <View style={styles.emptyMark}>
-        <Ionicons name={icon} size={22} color={theme.teal} />
-      </View>
+      <EmptyBottles />
       <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
         {title}
       </T>
@@ -219,30 +218,26 @@ export function BackButton({ label = 'Back', fallback = '/(tabs)/stack' }: { lab
   );
 }
 
-const ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  nmn: 'flask-outline',
-  tmg: 'leaf-outline',
-  resveratrol: 'water-outline',
-  magnesium: 'moon-outline',
-  'vitamin-d': 'sunny-outline',
-  'b-complex': 'grid-outline',
-  'vitamin-b6': 'grid-outline',
-  creatine: 'barbell-outline',
-  'omega-3': 'fish-outline',
-  default: 'ellipse-outline',
-};
+const BOTTLES = [
+  { body: '#D5EBE1', stroke: theme.teal, cap: theme.teal },
+  { body: '#F4C7B0', stroke: theme.clay, cap: theme.clay },
+  { body: '#FFF7EE', stroke: theme.amber, cap: theme.amber },
+  { body: '#EFE2CF', stroke: theme.muted, cap: theme.muted },
+] as const;
 
-export function productIcon(product: ProductInput): keyof typeof Ionicons.glyphMap {
-  const key = product.ingredients[0]?.key ?? '';
-  return ICONS[key] ?? ICONS.default ?? 'ellipse-outline';
+function bottleFor(name: string) {
+  let hash = 0;
+  for (const char of name) hash = (hash + char.charCodeAt(0)) % BOTTLES.length;
+  return BOTTLES[hash] ?? BOTTLES[0];
 }
 
 export function ProductRow({ product, onPress }: { product: ProductInput; onPress?: () => void }) {
   const monthly = monthlyCostCents(product.priceCents, product.servingsPerContainer, product.servingsPerDay);
+  const bottle = bottleFor(product.name);
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.product, pressed ? { opacity: 0.85 } : null]}>
       <View style={styles.iconBubble}>
-        <Ionicons name={productIcon(product)} size={18} color={theme.teal} />
+        <Bottle width={14} height={22} body={bottle.body} stroke={bottle.stroke} cap={bottle.cap} />
       </View>
       <View style={{ flex: 1 }}>
         <T weight="semibold" size={16}>
@@ -259,7 +254,7 @@ export function ProductRow({ product, onPress }: { product: ProductInput; onPres
           Add price
         </T>
       ) : (
-        <T weight="bold" size={16}>
+        <T weight="bold" size={16} color={theme.amber}>
           {formatUsd(monthly)}
         </T>
       )}
@@ -291,38 +286,30 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EEF0F3',
+    borderColor: theme.line,
     gap: 8,
   },
   pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
-  button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   field: {
     minHeight: 48,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: theme.card,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontFamily: font.regular,
     fontSize: 16,
     color: theme.text,
   },
-  emptyMark: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.tealSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   buttonTeal: { backgroundColor: theme.teal },
-  buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: '#D9DEE5' },
+  buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
   disclaimer: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
-    backgroundColor: '#F8F9FB',
+    borderColor: theme.line,
+    backgroundColor: theme.card,
     padding: 14,
   },
   back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
@@ -331,16 +318,16 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#EEF0F3',
+    borderColor: theme.line,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   iconBubble: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.tealSoft,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: theme.greyPill,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -33,7 +33,6 @@ export default function ImpactScreen() {
     return (
       <Screen>
         <EmptyLead
-          icon={needsProduct ? 'layers-outline' : 'stats-chart-outline'}
           title={needsProduct ? IMPACT_EMPTY.productsTitle : IMPACT_EMPTY.wearableTitle}
           body={needsProduct ? IMPACT_EMPTY.productsBody : IMPACT_EMPTY.wearableBody}
         />
@@ -253,20 +252,20 @@ const styles = StyleSheet.create({
     backgroundColor: theme.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#EEF0F3',
+    borderColor: theme.line,
     padding: 10,
     gap: 4,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderRadius: 999, borderWidth: 1, borderColor: '#E1E4EA', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#fff' },
+  chip: { borderRadius: 999, borderWidth: 1, borderColor: theme.line, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: theme.card },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tagButton: {
     minHeight: 44,
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
-    backgroundColor: '#fff',
+    borderColor: theme.line,
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
   },

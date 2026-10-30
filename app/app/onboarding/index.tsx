@@ -1,38 +1,39 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { View } from 'react-native';
-import { Choice, OnboardingFrame } from '@/src/components/OnboardingProgress';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { WindowArt } from '@/src/components/illustrations';
+import { OnboardingProgress } from '@/src/components/OnboardingProgress';
 import { Button, T } from '@/src/components/ui';
-import { GOALS, toggleGoal } from '@/src/onboarding/answers';
-import { readGoals, writeGoals } from '@/src/onboarding/storage';
-import { track } from '@/src/telemetry';
 import { theme } from '@/src/theme';
 
-export default function GoalStep() {
-  const [selected, setSelected] = useState<string[]>(() => readGoals());
-
+export default function WelcomeStep() {
+  const insets = useSafeAreaInsets();
   return (
-    <OnboardingFrame
-      step="goal"
-      footer={<Button label="Use these goals" disabled={selected.length === 0} onPress={() => void go(selected)} />}
-    >
-      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
-        What do you want your stack to do?
-      </T>
-      <T size={15} color={theme.muted}>
-        Pick any that fit. Not sure yet is a fine answer.
-      </T>
-      <View style={{ gap: 10 }}>
-        {GOALS.map((goal) => (
-          <Choice key={goal.key} label={goal.label} selected={selected.includes(goal.key)} onPress={() => setSelected((current) => toggleGoal(current, goal.key))} />
-        ))}
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <WindowArt />
+      <View
+        style={{
+          flex: 1,
+          marginTop: -28,
+          backgroundColor: theme.bg,
+          borderTopLeftRadius: 32,
+          borderTopRightRadius: 32,
+          paddingHorizontal: 24,
+          paddingTop: 22,
+          paddingBottom: Math.max(insets.bottom, 16),
+          gap: 10,
+        }}
+      >
+        <OnboardingProgress step="welcome" />
+        <T weight="bold" size={34} style={{ letterSpacing: -0.7 }}>
+          Set the bottles on the table.
+        </T>
+        <T size={16} color={theme.muted}>
+          Add what you take. Stack checks the doses and shows what you pay each month.
+        </T>
+        <View style={{ flex: 1 }} />
+        <Button label="Continue" onPress={() => router.push('/onboarding/goal')} />
       </View>
-    </OnboardingFrame>
+    </View>
   );
-}
-
-async function go(selected: string[]) {
-  await writeGoals(selected);
-  track('onboarding_answer', { step: 'goal', value: selected.join(',') });
-  router.push('/onboarding/spend');
 }

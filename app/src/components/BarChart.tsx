@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EEF0F3',
+    borderColor: theme.line,
     gap: 12,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

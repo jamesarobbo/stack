@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Chip, CompositionStrip, FadeIn, ScoreBadge, Segmented } from '@/src/components/share';
+import { BottleBanner } from '@/src/components/illustrations';
 import { Button, Card, EmptyLead, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import {
@@ -166,7 +167,7 @@ export default function DiscoverScreen() {
         </T>
       ) : null}
       {!loading && items.length === 0 && !note && !filtered ? (
-        <EmptyLead icon="compass-outline" title={DISCOVER_EMPTY_TITLE} body={DISCOVER_EMPTY_BODY} />
+        <EmptyLead title={DISCOVER_EMPTY_TITLE} body={DISCOVER_EMPTY_BODY} />
       ) : null}
       {nextOffset != null ? <Button label="Load more" tone="ghost" onPress={() => void loadMore()} /> : null}
     </Screen>
@@ -178,7 +179,8 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
   const open = () => router.push(`/s/${item.slug}`);
   return (
     <View style={styles.card}>
-      <View style={styles.cardTop}>
+      <BottleBanner />
+      <View style={[styles.cardTop, styles.pad]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${item.stackName}, audit score ${item.auditScore}`}
@@ -208,7 +210,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
           <Ionicons name={item.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={theme.teal} />
         </Pressable>
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.stackName}`} onPress={open} style={({ pressed }) => (pressed ? { opacity: 0.92 } : null)}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.stackName}`} onPress={open} style={({ pressed }) => [styles.padBottom, pressed ? { opacity: 0.92 } : null]}>
         <View style={{ gap: 14 }}>
           <CompositionStrip items={item.composition} />
           {item.likeYou ? (
@@ -236,16 +238,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     minHeight: 48,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
     paddingHorizontal: 12,
   },
   searchInput: { flex: 1, minHeight: 44, paddingVertical: 12, fontFamily: font.regular, fontSize: 16, color: theme.text },
   clear: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   chips: { gap: 8, paddingRight: 8 },
-  card: { backgroundColor: theme.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#EEF0F3', gap: 14 },
+  card: { backgroundColor: theme.card, borderRadius: 22, borderWidth: 1, borderColor: theme.line, gap: 14, overflow: 'hidden' },
+  pad: { paddingHorizontal: 16 },
+  padBottom: { paddingHorizontal: 16, paddingBottom: 16 },
   cardTop: { flexDirection: 'row', gap: 4, alignItems: 'flex-start' },
   cardMain: { flex: 1, flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   save: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },

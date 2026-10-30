@@ -92,10 +92,10 @@ const styles = StyleSheet.create({
   list: { gap: 10 },
   row: {
     minHeight: 72,
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#EEF0F3',
+    borderColor: theme.line,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',

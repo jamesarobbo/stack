@@ -7,19 +7,21 @@ describe('onboarding steps', () => {
     expect(keys.indexOf('wearable')).toBeGreaterThan(keys.indexOf('spend'));
     expect(keys.indexOf('about')).toBe(keys.indexOf('wearable') + 1);
     expect(keys.indexOf('supplements')).toBe(keys.indexOf('about') + 1);
-    expect(keys).toEqual(['goal', 'spend', 'wearable', 'about', 'supplements', 'auditing', 'result', 'save', 'paywall']);
+    expect(keys).toEqual(['welcome', 'goal', 'spend', 'wearable', 'about', 'supplements', 'auditing', 'result', 'save', 'paywall']);
   });
 
   it('labels progress as 1 of N', () => {
-    expect(onboardingProgress('goal')).toEqual({ current: 1, total: 9, label: '1 of 9', filled: 1 });
-    expect(onboardingProgress('wearable').label).toBe('3 of 9');
-    expect(onboardingProgress('about').label).toBe('4 of 9');
-    expect(onboardingProgress('supplements').label).toBe('5 of 9');
-    expect(onboardingProgress('paywall')).toEqual({ current: 9, total: 9, label: '9 of 9', filled: 9 });
+    expect(onboardingProgress('welcome')).toEqual({ current: 1, total: 10, label: '1 of 10', filled: 1 });
+    expect(onboardingProgress('goal')).toEqual({ current: 2, total: 10, label: '2 of 10', filled: 2 });
+    expect(onboardingProgress('wearable').label).toBe('4 of 10');
+    expect(onboardingProgress('about').label).toBe('5 of 10');
+    expect(onboardingProgress('supplements').label).toBe('6 of 10');
+    expect(onboardingProgress('paywall')).toEqual({ current: 10, total: 10, label: '10 of 10', filled: 10 });
   });
 
   it('offers a back target for every step after the first', () => {
-    expect(previousOnboardingStep('goal')).toBeNull();
+    expect(previousOnboardingStep('welcome')).toBeNull();
+    expect(previousOnboardingStep('goal')?.key).toBe('welcome');
     expect(previousOnboardingStep('wearable')?.key).toBe('spend');
     expect(previousOnboardingStep('paywall')?.path).toBe('/onboarding/save');
   });

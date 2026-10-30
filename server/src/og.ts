@@ -1,10 +1,10 @@
 /**
  * Link preview (1200 by 630) and story image (1080 by 1920) for a shared stack.
- * Built as SVG and rasterised with resvg. Inter is bundled under the SIL Open Font License (assets/Inter-OFL.txt).
+ * Built as SVG and rasterised with resvg. Nunito is bundled under the SIL Open Font License (assets/Nunito-OFL.txt).
  * Copier averages never appear. The owner's published headline can, with its window and device.
  */
 
-export const OG_CACHE_VERSION = 2;
+export const OG_CACHE_VERSION = 3;
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const STORY_WIDTH = 1080;
@@ -40,16 +40,17 @@ export type OgInput = {
   result: OgResult | null;
 };
 
-const TEAL = '#0E7C6B';
-const TEAL_DEEP = '#0A5C50';
-const TEAL_SOFT = '#E5F5F1';
-const SLATE = '#344054';
-const SLATE_DEEP = '#1D2939';
-const INK = '#16181D';
-const MUTED = '#667085';
-const TRACK = '#EEF1F4';
+const CREAM = '#F6F0E6';
+const TEAL = '#2F5D4C';
+const TEAL_DEEP = '#245041';
+const TEAL_SOFT = '#E5F0EA';
+const SLATE = '#4A433C';
+const SLATE_DEEP = '#2C261F';
+const INK = '#2C261F';
+const MUTED = '#5E5348';
+const TRACK = '#EADFD0';
 const OVER = '#B42318';
-const NEAR = '#DC9B04';
+const NEAR = '#C4922A';
 
 export function scoreTone(score: number): 'good' | 'neutral' {
   return score >= 80 ? 'good' : 'neutral';
@@ -94,7 +95,7 @@ export function ogSvg(input: OgInput): string {
   const titleText = title
     .map(
       (line, index) =>
-        `<text x="64" y="${titleY + index * (titleSize + 8)}" font-family="Inter" font-weight="700" font-size="${titleSize}" fill="${INK}" letter-spacing="-1.4">${escapeXml(line)}</text>`,
+        `<text x="64" y="${titleY + index * (titleSize + 8)}" font-family="Nunito" font-weight="700" font-size="${titleSize}" fill="${INK}" letter-spacing="-1.4">${escapeXml(line)}</text>`,
     )
     .join('');
   const byline = `${input.creator}, ${input.productCount} ${input.productCount === 1 ? 'product' : 'products'}`;
@@ -110,7 +111,7 @@ export function ogSvg(input: OgInput): string {
   const summary = wrap(input.summary, 22, 380, 3)
     .map(
       (line, index) =>
-        `<text x="932" y="${478 + index * 28}" text-anchor="middle" font-family="Inter" font-weight="500" font-size="22" fill="#FFFFFF" fill-opacity="0.9">${escapeXml(line)}</text>`,
+        `<text x="932" y="${478 + index * 28}" text-anchor="middle" font-family="Nunito" font-weight="500" font-size="22" fill="#FFFFFF" fill-opacity="0.9">${escapeXml(line)}</text>`,
     )
     .join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
@@ -120,23 +121,24 @@ export function ogSvg(input: OgInput): string {
     <stop offset="1" stop-color="${panelTo}"/>
   </linearGradient>
 </defs>
-<rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="#FFFFFF"/>
+<rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="${CREAM}"/>
 <rect x="0" y="0" width="${OG_WIDTH}" height="12" fill="${TEAL}"/>
 ${brand(64, 40, 48)}
-<text x="128" y="74" font-family="Inter" font-weight="700" font-size="32" fill="${INK}" letter-spacing="-0.6">Stack</text>
+${bottles(520, 28)}
+<text x="128" y="74" font-family="Nunito" font-weight="700" font-size="32" fill="${INK}" letter-spacing="-0.6">Stack</text>
 ${titleText}
-<text x="64" y="${bylineY}" font-family="Inter" font-weight="500" font-size="26" fill="${MUTED}">${escapeXml(truncate(byline, 26, 590))}</text>
+<text x="64" y="${bylineY}" font-family="Nunito" font-weight="500" font-size="26" fill="${MUTED}">${escapeXml(truncate(byline, 26, 590))}</text>
 ${result}
 ${composition}
 <rect x="64" y="${ctaY}" width="520" height="48" rx="16" fill="${TEAL}"/>
-<text x="324" y="${ctaY + 31}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="20" fill="#FFFFFF">Check your stack against this one</text>
+<text x="324" y="${ctaY + 31}" text-anchor="middle" font-family="Nunito" font-weight="700" font-size="20" fill="#FFFFFF">Check your stack against this one</text>
 <rect x="684" y="32" width="480" height="566" rx="40" fill="url(#panel)"/>
 <circle cx="932" cy="250" r="168" fill="${panelTo}" fill-opacity="0.45"/>
 <circle cx="932" cy="250" r="112" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="22"/>
 <circle cx="932" cy="250" r="112" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${circumference.toFixed(1)}" transform="rotate(-90 932 250)"/>
-<text x="932" y="268" text-anchor="middle" font-family="Inter" font-weight="700" font-size="92" fill="#FFFFFF" letter-spacing="-3">${input.score}</text>
-<text x="932" y="302" text-anchor="middle" font-family="Inter" font-weight="500" font-size="20" fill="#FFFFFF" fill-opacity="0.78">out of 100</text>
-<text x="932" y="430" text-anchor="middle" font-family="Inter" font-weight="700" font-size="26" fill="#FFFFFF">Dose audit</text>
+<text x="932" y="268" text-anchor="middle" font-family="Nunito" font-weight="700" font-size="92" fill="#FFFFFF" letter-spacing="-3">${input.score}</text>
+<text x="932" y="302" text-anchor="middle" font-family="Nunito" font-weight="500" font-size="20" fill="#FFFFFF" fill-opacity="0.78">out of 100</text>
+<text x="932" y="430" text-anchor="middle" font-family="Nunito" font-weight="700" font-size="26" fill="#FFFFFF">Dose audit</text>
 ${summary}
 </svg>`;
 }
@@ -152,7 +154,7 @@ export function storySvg(input: OgInput): string {
   const titleText = title
     .map(
       (line, index) =>
-        `<text x="${pad}" y="${titleY + index * 76}" font-family="Inter" font-weight="700" font-size="64" fill="${INK}" letter-spacing="-2">${escapeXml(line)}</text>`,
+        `<text x="${pad}" y="${titleY + index * 76}" font-family="Nunito" font-weight="700" font-size="64" fill="${INK}" letter-spacing="-2">${escapeXml(line)}</text>`,
     )
     .join('');
   const bylineY = titleY + (title.length - 1) * 76 + 58;
@@ -175,7 +177,7 @@ export function storySvg(input: OgInput): string {
   const summary = summaryLines
     .map(
       (line, index) =>
-        `<text x="${STORY_WIDTH / 2}" y="${summaryY + index * 34}" text-anchor="middle" font-family="Inter" font-weight="500" font-size="26" fill="#FFFFFF" fill-opacity="0.9">${escapeXml(line)}</text>`,
+        `<text x="${STORY_WIDTH / 2}" y="${summaryY + index * 34}" text-anchor="middle" font-family="Nunito" font-weight="500" font-size="26" fill="#FFFFFF" fill-opacity="0.9">${escapeXml(line)}</text>`,
     )
     .join('');
   const composition = rows
@@ -191,7 +193,7 @@ export function storySvg(input: OgInput): string {
         ratio == null
           ? ''
           : `<rect x="${pad}" y="${y + 16}" width="${inner}" height="16" rx="8" fill="${TRACK}"/><rect x="${pad}" y="${y + 16}" width="${Math.max(16, fill).toFixed(0)}" height="16" rx="8" fill="${colour}"/>`;
-      return `<text x="${pad}" y="${y}" font-family="Inter" font-weight="500" font-size="26" fill="${INK}">${escapeXml(name)}</text><text x="${STORY_WIDTH - pad}" y="${y}" text-anchor="end" font-family="Inter" font-weight="500" font-size="24" fill="${pctColour}">${escapeXml(pct)}</text>${bar}`;
+      return `<text x="${pad}" y="${y}" font-family="Nunito" font-weight="500" font-size="26" fill="${INK}">${escapeXml(name)}</text><text x="${STORY_WIDTH - pad}" y="${y}" text-anchor="end" font-family="Nunito" font-weight="500" font-size="24" fill="${pctColour}">${escapeXml(pct)}</text>${bar}`;
     })
     .join('');
   const result = input.result ? storyResult(input.result, pad, resultY, inner, resultH) : '';
@@ -202,24 +204,25 @@ export function storySvg(input: OgInput): string {
     <stop offset="1" stop-color="${panelTo}"/>
   </linearGradient>
 </defs>
-<rect width="${STORY_WIDTH}" height="${STORY_HEIGHT}" fill="#FFFFFF"/>
+<rect width="${STORY_WIDTH}" height="${STORY_HEIGHT}" fill="${CREAM}"/>
 <rect x="0" y="0" width="${STORY_WIDTH}" height="16" fill="${TEAL}"/>
 ${brand(pad, 128, 56)}
-<text x="${pad + 72}" y="168" font-family="Inter" font-weight="700" font-size="36" fill="${INK}" letter-spacing="-0.6">Stack</text>
+${bottles(STORY_WIDTH - pad - 110, 112)}
+<text x="${pad + 72}" y="168" font-family="Nunito" font-weight="700" font-size="36" fill="${INK}" letter-spacing="-0.6">Stack</text>
 ${titleText}
-<text x="${pad}" y="${bylineY}" font-family="Inter" font-weight="500" font-size="28" fill="${MUTED}">${escapeXml(truncate(byline, 28, inner))}</text>
+<text x="${pad}" y="${bylineY}" font-family="Nunito" font-weight="500" font-size="28" fill="${MUTED}">${escapeXml(truncate(byline, 28, inner))}</text>
 <rect x="${pad}" y="${panelTop}" width="${inner}" height="${panelH}" rx="40" fill="url(#panel)"/>
 <circle cx="${STORY_WIDTH / 2}" cy="${ringCy}" r="${ringR + 48}" fill="${panelTo}" fill-opacity="0.4"/>
 <circle cx="${STORY_WIDTH / 2}" cy="${ringCy}" r="${ringR}" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="24"/>
 <circle cx="${STORY_WIDTH / 2}" cy="${ringCy}" r="${ringR}" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${circumference.toFixed(1)}" transform="rotate(-90 ${STORY_WIDTH / 2} ${ringCy})"/>
-<text x="${STORY_WIDTH / 2}" y="${ringCy + Math.round(ringR * 0.22)}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="${Math.round(ringR * 0.72)}" fill="#FFFFFF" letter-spacing="-3">${input.score}</text>
-<text x="${STORY_WIDTH / 2}" y="${ringCy + Math.round(ringR * 0.52)}" text-anchor="middle" font-family="Inter" font-weight="500" font-size="22" fill="#FFFFFF" fill-opacity="0.78">out of 100</text>
-<text x="${STORY_WIDTH / 2}" y="${summaryY - 40}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="28" fill="#FFFFFF">Dose audit</text>
+<text x="${STORY_WIDTH / 2}" y="${ringCy + Math.round(ringR * 0.22)}" text-anchor="middle" font-family="Nunito" font-weight="700" font-size="${Math.round(ringR * 0.72)}" fill="#FFFFFF" letter-spacing="-3">${input.score}</text>
+<text x="${STORY_WIDTH / 2}" y="${ringCy + Math.round(ringR * 0.52)}" text-anchor="middle" font-family="Nunito" font-weight="500" font-size="22" fill="#FFFFFF" fill-opacity="0.78">out of 100</text>
+<text x="${STORY_WIDTH / 2}" y="${summaryY - 40}" text-anchor="middle" font-family="Nunito" font-weight="700" font-size="28" fill="#FFFFFF">Dose audit</text>
 ${summary}
 ${result}
 ${composition}
 <rect x="${pad}" y="${ctaY}" width="${inner}" height="84" rx="20" fill="${TEAL}"/>
-<text x="${STORY_WIDTH / 2}" y="${ctaY + 52}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="30" fill="#FFFFFF">Check your stack against this one</text>
+<text x="${STORY_WIDTH / 2}" y="${ctaY + 52}" text-anchor="middle" font-family="Nunito" font-weight="700" font-size="30" fill="#FFFFFF">Check your stack against this one</text>
 </svg>`;
 }
 
@@ -229,17 +232,17 @@ function wideResult(result: OgResult, x: number, y: number, width: number, heigh
   const headlineText = headline
     .map(
       (line, index) =>
-        `<text x="${textX}" y="${y + 50 + index * 26}" font-family="Inter" font-weight="700" font-size="22" fill="${INK}">${escapeXml(line)}</text>`,
+        `<text x="${textX}" y="${y + 50 + index * 26}" font-family="Nunito" font-weight="700" font-size="22" fill="${INK}">${escapeXml(line)}</text>`,
     )
     .join('');
   const windowText = wrap(resultWindow(result), 16, width - 48, 2)
     .map(
       (line, index) =>
-        `<text x="${x + 24}" y="${y + 88 + index * 20}" font-family="Inter" font-weight="500" font-size="16" fill="${MUTED}">${escapeXml(line)}</text>`,
+        `<text x="${x + 24}" y="${y + 88 + index * 20}" font-family="Nunito" font-weight="500" font-size="16" fill="${MUTED}">${escapeXml(line)}</text>`,
     )
     .join('');
   return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="20" fill="${TEAL_SOFT}"/>
-<text x="${x + 24}" y="${y + 58}" font-family="Inter" font-weight="700" font-size="40" fill="${INK}" letter-spacing="-1.5">${escapeXml(result.value)}</text>
+<text x="${x + 24}" y="${y + 58}" font-family="Nunito" font-weight="700" font-size="40" fill="${INK}" letter-spacing="-1.5">${escapeXml(result.value)}</text>
 ${headlineText}
 ${windowText}`;
 }
@@ -248,17 +251,17 @@ function storyResult(result: OgResult, x: number, y: number, width: number, heig
   const headline = wrap(`${result.label} ${result.word}`, 30, width - 56, 1);
   const windowLines = wrap(resultWindow(result), 22, width - 56, 2);
   const headlineText = headline
-    .map((line) => `<text x="${x + 28}" y="${y + 162}" font-family="Inter" font-weight="700" font-size="30" fill="${INK}">${escapeXml(line)}</text>`)
+    .map((line) => `<text x="${x + 28}" y="${y + 162}" font-family="Nunito" font-weight="700" font-size="30" fill="${INK}">${escapeXml(line)}</text>`)
     .join('');
   const windowText = windowLines
     .map(
       (line, index) =>
-        `<text x="${x + 28}" y="${y + 200 + index * 28}" font-family="Inter" font-weight="500" font-size="22" fill="${MUTED}">${escapeXml(line)}</text>`,
+        `<text x="${x + 28}" y="${y + 200 + index * 28}" font-family="Nunito" font-weight="500" font-size="22" fill="${MUTED}">${escapeXml(line)}</text>`,
     )
     .join('');
   return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="28" fill="${TEAL_SOFT}"/>
-<text x="${x + 28}" y="${y + 36}" font-family="Inter" font-weight="700" font-size="20" fill="${TEAL_DEEP}">${escapeXml(result.kicker)}</text>
-<text x="${x + 28}" y="${y + 114}" font-family="Inter" font-weight="700" font-size="64" fill="${INK}" letter-spacing="-2">${escapeXml(result.value)}</text>
+<text x="${x + 28}" y="${y + 36}" font-family="Nunito" font-weight="700" font-size="20" fill="${TEAL_DEEP}">${escapeXml(result.kicker)}</text>
+<text x="${x + 28}" y="${y + 114}" font-family="Nunito" font-weight="700" font-size="64" fill="${INK}" letter-spacing="-2">${escapeXml(result.value)}</text>
 ${headlineText}
 ${windowText}`;
 }
@@ -280,9 +283,9 @@ function compositionRows(
       const fill = ratio == null ? 0 : Math.min(1, ratio) * box.barWidth;
       const bar =
         ratio == null
-          ? `<text x="${box.barX}" y="${y + 8}" font-family="Inter" font-weight="500" font-size="20" fill="${MUTED}">No upper limit</text>`
-          : `<rect x="${box.barX}" y="${y - 8}" width="${box.barWidth}" height="16" rx="8" fill="${TRACK}"/><rect x="${box.barX}" y="${y - 8}" width="${Math.max(16, fill).toFixed(0)}" height="16" rx="8" fill="${colour}"/><text x="${box.barX + box.barWidth + 14}" y="${y + 6}" font-family="Inter" font-weight="500" font-size="18" fill="${pctColour}">${pct}</text>`;
-      return `<text x="${x}" y="${y + 8}" font-family="Inter" font-weight="500" font-size="${box.fontSize}" fill="${INK}">${escapeXml(name)}</text>${bar}`;
+          ? `<text x="${box.barX}" y="${y + 8}" font-family="Nunito" font-weight="500" font-size="20" fill="${MUTED}">No upper limit</text>`
+          : `<rect x="${box.barX}" y="${y - 8}" width="${box.barWidth}" height="16" rx="8" fill="${TRACK}"/><rect x="${box.barX}" y="${y - 8}" width="${Math.max(16, fill).toFixed(0)}" height="16" rx="8" fill="${colour}"/><text x="${box.barX + box.barWidth + 14}" y="${y + 6}" font-family="Nunito" font-weight="500" font-size="18" fill="${pctColour}">${pct}</text>`;
+      return `<text x="${x}" y="${y + 8}" font-family="Nunito" font-weight="500" font-size="${box.fontSize}" fill="${INK}">${escapeXml(name)}</text>${bar}`;
     })
     .join('');
 }
@@ -292,6 +295,18 @@ function barColour(ratio: number | null): string {
   if (ratio > 1) return OVER;
   if (ratio >= 0.9) return NEAR;
   return TEAL;
+}
+
+/** Three bottles. Clay is a fill, never a text colour. */
+function bottles(x: number, y: number): string {
+  return `<g>
+    <rect x="${x}" y="${y + 14}" width="22" height="40" rx="8" fill="#D5EBE1" stroke="${TEAL}" stroke-width="3"/>
+    <rect x="${x + 5}" y="${y + 2}" width="12" height="14" rx="4" fill="${TEAL}"/>
+    <rect x="${x + 34}" y="${y + 20}" width="20" height="34" rx="8" fill="#F4C7B0" stroke="#C46A45" stroke-width="3"/>
+    <rect x="${x + 38}" y="${y + 8}" width="12" height="14" rx="4" fill="#C46A45"/>
+    <rect x="${x + 66}" y="${y + 16}" width="22" height="38" rx="8" fill="#FFF7EE" stroke="#8A5A12" stroke-width="3"/>
+    <rect x="${x + 71}" y="${y + 4}" width="12" height="14" rx="4" fill="#8A5A12"/>
+  </g>`;
 }
 
 function brand(x: number, y: number, size: number): string {
@@ -369,7 +384,7 @@ export async function renderOgPng(svg: string, assets: OgAssets, width = OG_WIDT
   await ready;
   const resvg = new Resvg(svg, {
     fitTo: { mode: 'width', value: width },
-    font: { fontBuffers: assets.fonts, defaultFontFamily: 'Inter', sansSerifFamily: 'Inter' },
+    font: { fontBuffers: assets.fonts, defaultFontFamily: 'Nunito', sansSerifFamily: 'Nunito' },
   });
   const png = resvg.render().asPng();
   resvg.free();

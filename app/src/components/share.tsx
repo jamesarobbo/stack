@@ -10,17 +10,17 @@ import { T } from './ui';
 const NATIVE = Platform.OS !== 'web';
 
 export const tint = {
-  slate: '#344054',
-  slateDeep: '#1D2939',
-  slateSoft: '#F2F4F7',
-  tealDeep: '#0A5C50',
-  nearBar: '#DC9B04',
-  track: '#EEF1F4',
+  slate: '#4A433C',
+  slateDeep: '#2C261F',
+  slateSoft: '#EFE6DA',
+  tealDeep: '#245041',
+  nearBar: '#C4922A',
+  track: '#EADFD0',
 };
 
 export type ScoreTone = 'good' | 'neutral';
 
-/** Matches the link preview image: teal from 80, slate below, so a low score never looks like a success. */
+/** Matches the posted image: green from 80, warm charcoal below, so a low score never looks like a success. */
 export function scoreTone(score: number): ScoreTone {
   return score >= 80 ? 'good' : 'neutral';
 }
@@ -129,11 +129,11 @@ export function ScoreRing({
 }
 
 const REASON_DOT: Record<ScoreReason['kind'], string> = {
-  over: '#FDA29B',
-  near: '#FEC84B',
-  doubled: '#FEC84B',
-  overlap_ok: '#A6F4C5',
-  unchecked: 'rgba(255,255,255,0.55)',
+  over: theme.flagText,
+  near: theme.amber,
+  doubled: tint.slate,
+  overlap_ok: theme.teal,
+  unchecked: theme.faint,
 };
 
 /** The bold score panel. The reasons sit inside it, so the number is never shown without its why. */
@@ -153,19 +153,19 @@ export function ScoreHero({
   const tone = scoreTone(score);
   const shown = reasons.filter((reason) => reason.kind !== 'unchecked').slice(0, 5);
   const unchecked = reasons.filter((reason) => reason.kind === 'unchecked');
+  const ring = tone === 'good' ? theme.teal : tint.slate;
   return (
-    <View style={[styles.hero, { backgroundColor: tone === 'good' ? theme.teal : tint.slate }]}>
-      <View style={[styles.heroGlow, { backgroundColor: tone === 'good' ? tint.tealDeep : tint.slateDeep }]} />
+    <View style={styles.hero}>
       <View style={styles.heroTop}>
-        <ScoreRing score={score} color="#FFFFFF" track="rgba(255,255,255,0.2)" textColor="#FFFFFF" subColor="rgba(255,255,255,0.78)" />
+        <ScoreRing score={score} color={ring} track={tint.track} textColor={theme.text} subColor={theme.muted} />
         <View style={{ flex: 1, gap: 4 }}>
-          <T size={13} weight="semibold" color="rgba(255,255,255,0.78)">
+          <T size={13} weight="semibold" color={theme.muted}>
             {title}
           </T>
-          <T weight="bold" size={18} color="#FFFFFF" style={{ lineHeight: 23 }}>
+          <T weight="bold" size={18} color={theme.text} style={{ lineHeight: 23 }}>
             {summary}
           </T>
-          <T size={13} color="rgba(255,255,255,0.78)">
+          <T size={13} color={theme.muted}>
             {note}
           </T>
         </View>
@@ -175,11 +175,11 @@ export function ScoreHero({
           {shown.map((reason) => (
             <View key={`${reason.kind}-${reason.key}`} style={styles.reason}>
               <View style={[styles.dot, { backgroundColor: REASON_DOT[reason.kind] }]} />
-              <T size={14} color="#FFFFFF" style={{ flex: 1 }}>
+              <T size={14} color={theme.text} style={{ flex: 1 }}>
                 {reason.text}
               </T>
               {reason.points > 0 ? (
-                <T size={13} weight="semibold" color="rgba(255,255,255,0.78)">
+                <T size={13} weight="semibold" color={theme.muted}>
                   {`-${reason.points}`}
                 </T>
               ) : null}
@@ -188,7 +188,7 @@ export function ScoreHero({
         </View>
       ) : null}
       {unchecked.length > 0 ? (
-        <T size={12} color="rgba(255,255,255,0.7)">
+        <T size={12} color={theme.muted}>
           {`${unchecked.length} ${unchecked.length === 1 ? 'dose uses a unit' : 'doses use units'} the audit cannot check, so ${unchecked.length === 1 ? 'it is' : 'they are'} left out.`}
         </T>
       ) : null}
@@ -616,32 +616,32 @@ export function IconAction({ icon, label, onPress, active }: { icon: keyof typeo
 
 const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
-  hero: { borderRadius: 22, padding: 18, gap: 14, overflow: 'hidden' },
+  hero: { borderRadius: 22, padding: 18, gap: 14, overflow: 'hidden', backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
   heroGlow: { position: 'absolute', width: 320, height: 320, borderRadius: 160, right: -150, bottom: -170, opacity: 0.55 },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  reasons: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.18)', paddingTop: 12, gap: 8 },
+  reasons: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 8 },
   reason: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   dot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
   outcome: { backgroundColor: theme.tealSoft, borderRadius: 20, padding: 18, gap: 10 },
   outcomeRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  outcomeIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
-  noLimit: { height: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#D0D5DD' },
-  preview: { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#EEF0F3', padding: 16, paddingTop: 18, gap: 8, overflow: 'hidden' },
+  outcomeIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.card, alignItems: 'center', justifyContent: 'center' },
+  noLimit: { height: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: theme.line },
+  preview: { backgroundColor: theme.card, borderRadius: 22, borderWidth: 1, borderColor: theme.line, padding: 16, paddingTop: 18, gap: 8, overflow: 'hidden' },
   previewBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: theme.teal },
   previewPanel: { width: 132, borderRadius: 18, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
   previewGlow: { position: 'absolute', width: 160, height: 160, borderRadius: 80, right: -70, bottom: -80, opacity: 0.55 },
   previewResult: { backgroundColor: theme.tealSoft, borderRadius: 14, padding: 10, gap: 2 },
-  story: { backgroundColor: '#FFFFFF', borderRadius: 22, borderWidth: 1, borderColor: '#EEF0F3', padding: 18, paddingTop: 22, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
+  story: { backgroundColor: theme.bg, borderRadius: 22, borderWidth: 1, borderColor: theme.line, padding: 18, paddingTop: 22, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
   storyPanel: { borderRadius: 20, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
   storyResult: { backgroundColor: theme.tealSoft, borderRadius: 18, padding: 14, gap: 2 },
-  storyCta: { backgroundColor: theme.teal, borderRadius: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 12 },
-  chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4E7EC' },
+  storyCta: { backgroundColor: theme.teal, borderRadius: 18, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 12 },
+  chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
   chipOn: { backgroundColor: theme.teal, borderColor: theme.teal },
-  segmented: { flexDirection: 'row', backgroundColor: '#E9ECF0', borderRadius: 12, padding: 3, gap: 2 },
+  segmented: { flexDirection: 'row', backgroundColor: theme.greyPill, borderRadius: 14, padding: 3, gap: 2 },
   segment: { flex: 1, minHeight: 38, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 9, justifyContent: 'center' },
-  segmentOn: { backgroundColor: '#FFFFFF', shadowColor: '#101828', shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  segmentOn: { backgroundColor: theme.card, shadowColor: '#50321E', shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   toggle: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', paddingVertical: 4 },
-  box: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: '#C9CFD8', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  box: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: theme.line, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   boxOn: { backgroundColor: theme.teal, borderColor: theme.teal },
   iconAction: {
     flexDirection: 'row',
@@ -651,8 +651,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
   },
 });

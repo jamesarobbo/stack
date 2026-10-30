@@ -95,10 +95,10 @@ const styles = StyleSheet.create({
   wearable: {
     width: '48%',
     minHeight: 96,
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#EEF0F3',
+    borderColor: theme.line,
     padding: 14,
     gap: 4,
   },

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { BottleRow } from '@/src/components/illustrations';
 import { DoseMeters, FadeIn, ScoreHero } from '@/src/components/share';
 import { Card, Disclaimer, EmptyLead, Pill, Screen, T } from '@/src/components/ui';
 import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
@@ -22,7 +23,7 @@ export default function AuditScreen() {
   if (app.products.length === 0) {
     return (
       <Screen>
-        <EmptyLead icon="search-outline" title={AUDIT_EMPTY.title} body={AUDIT_EMPTY.body} />
+        <EmptyLead title={AUDIT_EMPTY.title} body={AUDIT_EMPTY.body} />
         <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)} style={styles.link}>
           <T weight="semibold" color={theme.teal}>
             {GO_TO_STACK_LABEL}
@@ -47,7 +48,7 @@ export default function AuditScreen() {
       ) : null}
       <View style={styles.savings}>
         <Pill tone="amber">Possible savings</Pill>
-        <T weight="bold" size={32} style={styles.savingsTitle}>
+        <T weight="bold" size={32} color={theme.amber} style={styles.savingsTitle}>
           {audit.wastedCents > 0 ? `You could save ${formatUsd(audit.wastedCents)} a month` : 'No duplicate spend found'}
         </T>
         <T size={14} color={theme.muted}>
@@ -68,6 +69,14 @@ export default function AuditScreen() {
         <T weight="semibold" size={17}>
           Duplicate ingredients
         </T>
+        {audit.duplicates.length > 0 ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <BottleRow />
+            <T size={14} weight="semibold" color={theme.muted} style={{ flex: 1 }}>
+              Two bottles, one ingredient.
+            </T>
+          </View>
+        ) : null}
         {audit.duplicates.length === 0 ? (
           <T size={14} color={theme.muted}>
             Each ingredient shows up in one product.

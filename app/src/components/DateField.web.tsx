@@ -57,10 +57,10 @@ export function DateField({
 const styles = StyleSheet.create({
   wrap: { gap: 4 },
   field: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },

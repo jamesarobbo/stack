@@ -66,10 +66,10 @@ export function UnitField({
 const styles = StyleSheet.create({
   wrap: { gap: 4 },
   field: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
     paddingHorizontal: 12,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -78,10 +78,10 @@ const styles = StyleSheet.create({
   },
   fieldOpen: { borderColor: theme.teal },
   menu: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
     overflow: 'hidden',
   },
   option: {

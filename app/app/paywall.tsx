@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { BottleRow } from '@/src/components/illustrations';
 import { OnboardingProgress } from '@/src/components/OnboardingProgress';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { PRO_ANNUAL_CENTS, PRO_ANNUAL_SAVINGS_CENTS, PRO_MONTHLY_CENTS } from '@/src/config';
@@ -74,6 +75,7 @@ export default function PaywallScreen() {
     <Screen>
       {fromOnboarding ? <OnboardingProgress step="paywall" /> : null}
       <BackButton fallback={fromOnboarding ? '/onboarding/save' : '/(tabs)/more'} />
+      <BottleRow />
       <T weight="bold" size={32} style={styles.title}>
         {fromOnboarding ? 'Keep this audit, and the weeks after' : 'See every dollar and every signal'}
       </T>
@@ -111,7 +113,7 @@ export default function PaywallScreen() {
               Best value
             </T>
           </View>
-          <T weight="bold" size={18}>
+          <T weight="bold" size={18} color={theme.amber}>
             {formatUsd(PRO_ANNUAL_CENTS)}
           </T>
           <View style={styles.save}>
@@ -129,7 +131,7 @@ export default function PaywallScreen() {
             Cancel any time
           </T>
         </View>
-        <T weight="bold" size={18}>
+        <T weight="bold" size={18} color={theme.amber}>
           {formatUsd(PRO_MONTHLY_CENTS)}
         </T>
       </Pressable>
@@ -200,10 +202,10 @@ function Mark({ on }: { on: boolean }) {
 const styles = StyleSheet.create({
   title: { letterSpacing: -0.8 },
   plan: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: theme.card,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -212,7 +214,7 @@ const styles = StyleSheet.create({
   planOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
   best: { backgroundColor: theme.tealSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
   save: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  table: { backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#EEF0F3', padding: 14, gap: 10 },
+  table: { backgroundColor: theme.card, borderRadius: 18, borderWidth: 1, borderColor: theme.line, padding: 14, gap: 10 },
   tableHead: { flexDirection: 'row', alignItems: 'center' },
   tableRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   col: { width: 44, textAlign: 'center', alignItems: 'center' },

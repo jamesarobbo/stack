@@ -1,6 +1,6 @@
 # Three visual directions
 
-Throwaway screens for a direction pick. They are not wired to the app. Open `index.html` in a browser.
+Throwaway screens for a direction pick. Open `index.html` in a browser. James picked Kitchen, and the live app now uses that language. These three pages stay as the options that were compared.
 
 Same facts on every screen: Alex's example stack, $175 a month, about $27 of duplicate spend, dose score 79 out of 100. Discover uses the listed stacks already in the library. Kept counts show only from 3.
 
@@ -20,6 +20,6 @@ Bends: dark hero surfaces. A glow behind the ring. Extra chart colours (gold for
 
 ## C. Kitchen
 
-A warmer, more human front door. Illustrated still lifes, a cream ground, sage for the action, and a clay accent in the drawings.
+A warmer, more human front door. Illustrated still lifes, a cream ground, sage for the action, and a clay accent in the drawings. This is the direction the live app now uses.
 
-Bends: a cream canvas. A new clay accent used in illustration, not for money (money stays gold). Illustration. Inter is replaced by Nunito. Low scores use a warm charcoal rather than the slate token, and they are not painted in the sage success colour.
+At the time of the pick it bent the old rules: a cream canvas, clay in the drawings, Nunito instead of Inter, and warm charcoal for a score under 80. Money stayed gold.

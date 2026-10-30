@@ -31,8 +31,8 @@ describe('link preview image', () => {
     expect(story).toContain('height="1920"');
     expect(story).toContain('Sam &lt;script&gt;');
     expect(story).not.toMatch(/[\u2013\u2014]/);
-    expect(ogImageVersion(1)).toBe(2_000_001);
-    expect(storyImageVersion(1)).toBe(2_500_001);
+    expect(ogImageVersion(1)).toBe(3_000_001);
+    expect(storyImageVersion(1)).toBe(3_500_001);
     expect(wrap(input.stackName, 60, 560, 2)).toHaveLength(2);
     expect(truncate('x'.repeat(200), 20, 100).endsWith('\u2026')).toBe(true);
   });
@@ -64,7 +64,7 @@ describe('link preview image', () => {
 
   it('renders a PNG with the bundled fonts', async () => {
     const wasm = readFileSync(new URL('../node_modules/@resvg/resvg-wasm/index_bg.wasm', import.meta.url));
-    const fonts = ['Inter_700Bold.ttf', 'Inter_500Medium.ttf'].map((name) => new Uint8Array(readFileSync(new URL(`../assets/${name}`, import.meta.url))));
+    const fonts = ['Nunito_700Bold.ttf', 'Nunito_500Medium.ttf'].map((name) => new Uint8Array(readFileSync(new URL(`../assets/${name}`, import.meta.url))));
     const assets = { wasm, fonts };
     const png = await renderOgPng(ogSvg(input), assets);
     expect([...png.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);

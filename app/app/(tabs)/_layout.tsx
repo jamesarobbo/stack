@@ -9,48 +9,50 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.teal,
-        tabBarInactiveTintColor: theme.faint,
+        tabBarInactiveTintColor: theme.muted,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: theme.card,
           borderTopColor: theme.line,
-          paddingTop: 4,
+          height: 68,
+          paddingTop: 6,
+          paddingBottom: 8,
         },
-        tabBarLabelStyle: { fontFamily: font.medium, fontSize: 11 },
+        tabBarLabelStyle: { fontFamily: font.medium, fontSize: 11, lineHeight: 14 },
       }}
     >
       <Tabs.Screen
         name="stack"
         options={{
           title: 'Stack',
-          tabBarIcon: ({ color, size }) => <Ionicons name="layers-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
+          tabBarIcon: ({ color }) => <Ionicons name="layers-outline" color={typeof color === 'string' ? color : theme.muted} size={22} />,
         }}
       />
       <Tabs.Screen
         name="discover"
         options={{
           title: DISCOVER_LABEL,
-          tabBarIcon: ({ color, size }) => <Ionicons name="compass-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
+          tabBarIcon: ({ color }) => <Ionicons name="compass-outline" color={typeof color === 'string' ? color : theme.muted} size={22} />,
         }}
       />
       <Tabs.Screen
         name="audit"
         options={{
           title: 'Audit',
-          tabBarIcon: ({ color, size }) => <Ionicons name="search-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
+          tabBarIcon: ({ color }) => <Ionicons name="search-outline" color={typeof color === 'string' ? color : theme.muted} size={22} />,
         }}
       />
       <Tabs.Screen
         name="impact"
         options={{
           title: 'Impact',
-          tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
+          tabBarIcon: ({ color }) => <Ionicons name="stats-chart-outline" color={typeof color === 'string' ? color : theme.muted} size={22} />,
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
           title: 'More',
-          tabBarIcon: ({ color, size }) => <Ionicons name="ellipsis-horizontal" color={typeof color === 'string' ? color : theme.faint} size={size} />,
+          tabBarIcon: ({ color }) => <Ionicons name="ellipsis-horizontal" color={typeof color === 'string' ? color : theme.muted} size={22} />,
         }}
       />
     </Tabs>

@@ -1,6 +1,6 @@
 import wasm from '@resvg/resvg-wasm/index_bg.wasm';
-import bold from '../assets/Inter_700Bold.ttf';
-import medium from '../assets/Inter_500Medium.ttf';
+import bold from '../assets/Nunito_700Bold.ttf';
+import medium from '../assets/Nunito_500Medium.ttf';
 import type { OgAssets } from './og';
 
 /** Loaded only by the Worker bundle. Wrangler imports .wasm as a module and .ttf as bytes (see wrangler.toml rules). */

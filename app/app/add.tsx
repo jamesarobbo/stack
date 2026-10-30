@@ -593,14 +593,14 @@ function slug(value: string): string {
 
 const styles = StyleSheet.create({
   title: { letterSpacing: -0.6 },
-  switch: { flexDirection: 'row', backgroundColor: '#E7E9EE', borderRadius: 12, padding: 4 },
+  switch: { flexDirection: 'row', backgroundColor: theme.greyPill, borderRadius: 14, padding: 4 },
   switchItem: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 10 },
   switchOn: { backgroundColor: theme.teal },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E4E7EC',
+    borderColor: theme.line,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontFamily: font.regular,
@@ -616,5 +616,5 @@ const styles = StyleSheet.create({
   },
   scanLink: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { backgroundColor: '#fff', borderRadius: 999, borderWidth: 1, borderColor: '#E4E7EC', paddingHorizontal: 12, paddingVertical: 6 },
+  chip: { backgroundColor: theme.card, borderRadius: 999, borderWidth: 1, borderColor: theme.line, paddingHorizontal: 12, paddingVertical: 6 },
 });
