@@ -1,69 +1,78 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Chip, CompositionStrip, FadeIn, ScoreBadge, Segmented } from '@/src/components/share';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
-import { api } from '@/src/api';
-import {
-  DISCOVER_LABEL,
-  LIBRARY_GOALS,
-  LIBRARY_SORTS,
-  LIBRARY_TABS,
-  type LibraryGoalKey,
-} from '@/src/copy/library';
+import { api, ApiError } from '@/src/api';
+import { DISCOVER_LABEL, LIBRARY_GOALS, LIBRARY_SEGMENTS, SEGMENT_NOTES, type LibraryGoalKey, type LibrarySegmentKey } from '@/src/copy/library';
 import { copyCountLabel } from '@/src/copy/sharing';
-import { getSetting } from '@/src/settings';
+import type { LibraryItem, LibraryPage } from '@/src/data/sharing';
 import { useApp } from '@/src/state';
 import { font, theme } from '@/src/theme';
 
-type LibraryItem = {
-  slug: string;
-  stackName: string;
-  creatorName: string | null;
-  goals: { key: string; label: string }[];
-  auditScore: number;
-  copyCount: number;
-  recentCopies: number;
-  saved: boolean;
-  likeYou: { averagePercent: number; people: number; cohort: string } | null;
-};
-
-type LibraryPage = { items: LibraryItem[]; nextOffset: number | null; note: string | null };
+const PAGE = 20;
 
 export default function DiscoverScreen() {
   const app = useApp();
-  const [tab, setTab] = useState<(typeof LIBRARY_TABS)[number]['key']>('new');
-  const [sort, setSort] = useState<(typeof LIBRARY_SORTS)[number]['key']>('newest');
+  const [segment, setSegment] = useState<LibrarySegmentKey>('new');
+  const [typed, setTyped] = useState('');
   const [query, setQuery] = useState('');
   const [goal, setGoal] = useState<LibraryGoalKey | null>(null);
-  const [page, setPage] = useState<LibraryPage>({ items: [], nextOffset: null, note: null });
+  const [items, setItems] = useState<LibraryItem[]>([]);
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const request = useRef(0);
+  const key = `${segment}|${query}|${goal ?? ''}|${app.sessionToken ?? ''}`;
+  const loading = loadedKey !== key;
 
   useEffect(() => {
-    const params = new URLSearchParams({ tab, sort, limit: '20' });
-    if (query.trim()) params.set('q', query.trim());
-    if (goal) params.set('goal', goal);
-    if (sort === 'like_you') {
-      const ageRange = getSetting('ageRange');
-      const sex = getSetting('sex');
-      if (ageRange) params.set('ageRange', ageRange);
-      if (sex) params.set('sex', sex);
-    }
-    let live = true;
-    void api<LibraryPage>(`/v1/library?${params.toString()}`, { token: app.sessionToken })
-      .then((body) => {
-        if (live) setPage(body);
-      })
-      .catch(() => {
-        if (live) setPage({ items: [], nextOffset: null, note: 'Discover could not be loaded.' });
-      });
-    return () => {
-      live = false;
-    };
-  }, [app.sessionToken, goal, query, sort, tab]);
+    const timer = setTimeout(() => setQuery(typed.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [typed]);
 
-  function openTab(next: (typeof LIBRARY_TABS)[number]['key']) {
-    setTab(next);
-    if (next === 'top') setSort('copies');
-    if (next === 'new') setSort('newest');
+  const fetchPage = useCallback(
+    async (offset: number) => {
+      const params = new URLSearchParams({ segment, limit: String(PAGE), offset: String(offset) });
+      if (query) params.set('q', query);
+      if (goal) params.set('goal', goal);
+      return api<LibraryPage>(`/v1/library?${params.toString()}`, { token: app.sessionToken });
+    },
+    [app.sessionToken, goal, query, segment],
+  );
+
+  useEffect(() => {
+    const id = ++request.current;
+    fetchPage(0)
+      .then((page) => {
+        if (id !== request.current) return;
+        setItems(page.items);
+        setNextOffset(page.nextOffset);
+        setNote(page.note);
+      })
+      .catch((error: unknown) => {
+        if (id !== request.current) return;
+        setItems([]);
+        setNextOffset(null);
+        setNote(error instanceof ApiError ? error.message : 'Discover could not be loaded.');
+      })
+      .finally(() => {
+        if (id === request.current) setLoadedKey(key);
+      });
+  }, [fetchPage, key]);
+
+  async function loadMore() {
+    if (nextOffset == null) return;
+    const id = request.current;
+    try {
+      const page = await fetchPage(nextOffset);
+      if (id !== request.current) return;
+      setItems((list) => [...list, ...page.items.filter((item) => !list.some((row) => row.slug === item.slug))]);
+      setNextOffset(page.nextOffset);
+    } catch {
+      setNote('More stacks could not be loaded.');
+    }
   }
 
   async function toggleSave(item: LibraryItem) {
@@ -71,11 +80,16 @@ export default function DiscoverScreen() {
       router.push('/sign-in');
       return;
     }
-    await api(`/v1/shares/${item.slug}/save`, { method: item.saved ? 'DELETE' : 'POST', token: app.sessionToken });
-    setPage((current) => ({
-      ...current,
-      items: current.items.map((row) => (row.slug === item.slug ? { ...row, saved: !row.saved } : row)),
-    }));
+    try {
+      await api(`/v1/shares/${item.slug}/save`, { method: item.saved ? 'DELETE' : 'POST', token: app.sessionToken });
+      setItems((list) =>
+        segment === 'saved' && item.saved
+          ? list.filter((row) => row.slug !== item.slug)
+          : list.map((row) => (row.slug === item.slug ? { ...row, saved: !row.saved } : row)),
+      );
+    } catch (error) {
+      setNote(error instanceof ApiError ? error.message : 'That could not be saved.');
+    }
   }
 
   return (
@@ -85,123 +99,128 @@ export default function DiscoverScreen() {
         {DISCOVER_LABEL}
       </T>
       <T size={15} color={theme.muted}>
-        Stacks people chose to list. Link-only shares stay off this page.
+        Stacks people chose to list, with their doses checked. Link-only shares never appear here.
       </T>
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder="Search stacks, ingredients, or people"
-        placeholderTextColor={theme.faint}
-        autoCapitalize="none"
-        accessibilityLabel="Search stacks"
-        style={styles.search}
-      />
-      <View style={styles.chips}>
+      <View style={styles.search}>
+        <Ionicons name="search" size={18} color={theme.faint} />
+        <TextInput
+          value={typed}
+          onChangeText={setTyped}
+          placeholder="Search stacks, ingredients, or people"
+          placeholderTextColor={theme.faint}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+          accessibilityLabel="Search stacks"
+          style={styles.searchInput}
+        />
+        {typed ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setTyped('')} hitSlop={8}>
+            <Ionicons name="close-circle" size={18} color={theme.faint} />
+          </Pressable>
+        ) : null}
+      </View>
+      <Segmented items={LIBRARY_SEGMENTS} value={segment} onChange={setSegment} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         {LIBRARY_GOALS.map((item) => (
-          <Pressable
-            key={item.key}
-            accessibilityRole="button"
-            onPress={() => setGoal((current) => (current === item.key ? null : item.key))}
-            style={[styles.chip, goal === item.key ? styles.chipOn : null]}
-          >
-            <T size={13} weight="semibold" color={goal === item.key ? '#fff' : theme.text}>
-              {item.label}
-            </T>
-          </Pressable>
+          <Chip key={item.key} label={item.label} selected={goal === item.key} onPress={() => setGoal((current) => (current === item.key ? null : item.key))} />
         ))}
-      </View>
-      <View style={styles.tabs}>
-        {LIBRARY_TABS.map((item) => (
-          <Pressable key={item.key} accessibilityRole="button" onPress={() => openTab(item.key)} style={styles.tab}>
-            <T weight="semibold" color={tab === item.key ? theme.teal : theme.muted}>
-              {item.label}
-            </T>
-          </Pressable>
-        ))}
-      </View>
-      <View style={styles.chips}>
-        {LIBRARY_SORTS.map((item) => (
-          <Pressable key={item.key} accessibilityRole="button" onPress={() => setSort(item.key)} style={[styles.chip, sort === item.key ? styles.chipOn : null]}>
-            <T size={13} weight="semibold" color={sort === item.key ? '#fff' : theme.text}>
-              {item.label}
-            </T>
-          </Pressable>
-        ))}
-      </View>
-      {sort === 'copies' || tab === 'top' ? (
-        <T size={13} color={theme.muted}>
-          Top uses copies from the last 30 days.
-        </T>
-      ) : null}
-      {page.note ? (
-        <T size={14} color={theme.muted}>
-          {page.note}
-        </T>
-      ) : null}
-      {page.items.map((item) => (
-        <Card key={item.slug}>
-          <Pressable accessibilityRole="button" onPress={() => router.push(`/s/${item.slug}`)}>
-            <T weight="semibold" size={18}>
-              {item.stackName}
-            </T>
-            <T size={13} color={theme.muted}>
-              {item.creatorName || 'A Stack user'}
-            </T>
-            {item.goals.length > 0 ? (
-              <T size={13} color={theme.muted}>
-                {item.goals.map((goalItem) => goalItem.label).join(', ')}
-              </T>
-            ) : null}
-            <T weight="bold" size={28} color={theme.teal}>
-              {String(item.auditScore)}
-            </T>
-            <T size={13} color={theme.muted}>
-              Audit score
-            </T>
-            <T size={14}>{copyCountLabel(item.copyCount)}</T>
-            <T size={13} color={theme.muted}>
-              {`${item.recentCopies} in the last 30 days`}
-            </T>
-            {item.likeYou ? (
-              <T size={14}>
-                {`${item.likeYou.cohort}. Average change ${changePhrase(item.likeYou.averagePercent)} across ${item.likeYou.people} people. Real-world data, not a trial.`}
-              </T>
-            ) : null}
-          </Pressable>
-          <Button label={item.saved ? 'Saved' : 'Save'} tone="ghost" onPress={() => void toggleSave(item)} />
+      </ScrollView>
+      <T size={13} color={theme.muted}>
+        {SEGMENT_NOTES[segment]}
+      </T>
+
+      {note && items.length === 0 && !loading ? (
+        <Card>
+          <T>{note}</T>
+          {!app.sessionToken && (segment === 'saved' || segment === 'like_you') ? <Button label="Sign in" onPress={() => router.push('/sign-in')} /> : null}
+          {app.sessionToken && segment === 'like_you' && /age range/.test(note) ? (
+            <Button label="Open settings" tone="ghost" onPress={() => router.push('/settings')} />
+          ) : null}
         </Card>
+      ) : null}
+      {loading && items.length === 0 ? (
+        <T size={14} color={theme.muted}>
+          Loading stacks
+        </T>
+      ) : null}
+
+      {items.map((item, index) => (
+        <FadeIn key={item.slug} delay={Math.min(index, 6) * 50}>
+          <StackCard item={item} onSave={() => void toggleSave(item)} />
+        </FadeIn>
       ))}
-      {page.items.length === 0 && !page.note ? (
+
+      {!loading && items.length === 0 && !note ? (
         <Card>
           <T>No listed stacks yet.</T>
         </Card>
       ) : null}
+      {nextOffset != null ? <Button label="Load more" tone="ghost" onPress={() => void loadMore()} /> : null}
     </Screen>
   );
 }
 
-function changePhrase(percent: number): string {
-  if (percent <= -1) return `down ${Math.abs(percent)}%`;
-  if (percent >= 1) return `up ${percent}%`;
-  return 'about the same';
+function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) {
+  const kept = copyCountLabel(item.copyCount);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${item.stackName}, audit score ${item.auditScore}`}
+      onPress={() => router.push(`/s/${item.slug}`)}
+      style={({ pressed }) => [styles.card, pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : null]}
+    >
+      <View style={styles.cardTop}>
+        <ScoreBadge score={item.auditScore} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <T weight="semibold" size={17} style={{ letterSpacing: -0.2 }}>
+            {item.stackName}
+          </T>
+          <T size={13} color={theme.muted}>
+            {`${item.creatorName || 'A Stack user'}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
+          </T>
+          <T size={13} color={theme.text}>
+            {item.summary}
+          </T>
+        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel={item.saved ? 'Remove from saved' : 'Save'} onPress={onSave} hitSlop={10} style={styles.save}>
+          <Ionicons name={item.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={theme.teal} />
+        </Pressable>
+      </View>
+      <CompositionStrip items={item.composition} />
+      {item.likeYou ? (
+        <View style={styles.likeYou}>
+          <T size={13} weight="semibold" color={theme.tealDark}>
+            {item.likeYou.label}
+          </T>
+          <T size={13}>{item.likeYou.line}</T>
+        </View>
+      ) : null}
+      {item.goals.length > 0 || kept || item.updatedOn ? (
+        <T size={12} color={theme.muted}>
+          {[item.goals.map((goal) => goal.label).join(', '), kept, item.updatedOn ? `Updated on ${item.updatedOn}` : null].filter(Boolean).join('. ')}
+        </T>
+      ) : null}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
   title: { letterSpacing: -0.6 },
   search: {
-    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#EEF0F3',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontFamily: font.regular,
-    fontSize: 16,
-    color: theme.text,
+    borderColor: '#E4E7EC',
+    paddingHorizontal: 12,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#fff', borderWidth: 1, borderColor: '#EEF0F3' },
-  chipOn: { backgroundColor: theme.teal, borderColor: theme.teal },
-  tabs: { flexDirection: 'row', gap: 16 },
-  tab: { paddingVertical: 4 },
+  searchInput: { flex: 1, paddingVertical: 12, fontFamily: font.regular, fontSize: 16, color: theme.text },
+  chips: { gap: 8, paddingRight: 8 },
+  card: { backgroundColor: theme.card, borderRadius: theme.radius, padding: 16, borderWidth: 1, borderColor: '#EEF0F3', gap: 12 },
+  cardTop: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  save: { padding: 4 },
+  likeYou: { backgroundColor: theme.tealSoft, borderRadius: 12, padding: 10, gap: 2 },
 });

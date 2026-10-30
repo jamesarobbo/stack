@@ -1,242 +1,480 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pressable, Share, StyleSheet, View } from 'react-native';
+import { Choice } from '@/src/components/OnboardingProgress';
+import { DoseMeters, FadeIn, IconAction, OutcomeHero, ScoreHero, Toggle } from '@/src/components/share';
+import { BackButton, Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
-import { LIBRARY_GOALS, REPORT_REASONS } from '@/src/copy/library';
-import {
-  COPIED_CREDIT_FALLBACK,
-  DOCTOR_LINE,
-  PEOPLE_LIKE_YOU_EMPTY,
-  copyCountLabel,
-} from '@/src/copy/sharing';
-import { formatNumber } from '@/src/format';
-import { isAgeRange, isSex } from '@/src/health/demographics';
+import { REPORT_REASONS, goalLabel, type ReportReasonKey } from '@/src/copy/library';
+import { COHORT_EXPLAINER, DOCTOR_LINE, copyCountLabel, creditLine, shareMessage } from '@/src/copy/sharing';
+import { OFF_ATTRIBUTION } from '@/src/data/labels';
+import { recordCopy, type CohortReport, type PublicShare } from '@/src/data/sharing';
 import { localToday } from '@/src/dates';
-import { getSetting } from '@/src/settings';
+import { applyPlan, choicesFor, copiedProducts, planMerge, scoreAfter, shareCatalogueId, type MergeChoice, type MergeRow } from '@/src/domain/merge';
+import { formatDose } from '../../../shared/doses';
+import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
 
-type SharedIngredient = { key?: string; name: string; amount: number; unit: string };
-type SharedProduct = {
-  name: string;
-  brand: string;
-  servingsPerDay: number;
-  servingsPerContainer?: number;
-  ingredients: SharedIngredient[];
-};
-type SharedResult = { framing: string; line: string; disclaimer: string } | null;
-type SharedAggregate = { line: string; disclaimer: string; cohort: string } | null;
-type SharedStack = {
-  displayName: string | null;
-  stackName: string | null;
-  goals: string[];
-  products: SharedProduct[];
-  auditScore: number;
-  result: SharedResult;
-  copyCount: number;
-  aggregate: SharedAggregate;
-};
+const CHOICE_LABEL: Record<MergeChoice, string> = { add: 'Add', skip: 'Skip', replace: 'Replace mine' };
 
 export default function SharedStackScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const app = useApp();
-  const [stack, setStack] = useState<SharedStack | null>(null);
+  const [stack, setStack] = useState<PublicShare | null>(null);
   const [missing, setMissing] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
-  const [likeYou, setLikeYou] = useState<string | null>(null);
+  const [cohorts, setCohorts] = useState<CohortReport | null>(null);
+  const [rows, setRows] = useState<MergeRow[] | null>(null);
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [reporting, setReporting] = useState(false);
-  const [reportNote, setReportNote] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [panel, setPanel] = useState<'none' | 'report' | 'block'>('none');
+
+  const [version, setVersion] = useState(0);
+  const load = useCallback(async () => setVersion((value) => value + 1), []);
 
   useEffect(() => {
     if (!slug) return;
-    void api<SharedStack>(`/v1/shares/${slug}`)
-      .then(setStack)
-      .catch(() => setMissing(true));
-  }, [slug]);
+    let live = true;
+    api<PublicShare>(`/v1/shares/${slug}`, { token: app.sessionToken })
+      .then((body) => {
+        if (!live) return;
+        setStack(body);
+        setMissing(false);
+      })
+      .catch((error: unknown) => {
+        if (!live) return;
+        if (error instanceof ApiError && error.status === 404) setMissing(true);
+        else setNote(error instanceof ApiError ? error.message : 'This stack could not be loaded.');
+      });
+    if (app.sessionToken) {
+      api<CohortReport>(`/v1/shares/${slug}/cohorts`, { token: app.sessionToken })
+        .then((report) => {
+          if (live) setCohorts(report);
+        })
+        .catch(() => undefined);
+    }
+    return () => {
+      live = false;
+    };
+  }, [app.sessionToken, slug, version]);
 
-  async function copyStack() {
-    if (!slug) return;
-    if (!app.sessionToken) {
-      router.push('/sign-in');
-      return;
-    }
-    setBusy(true);
-    setNote(null);
-    try {
-      const copied = await api<{
-        alreadyCopied: boolean;
-        credit: string;
-        products: (SharedProduct & { servingsPerContainer: number; ingredients: (SharedIngredient & { key: string })[] })[];
-      }>(`/v1/shares/${slug}/copy`, { method: 'POST', token: app.sessionToken });
-      if (!copied.alreadyCopied) {
-        for (const product of copied.products) {
-          await app.addManual({
-            name: product.name,
-            brand: product.brand || null,
-            note: copied.credit || COPIED_CREDIT_FALLBACK,
-            priceCents: 0,
-            servingsPerContainer: product.servingsPerContainer || 30,
-            servingsPerDay: product.servingsPerDay,
-            startDate: localToday(),
-            ingredients: product.ingredients.map((ingredient) => ({
-              key: ingredient.key || ingredient.name,
-              name: ingredient.name,
-              amount: ingredient.amount,
-              unit: ingredient.unit,
-              costWeight: 1,
-            })),
-          });
-        }
-      }
-      setNote(copied.alreadyCopied ? 'You already copied this stack.' : 'Copied. Add the prices you pay.');
-      const refreshed = await api<SharedStack>(`/v1/shares/${slug}`);
-      setStack(refreshed);
-    } catch (error) {
-      setNote(error instanceof ApiError ? error.message : 'The stack could not be copied.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function peopleLikeYou() {
-    if (!slug) return;
-    const ageRange = getSetting('ageRange');
-    const sex = getSetting('sex');
-    if (!isAgeRange(ageRange) || !isSex(sex) || ageRange === 'unspecified' || sex === 'unspecified') {
-      setLikeYou('Add an age range and sex to compare with people like you.');
-      return;
-    }
-    const body = await api<{ aggregate: SharedAggregate }>(`/v1/shares/${slug}/aggregate?ageRange=${ageRange}&sex=${sex}`);
-    setLikeYou(body.aggregate ? `${body.aggregate.line} ${body.aggregate.disclaimer}` : PEOPLE_LIKE_YOU_EMPTY);
-  }
+  const local = useMemo(() => (slug ? copiedProducts(app.products, slug) : []), [app.products, slug]);
+  const viewer = stack?.viewer ?? null;
+  const preview = useMemo(() => (rows ? scoreAfter(app.products, rows) : null), [app.products, rows]);
 
   if (missing) {
     return (
       <Screen>
         <BackButton />
-        <T weight="semibold">This stack is no longer shared.</T>
+        <T weight="bold" size={28} style={styles.title}>
+          This stack is no longer shared
+        </T>
+        <T color={theme.muted}>The person who shared it turned the link off, or it is hidden while reports are reviewed.</T>
       </Screen>
     );
   }
 
-  if (!stack) {
+  if (!stack || !slug) {
     return (
       <Screen>
         <BackButton />
-        <T color={theme.muted}>Loading shared stack</T>
+        <T color={theme.muted}>{note ?? 'Loading shared stack'}</T>
       </Screen>
     );
   }
 
+  const who = stack.displayName || 'A Stack user';
+  const kept = copyCountLabel(stack.copyCount);
+  const own = viewer?.own === true;
+  const inStack = local.length > 0;
+  const changedSince = viewer?.copied && !viewer.copied.current;
+
+  function startCopy() {
+    if (!stack) return;
+    setNote(null);
+    setRows(planMerge(app.products, stack.products));
+    setConsent(viewer?.copied?.outcomeConsent ?? false);
+  }
+
+  function choose(index: number, choice: MergeChoice) {
+    setRows((list) => (list ? list.map((row, at) => (at === index ? { ...row, choice } : row)) : list));
+  }
+
+  async function copyNow() {
+    if (!rows || !stack || !slug) return;
+    const plan = applyPlan(rows);
+    if (plan.add.length === 0) {
+      setNote('Nothing is selected to add.');
+      return;
+    }
+    setBusy(true);
+    setNote(null);
+    try {
+      const credit = creditLine(stack.displayName);
+      await app.addMany(
+        plan.add.map((product) => ({
+          name: product.name,
+          brand: product.brand || null,
+          note: credit,
+          priceCents: 0,
+          servingsPerContainer: product.servingsPerContainer || 30,
+          servingsPerDay: product.servingsPerDay,
+          startDate: localToday(),
+          catalogueId: shareCatalogueId(slug, product.source === 'off'),
+          ingredients: product.ingredients.map((ingredient) => ({
+            key: ingredient.key,
+            name: ingredient.name,
+            amount: ingredient.amount,
+            unit: ingredient.unit,
+            costWeight: 1,
+            ...(ingredient.family ? { family: ingredient.family } : {}),
+            ...(ingredient.familyLabel ? { familyLabel: ingredient.familyLabel } : {}),
+          })),
+        })),
+        plan.replaceIds,
+      );
+      const counted = await recordCopy(app.sessionToken, { slug, outcomeConsent: consent });
+      track('share_copy', { added: plan.add.length, replaced: plan.replaceIds.length, consent, counted });
+      setRows(null);
+      setNote(
+        counted
+          ? `Added ${plan.add.length} to your stack. Add the prices you pay to see the monthly cost.`
+          : `Added ${plan.add.length} to your stack. It counts as a copy once you are signed in.`,
+      );
+      await load();
+    } catch (error) {
+      setNote(error instanceof Error ? error.message : 'The stack could not be copied. Nothing was added.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeConsent(next: boolean) {
+    if (!app.sessionToken || !slug) return;
+    try {
+      await api(`/v1/shares/${slug}/outcome-consent`, { method: 'PUT', token: app.sessionToken, body: { consent: next } });
+      await load();
+    } catch (error) {
+      setNote(error instanceof ApiError ? error.message : 'That setting could not be saved.');
+    }
+  }
+
   async function toggleSave() {
-    if (!slug) return;
     if (!app.sessionToken) {
       router.push('/sign-in');
       return;
     }
-    await api(`/v1/shares/${slug}/save`, { method: saved ? 'DELETE' : 'POST', token: app.sessionToken });
-    setSaved((current) => !current);
+    const saved = viewer?.saved ?? false;
+    try {
+      await api(`/v1/shares/${slug}/save`, { method: saved ? 'DELETE' : 'POST', token: app.sessionToken });
+      setStack((current) => (current && current.viewer ? { ...current, viewer: { ...current.viewer, saved: !saved } } : current));
+    } catch (error) {
+      setNote(error instanceof ApiError ? error.message : 'That could not be saved.');
+    }
   }
 
-  async function sendReport(reason: string) {
-    if (!slug || !app.sessionToken) {
+  async function sendReport(reason: ReportReasonKey) {
+    if (!app.sessionToken) {
       router.push('/sign-in');
       return;
     }
-    await api(`/v1/shares/${slug}/report`, { method: 'POST', token: app.sessionToken, body: { reason } });
-    setReporting(false);
-    setReportNote('Report sent.');
+    try {
+      await api(`/v1/shares/${slug}/report`, { method: 'POST', token: app.sessionToken, body: { reason } });
+      setPanel('none');
+      setNote('Report sent. A person reviews every report, and a stack reported by 3 people is hidden until then.');
+    } catch (error) {
+      setNote(error instanceof ApiError ? error.message : 'The report could not be sent. Try again.');
+    }
   }
 
-  const who = stack.displayName || 'A Stack user';
+  async function setBlocked(next: boolean) {
+    if (!app.sessionToken) {
+      router.push('/sign-in');
+      return;
+    }
+    try {
+      await api(`/v1/shares/${slug}/block`, { method: next ? 'POST' : 'DELETE', token: app.sessionToken });
+      setPanel('none');
+      setNote(next ? `${who} is blocked. Their stacks no longer appear in Discover for you.` : `${who} is unblocked.`);
+      await load();
+    } catch (error) {
+      setNote(error instanceof ApiError ? error.message : 'That did not work. Try again.');
+    }
+  }
+
+  async function sendLink() {
+    if (!stack) return;
+    try {
+      await Share.share({ message: shareMessage({ stackName: stack.stackName, score: stack.auditScore, url: stack.url }) });
+    } catch {
+      setNote(stack.url);
+    }
+  }
+
+  const footer = own ? (
+    <Button label="Edit what you share" tone="ghost" onPress={() => router.push('/share')} />
+  ) : rows ? (
+    <View style={{ gap: 8 }}>
+      <Button label={busy ? 'Adding' : `Add ${applyPlan(rows).add.length} to my stack`} disabled={busy} onPress={() => void copyNow()} />
+      <Button label="Cancel" tone="ghost" onPress={() => setRows(null)} />
+    </View>
+  ) : inStack && !changedSince ? (
+    <Button label="In your stack" tone="ghost" onPress={() => router.push('/(tabs)/stack')} />
+  ) : (
+    <Button label={changedSince && inStack ? 'Copy the update' : 'Copy to my stack'} onPress={startCopy} />
+  );
+
   return (
-    <Screen footer={<Button label={app.sessionToken ? 'Copy to my stack' : 'Sign in to copy'} disabled={busy} onPress={() => void copyStack()} />}>
+    <Screen footer={footer}>
       <BackButton />
-      <T weight="bold" size={32} style={{ letterSpacing: -0.6 }}>
-        {stack.stackName || 'Shared stack'}
-      </T>
-      <T size={15} color={theme.muted}>
-        {who}
-      </T>
-      {(stack.goals ?? []).length > 0 ? (
-        <T size={14} color={theme.muted}>
-          {(stack.goals ?? []).map((goal) => LIBRARY_GOALS.find((item) => item.key === goal)?.label ?? goal).join(', ')}
-        </T>
-      ) : null}
-      <Card>
-        <T size={13} color={theme.muted}>
-          Audit score
-        </T>
-        <T weight="bold" size={40} color={theme.teal} style={{ letterSpacing: -1, lineHeight: 46 }}>
-          {String(stack.auditScore)}
-        </T>
-        <T size={13} color={theme.muted}>
-          From doses and overlaps only.
-        </T>
-      </Card>
-      {stack.products.map((product) => (
-        <Card key={`${product.name}-${product.brand}`}>
-          <T weight="semibold">{product.name}</T>
-          {product.brand ? (
+      <FadeIn>
+        <View style={{ gap: 6 }}>
+          <T weight="bold" size={32} style={styles.title}>
+            {stack.stackName}
+          </T>
+          <T size={15} color={theme.muted}>
+            {`${who}, ${stack.products.length} ${stack.products.length === 1 ? 'product' : 'products'}`}
+          </T>
+          {stack.goals.length > 0 || kept ? (
+            <View style={styles.pills}>
+              {stack.goals.map((goal) => (
+                <Pill key={goal} tone="teal">
+                  {goalLabel(goal)}
+                </Pill>
+              ))}
+              {kept ? <Pill tone="grey">{kept}</Pill> : null}
+            </View>
+          ) : null}
+        </View>
+      </FadeIn>
+
+      <FadeIn delay={60}>
+        <ScoreHero score={stack.score.score} summary={stack.score.summary} reasons={stack.score.reasons} />
+      </FadeIn>
+
+      {rows && preview ? (
+        <FadeIn>
+          <Card style={styles.merge}>
+            <T weight="bold" size={20} style={styles.title}>
+              Before you copy
+            </T>
+            <View style={styles.scoreChange}>
+              <View style={{ alignItems: 'center' }}>
+                <T size={12} color={theme.muted}>
+                  Your score now
+                </T>
+                <T weight="bold" size={28}>
+                  {String(preview.before)}
+                </T>
+              </View>
+              <T size={20} color={theme.faint}>
+                to
+              </T>
+              <View style={{ alignItems: 'center' }}>
+                <T size={12} color={theme.muted}>
+                  After copying
+                </T>
+                <T weight="bold" size={28} color={preview.after >= preview.before ? theme.teal : theme.flagText}>
+                  {String(preview.after)}
+                </T>
+              </View>
+            </View>
+            <T size={13} color={theme.muted} style={{ textAlign: 'center' }}>
+              {preview.summary}
+            </T>
+            {rows.map((row, index) => (
+              <View key={`${row.product.id}-${index}`} style={styles.mergeRow}>
+                <View style={styles.rowBetween}>
+                  <T weight="semibold" style={{ flex: 1 }}>
+                    {row.product.name}
+                  </T>
+                  <Pill tone={row.status === 'new' ? 'teal' : row.status === 'same' ? 'grey' : 'amber'}>
+                    {row.status === 'new' ? 'New to you' : row.status === 'same' ? 'You take this' : 'Overlaps'}
+                  </Pill>
+                </View>
+                {row.status !== 'new' ? (
+                  <T size={13} color={theme.muted}>
+                    {row.status === 'same'
+                      ? `Already in your stack as ${row.mine.map((item) => item.name).join(', ')}`
+                      : `${row.overlapping.join(', ')} is also in ${row.mine.map((item) => item.name).join(', ')}`}
+                  </T>
+                ) : null}
+                <View style={styles.choiceRow}>
+                  {choicesFor(row.status).map((choice) => (
+                    <Pressable
+                      key={choice}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: row.choice === choice }}
+                      onPress={() => choose(index, choice)}
+                      style={[styles.choice, row.choice === choice ? styles.choiceOn : null]}
+                    >
+                      <T size={13} weight="semibold" color={row.choice === choice ? '#FFFFFF' : theme.text}>
+                        {CHOICE_LABEL[choice]}
+                      </T>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            ))}
+            <Toggle
+              label="Add my result to this stack's group"
+              detail="After 14 weeks, the app works out how your resting heart rate, heart rate variability, and deep sleep changed, on this phone. Only those changes are sent, grouped with at least 10 people. You can turn this off at any time."
+              value={consent}
+              onChange={setConsent}
+            />
             <T size={13} color={theme.muted}>
-              {product.brand}
+              Copies start today with no price. Nothing is added until you confirm below.
+            </T>
+          </Card>
+        </FadeIn>
+      ) : null}
+
+      {viewer?.copied && !own ? (
+        <Card>
+          <T weight="semibold">{inStack ? `You copied this on ${viewer.copied.copiedOn}` : 'You copied this before'}</T>
+          {changedSince ? (
+            <T size={14} color={theme.muted}>
+              It changed since you copied it. Copy the update to follow the new version.
             </T>
           ) : null}
-          {product.ingredients.map((ingredient) => (
-            <T key={`${ingredient.name}-${ingredient.unit}`} size={14} color={theme.muted}>
-              {`${ingredient.name}: ${formatNumber(ingredient.amount)} ${ingredient.unit}`}
+          {!inStack ? (
+            <T size={14} color={theme.muted}>
+              The copied products are no longer in your stack. You can copy it again.
             </T>
-          ))}
-          <T size={13} color={theme.muted}>
-            {`${product.servingsPerDay} a day`}
-          </T>
+          ) : null}
+          <Toggle
+            label="Add my result to this stack's group"
+            detail="Worked out on this phone after 14 weeks. Only the change is sent."
+            value={viewer.copied.outcomeConsent}
+            onChange={(next) => void changeConsent(next)}
+          />
         </Card>
-      ))}
+      ) : null}
+
       {stack.result ? (
-        <Card>
-          <T weight="semibold">{stack.result.framing}</T>
-          <T>{stack.result.line}</T>
-          <T size={13} color={theme.muted}>
-            {stack.result.disclaimer}
-          </T>
-        </Card>
+        <FadeIn delay={120}>
+          <OutcomeHero result={stack.result} who={stack.displayName} />
+        </FadeIn>
       ) : null}
-      <T size={14} color={theme.muted}>
-        {copyCountLabel(stack.copyCount)}
-      </T>
-      {stack.aggregate ? (
+
+      <FadeIn delay={160}>
         <Card>
-          <T weight="semibold">People who copied this</T>
-          <T>{stack.aggregate.line}</T>
-          <T size={13} color={theme.muted}>
-            {stack.aggregate.disclaimer}
+          <T weight="semibold" size={17}>
+            Daily doses
           </T>
+          <DoseMeters totals={stack.score.totals} />
         </Card>
-      ) : null}
-      <View style={{ gap: 8 }}>
-        <Button label="People like you" tone="ghost" onPress={() => void peopleLikeYou()} />
-        {likeYou ? (
-          <T size={14} color={theme.muted}>
-            {likeYou}
-          </T>
-        ) : null}
-      </View>
-      {note ? (
-        <T size={14} color={theme.muted}>
-          {note}
+      </FadeIn>
+
+      <Card>
+        <T weight="semibold" size={17}>
+          Products
         </T>
+        {stack.products.map((product, index) => (
+          <View key={`${product.id}-${index}`} style={[styles.product, index === 0 ? { borderTopWidth: 0, paddingTop: 0 } : null]}>
+            <T weight="semibold">{product.name}</T>
+            {product.brand ? (
+              <T size={13} color={theme.muted}>
+                {product.brand}
+              </T>
+            ) : null}
+            <T size={14} color={theme.muted}>
+              {[
+                `${formatDose(product.servingsPerDay)} a day`,
+                ...product.ingredients.map((ingredient) => `${ingredient.name} ${formatDose(ingredient.amount * product.servingsPerDay)} ${ingredient.unit}`),
+              ].join('. ')}
+            </T>
+          </View>
+        ))}
+        {stack.updatedOn && stack.changes.length > 0 ? (
+          <View style={styles.changes}>
+            <T size={13} weight="semibold">{`Updated on ${stack.updatedOn}`}</T>
+            {stack.changes.map((change) => (
+              <T key={change} size={13} color={theme.muted}>
+                {change}
+              </T>
+            ))}
+          </View>
+        ) : null}
+      </Card>
+
+      {app.sessionToken && cohorts && cohorts.metrics.some((metric) => metric.slices.length > 0) ? (
+        <Card>
+          <T weight="semibold" size={17}>
+            People who copied this
+          </T>
+          <T size={13} color={theme.muted}>
+            {COHORT_EXPLAINER}
+          </T>
+          {cohorts.metrics
+            .filter((metric) => metric.slices.length > 0)
+            .map((metric) => (
+              <View key={metric.metric} style={{ gap: 6 }}>
+                <T weight="semibold" size={15}>
+                  {metric.label}
+                </T>
+                {metric.slices.map((slice) => (
+                  <View key={slice.key} style={[styles.slice, slice.key === cohorts.viewerCohort ? styles.sliceYou : null]}>
+                    <View style={styles.rowBetween}>
+                      <T size={14} weight="semibold">
+                        {slice.key === cohorts.viewerCohort ? `${slice.label}, like you` : slice.label}
+                      </T>
+                      <T size={13} color={theme.muted}>
+                        {slice.people}
+                      </T>
+                    </View>
+                    <T size={14}>{slice.line}</T>
+                  </View>
+                ))}
+              </View>
+            ))}
+          <T size={12} color={theme.muted}>
+            {`${cohorts.disclaimer}. Updated daily.`}
+          </T>
+        </Card>
       ) : null}
-      <Button label={saved ? 'Saved' : 'Save'} tone="ghost" onPress={() => void toggleSave()} />
-      <Button label="Report this stack" tone="ghost" onPress={() => setReporting((current) => !current)} />
-      {reporting
-        ? REPORT_REASONS.map((reason) => <Button key={reason} label={reason} tone="ghost" onPress={() => void sendReport(reason)} />)
-        : null}
-      {reportNote ? (
-        <T size={14} color={theme.muted}>
-          {reportNote}
+
+      {note ? (
+        <Card style={{ backgroundColor: theme.tealSoft, borderColor: theme.tealSoft }}>
+          <T size={14}>{note}</T>
+        </Card>
+      ) : null}
+
+      {!own ? (
+        <View style={styles.actions}>
+          <IconAction icon={viewer?.saved ? 'bookmark' : 'bookmark-outline'} label={viewer?.saved ? 'Saved' : 'Save'} active={viewer?.saved} onPress={() => void toggleSave()} />
+          <IconAction icon="share-outline" label="Send" onPress={() => void sendLink()} />
+          <IconAction icon="flag-outline" label="Report" onPress={() => setPanel(panel === 'report' ? 'none' : 'report')} />
+          <IconAction
+            icon="hand-left-outline"
+            label={viewer?.blocked ? 'Unblock' : 'Block'}
+            onPress={() => (viewer?.blocked ? void setBlocked(false) : setPanel(panel === 'block' ? 'none' : 'block'))}
+          />
+        </View>
+      ) : null}
+
+      {panel === 'report' ? (
+        <Card>
+          <T weight="semibold">What is wrong with this stack?</T>
+          {REPORT_REASONS.map((reason) => (
+            <Choice key={reason.key} label={reason.label} selected={false} onPress={() => void sendReport(reason.key)} />
+          ))}
+        </Card>
+      ) : null}
+      {panel === 'block' ? (
+        <Card>
+          <T weight="semibold">{`Block ${who}?`}</T>
+          <T size={14} color={theme.muted}>
+            Their stacks leave Discover for you. They are not told. You can clear blocks in Settings.
+          </T>
+          <Button label="Block" onPress={() => void setBlocked(true)} />
+        </Card>
+      ) : null}
+
+      {stack.openFoodFacts ? (
+        <T size={12} color={theme.muted}>
+          {`${OFF_ATTRIBUTION}.`}
         </T>
       ) : null}
       <T>{DOCTOR_LINE}</T>
@@ -244,3 +482,20 @@ export default function SharedStackScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  title: { letterSpacing: -0.6 },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  merge: { borderColor: theme.teal, borderWidth: 2, gap: 12 },
+  scoreChange: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, paddingVertical: 4 },
+  mergeRow: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 6 },
+  choiceRow: { flexDirection: 'row', gap: 6 },
+  choice: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: theme.bg },
+  choiceOn: { backgroundColor: theme.teal },
+  product: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 2 },
+  changes: { backgroundColor: theme.bg, borderRadius: 12, padding: 12, gap: 4, marginTop: 4 },
+  slice: { borderRadius: 12, backgroundColor: theme.bg, padding: 10, gap: 2 },
+  sliceYou: { backgroundColor: theme.tealSoft },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+});
