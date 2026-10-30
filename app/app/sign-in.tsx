@@ -1,0 +1,134 @@
+import { useState } from 'react';
+import { Platform, StyleSheet, TextInput } from 'react-native';
+import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
+import { useApp } from '@/src/state';
+import { font, theme } from '@/src/theme';
+
+export default function SignInScreen() {
+  const app = useApp();
+  const [email, setEmail] = useState(app.email ?? '');
+  const [code, setCode] = useState('');
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+
+  if (app.sessionToken) {
+    return (
+      <Screen>
+        <BackButton />
+        <T weight="bold" size={32} style={styles.title}>
+          Signed in
+        </T>
+        <T size={15} color={theme.muted}>
+          {app.email || 'Apple account'}
+        </T>
+        <Card>
+          <T size={14}>
+            Signing in syncs the supplement list you typed. Sleep, heart rate, steps, and the other wearable samples stay on this device.
+          </T>
+        </Card>
+        <Button label="Sign out" tone="ghost" onPress={() => void app.signOut()} />
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen>
+      <BackButton />
+      <T weight="bold" size={32} style={styles.title}>
+        Sign in
+      </T>
+      <T size={15} color={theme.muted}>
+        Email code, or Sign in with Apple on iPhone. Health data is not part of the account.
+      </T>
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        placeholder="you@example.com"
+        placeholderTextColor={theme.faint}
+        style={styles.input}
+      />
+      <Button
+        label="Email me a code"
+        onPress={async () => {
+          setError(null);
+          try {
+            const next = await app.sendEmailCode(email.trim());
+            setDevCode(next);
+            setSent(true);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Could not send a code.');
+          }
+        }}
+      />
+      {sent ? (
+        <>
+          <TextInput
+            value={code}
+            onChangeText={setCode}
+            keyboardType="number-pad"
+            placeholder="6-digit code"
+            placeholderTextColor={theme.faint}
+            style={styles.input}
+          />
+          {devCode ? (
+            <T size={13} color={theme.muted}>
+              {`Development code: ${devCode}. Production does not return this.`}
+            </T>
+          ) : null}
+          <Button
+            label="Verify code"
+            onPress={async () => {
+              setError(null);
+              try {
+                await app.verifyEmailCode(email.trim(), code.trim());
+              } catch (err) {
+                setError(err instanceof Error ? err.message : 'That code did not work.');
+              }
+            }}
+          />
+        </>
+      ) : null}
+      {Platform.OS === 'ios' ? (
+        <Button
+          label="Sign in with Apple"
+          tone="ghost"
+          onPress={async () => {
+            setError(null);
+            try {
+              await app.signInWithApple();
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Apple sign-in failed.');
+            }
+          }}
+        />
+      ) : (
+        <T size={13} color={theme.muted}>
+          Sign in with Apple is available on iPhone.
+        </T>
+      )}
+      {error ? (
+        <T size={13} color={theme.flagText}>
+          {error}
+        </T>
+      ) : null}
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  title: { letterSpacing: -0.6 },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E4E7EC',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontFamily: font.regular,
+    fontSize: 16,
+    color: theme.text,
+  },
+});

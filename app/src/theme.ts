@@ -1,0 +1,30 @@
+export const theme = {
+  bg: '#F4F5F7',
+  card: '#FFFFFF',
+  text: '#16181D',
+  muted: '#667085',
+  faint: '#98A2B3',
+  line: '#E7E9EE',
+  teal: '#0E7C6B',
+  tealDark: '#0B6558',
+  tealSoft: '#E5F5F1',
+  tealText: '#0E7C6B',
+  amber: '#9A6700',
+  amberBg: '#FFF6E4',
+  amberBorder: '#F0D7A2',
+  amberPill: '#FDE8C0',
+  blue: '#2563EB',
+  flagBg: '#FDECEC',
+  flagText: '#C2414A',
+  greyPill: '#F2F4F7',
+  shadow: 'rgba(16, 24, 40, 0.04)',
+  radius: 16,
+  radiusSm: 12,
+} as const;
+
+export const font = {
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+} as const;

@@ -1,0 +1,18 @@
+rules:
+  - id: stack-no-eval
+    message: Do not use eval.
+    languages: [javascript, typescript]
+    severity: ERROR
+    pattern: eval(...)
+  - id: stack-no-private-key
+    message: Do not commit private keys.
+    languages: [generic]
+    severity: ERROR
+    pattern-regex: -----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----
+  - id: stack-no-function-constructor
+    message: Do not construct functions from strings.
+    languages: [javascript, typescript]
+    severity: ERROR
+    patterns:
+      - pattern: new Function(...)
+      - pattern-not: new Function()

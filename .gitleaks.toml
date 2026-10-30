@@ -1,0 +1,11 @@
+title = "Stack"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Lockfiles and example env files"
+paths = [
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)\.dev\.vars\.example$''',
+]

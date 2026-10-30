@@ -1,1 +1,150 @@
-# stack
+# Stack
+
+Stack is an iOS-first wellness app. It shows which supplements line up with your own wearable data, and where the same ingredient is showing up in more than one bottle.
+
+The name is a placeholder. Change `APP_NAME` in [`app/brand.cjs`](app/brand.cjs). The Expo config, bundle id, and on-screen copy read from that file.
+
+This is an educational log. It is not a medical device, not medical advice, and it does not calculate a dose.
+
+## Layout
+
+- `app/` — Expo SDK 58, TypeScript, Expo Router
+- `server/` — Cloudflare Worker (Hono) and D1
+
+Health samples stay on the device. After sign-in, only the supplement list you typed can sync.
+
+## App
+
+### Expo Go (sample wearable data)
+
+HealthKit is not in Expo Go. The app still runs there, with a fictional example stack and wearable series.
+
+```bash
+cd app
+npm install
+npx expo start
+```
+
+Open the project in Expo Go. Settings use SQLite instead of MMKV in Expo Go, because MMKV needs a development build. On web, settings use browser storage.
+
+`npx expo start --web` uses the same screens. Web SQLite needs `SharedArrayBuffer`, so Metro and the `expo-router` plugin send `Cross-Origin-Embedder-Policy: credentialless` and `Cross-Origin-Opener-Policy: same-origin`. Keep those headers if you host the web export.
+
+### iOS development build (Apple Health)
+
+```bash
+cd app
+npm install
+npx eas-cli login
+npx eas-cli build --profile development --platform ios
+npx expo start --dev-client
+```
+
+The development profile is in `eas.json`. A simulator build is `development-simulator`.
+
+The HealthKit config plugin requests read access for:
+
+- sleep analysis (deep sleep is summed per night)
+- heart rate variability SDNN
+- resting heart rate
+- VO2 max
+- step count
+- active energy
+
+Oura, WHOOP, and Garmin are shown as coming soon. Label scan is a button with no scanner yet.
+
+### Checks
+
+```bash
+cd app
+npm run typecheck
+npm run lint
+npm test
+```
+
+Audit and impact maths live in `app/src/domain` and are covered by Vitest. They do not import React Native.
+
+### Local data
+
+- Products, ingredients, wearable days, and day tags: `expo-sqlite` + Drizzle (`app/src/db`, migrations in `app/drizzle`)
+- Settings: MMKV in a dev or store build. Expo Go falls back to the SQLite `settings` table. Web uses `localStorage`.
+
+The first launch loads a fictional stack (Alex) so the screens have something to show. Remove it, or delete local data in Settings.
+
+### Sign-in, purchases, telemetry
+
+| Piece | Env | Notes |
+| --- | --- | --- |
+| API | `EXPO_PUBLIC_API_URL` | Defaults to `http://localhost:8787` |
+| RevenueCat | `EXPO_PUBLIC_REVENUECAT_IOS_KEY` | Entitlement id `pro`. Products `stack_pro_monthly` ($7.99) and `stack_pro_annual` ($59). Needs a dev build. |
+| PostHog | `EXPO_PUBLIC_POSTHOG_KEY`, optional `EXPO_PUBLIC_POSTHOG_HOST` | Off when the key is empty. Events are screen and product actions, not health samples. |
+| Sentry | `EXPO_PUBLIC_SENTRY_DSN` | Off when empty. The native plugin is added only when the DSN is set at config time. |
+
+Without a store key, the paywall can preview Pro on the device. That preview is not a purchase.
+
+Sign in with Apple sends a raw nonce to this API and the SHA-256 hex of that nonce to Apple. Email sign-in asks the Worker for a code.
+
+## Server
+
+```bash
+cd server
+npm install
+cp .dev.vars.example .dev.vars
+npx wrangler d1 migrations apply stack --local
+npm run dev
+```
+
+`GET /health` returns `{ "ok": true }`.
+
+In development, `POST /v1/auth/email/start` includes `devCode` in the JSON so you can sign in without an email provider. Production (`ENVIRONMENT=production`) does not return the code. Wire your own mailer before you rely on that route in production.
+
+Create the remote database and put the id in `server/wrangler.toml`:
+
+```bash
+npx wrangler d1 create stack
+npx wrangler d1 migrations apply stack --remote
+npx wrangler secret put AUTH_PEPPER
+npx wrangler secret put REVENUECAT_WEBHOOK_AUTH
+```
+
+`APPLE_AUDIENCE` in `wrangler.toml` must match the iOS bundle id (`app.stack.mobile` unless you changed `IOS_BUNDLE_ID`).
+
+### Routes
+
+- `POST /v1/auth/email/start` and `/v1/auth/email/verify`
+- `POST /v1/auth/apple` with `{ identityToken, rawNonce }`
+- `POST /v1/auth/signout`, `GET /v1/me`, `DELETE /v1/account`
+- `PUT` and `GET /v1/sync/stack` — supplement list only. A body that includes health samples is rejected.
+- `POST /v1/webhooks/revenuecat` — `Authorization: Bearer <REVENUECAT_WEBHOOK_AUTH>`. Updates `subscriptions` for entitlement `pro`.
+
+Call `Purchases.logIn(userId)` with the Stack user id so the webhook's `app_user_id` matches. The app does that after sign-in when RevenueCat is configured.
+
+## What the screens do
+
+1. **Onboarding** — connect Apple Health (or sample data) and add products by search or by typing the label.
+2. **My Stack** — each product's monthly cost and the total. Monthly cost is `(price / servings) × servings per day × 30`.
+3. **Audit** — rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
+4. **Impact** — 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
+5. **Pro** — confounder notes (training load, alcohol, travel), multi-supplement comparison, savings score, and a monthly report with keep / drop / unclear. Drop means the overlap dollars sit on that bottle and the wearable window did not move. It is not advice to stop.
+
+Free is the stack log, the duplicate dollars, the upper-limit flags, and a single before/after.
+
+## CI
+
+`.github/workflows/ci.yml` typechecks, lints, and tests the app and the Worker, then runs gitleaks and Semgrep. A push to `main` deploys the Worker only after those checks pass and only when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set. If either secret is missing, deploy is skipped.
+
+## What's stubbed
+
+- Oura, WHOOP, and Garmin connections
+- Label scan
+- Email delivery (development returns the code; production does not send mail)
+- RevenueCat products and the iOS SDK key (the paywall, entitlement id, and webhook are wired)
+- PostHog and Sentry (wired, disabled without keys)
+- Sign in with Apple on a real device (needs the Apple capability and a dev build)
+- A public landing page (planned later as Workers static assets)
+- Confounders are tags you log, not inferred from a calendar
+- Sync is last-write-wins for the supplement list. Health samples are never synced.
+- The example stack's ingredient cost weights are set so the overlap story is $12 magnesium and $15 B vitamins. New products split cost evenly across ingredients.
+
+## Regulatory
+
+US general-wellness framing only. No disease claims and no dose recommendations. Upper limits are citations of NIH Office of Dietary Supplements fact sheets, stored in `app/src/data/upperLimits.ts`, and the UI calls them a soft flag to discuss with a clinician.

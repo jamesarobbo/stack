@@ -1,0 +1,100 @@
+import { router } from 'expo-router';
+import { useMemo } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Card, Eyebrow, Screen, T } from '@/src/components/ui';
+import { APP_NAME, APP_TAGLINE } from '@/src/config';
+import { useApp } from '@/src/state';
+import { theme } from '@/src/theme';
+
+export default function MoreScreen() {
+  const app = useApp();
+  const latest = useMemo(() => latestMetrics(app.samples), [app.samples]);
+  return (
+    <Screen>
+      <Eyebrow left="More" />
+      <T weight="bold" size={32} style={styles.title}>
+        {APP_NAME}
+      </T>
+      <T size={15} color={theme.muted} style={{ marginTop: -6 }}>
+        {APP_TAGLINE}
+      </T>
+      <Row title={app.isPro ? 'Pro is on' : 'Stack Pro'} detail={app.isPro ? 'Multi-compare, confounders, monthly report' : '$7.99/month or $59/year'} onPress={() => router.push('/paywall')} />
+      <Row title="Monthly report" detail={app.isPro ? 'Keep, drop, or unclear' : 'Pro'} onPress={() => router.push('/report')} />
+      <Row title={app.sessionToken ? 'Signed in' : 'Sign in'} detail={app.email || 'Syncs your supplement list only'} onPress={() => router.push('/sign-in')} />
+      <Row title="Settings" detail="Export, delete, example data" onPress={() => router.push('/settings')} />
+      <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} />
+      <Card>
+        <T weight="semibold">Wearable reads</T>
+        <T size={13} color={theme.muted}>
+          {app.healthSource === 'healthkit'
+            ? 'Apple Health samples on this device.'
+            : 'Sample data on this device. A development build can read Apple Health.'}
+        </T>
+        <Metric label="Deep sleep" value={latest.deep_sleep_min} />
+        <Metric label="HRV SDNN" value={latest.hrv_sdnn_ms} />
+        <Metric label="Resting heart rate" value={latest.resting_hr_bpm} />
+        <Metric label="VO2 max" value={latest.vo2_max} />
+        <Metric label="Steps" value={latest.steps} />
+        <Metric label="Active energy" value={latest.active_energy_kcal} />
+      </Card>
+      {app.syncNote ? (
+        <T size={13} color={theme.muted}>
+          {`Sync: ${app.syncNote}`}
+        </T>
+      ) : null}
+    </Screen>
+  );
+}
+
+const UNITS: Record<string, string> = {
+  deep_sleep_min: 'min',
+  hrv_sdnn_ms: 'ms',
+  resting_hr_bpm: 'bpm',
+  active_energy_kcal: 'kcal',
+};
+
+function latestMetrics(samples: { metric: string; date: string; value: number }[]) {
+  const out: Record<string, string> = {};
+  for (const metric of ['deep_sleep_min', 'hrv_sdnn_ms', 'resting_hr_bpm', 'vo2_max', 'steps', 'active_energy_kcal']) {
+    const rows = samples.filter((sample) => sample.metric === metric).sort((a, b) => a.date.localeCompare(b.date));
+    const last = rows[rows.length - 1];
+    const unit = UNITS[metric] ?? '';
+    out[metric] = last ? `${Math.round(last.value)}${unit ? ` ${unit}` : ''} · ${last.date}` : 'No days yet';
+  }
+  return out;
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.metric}>
+      <T size={14}>{label}</T>
+      <T size={14} weight="semibold">
+        {value}
+      </T>
+    </View>
+  );
+}
+
+function Row({ title, detail, onPress }: { title: string; detail: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress}>
+      <Card>
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <T weight="semibold">{title}</T>
+            <T size={13} color={theme.muted}>
+              {detail}
+            </T>
+          </View>
+          <T color={theme.faint}>›</T>
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  title: { letterSpacing: -0.6, marginTop: 4 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  metric: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+});
