@@ -91,11 +91,15 @@ describe('Open Food Facts mapping', () => {
     expect(label?.ingredients).toEqual([]);
   });
 
-  it('keeps a gram serving and skips units that are not grams', () => {
+  it('reads gram servings for any typed mass unit and skips IU and implausible amounts', () => {
     const label = mapOffProduct(fixture('ambiguous-unit.json'), '5000000000018');
     expect(label?.servingSize).toBe('8.6 g (10 tablets)');
     expect(label?.servingsCounted).toBe(false);
-    expect(label?.ingredients).toEqual([{ key: 'magnesium', name: 'Magnesium', amount: 200, unit: 'mg', costWeight: 1 }]);
+    expect(label?.ingredients).toEqual([
+      { key: 'vitamin-b12', name: 'Vitamin B12', amount: 2.5, unit: 'mcg', costWeight: 1 },
+      { key: 'magnesium', name: 'Magnesium', amount: 200, unit: 'mg', costWeight: 1 },
+      { key: 'zinc', name: 'Zinc', amount: 15, unit: 'mg', costWeight: 1 },
+    ]);
   });
 
   it('returns nothing for a miss', () => {

@@ -2,9 +2,10 @@
  * Open Food Facts product lookup (https://world.openfoodfacts.org/api/v2/).
  * ODbL: keep this cache in its own table. Do not write these rows into dsld_cache
  * or any shared product catalogue.
- * Amounts are copied only from nutriments.<nutrient>_serving when the unit is grams.
- * A dose in the product name, a per-100g figure, or a unit we would have to convert
- * (IU, micrograms stored as a bare number) is left blank.
+ * Amounts come only from nutriments.<nutrient>_serving, which Open Food Facts stores in grams.
+ * <nutrient>_unit is the unit the contributor typed, so any mass unit is accepted and the gram
+ * value is rescaled. IU, percent of daily value, a dose in the product name, a per-100g figure,
+ * and amounts above MAX_SERVING_GRAMS (a contributor typed micrograms into the gram field) are left blank.
  */
 
 import { upcDigits, type LabelUnit, type NormalisedIngredient, type NormalisedLabel } from './dsld';
@@ -145,13 +146,16 @@ function doseFromNutriments(nutriments: Record<string, unknown>, offKey: string)
   const serving = nutriments[`${offKey}_serving`];
   const unit = nutriments[`${offKey}_unit`];
   if (typeof serving !== 'number' || typeof unit !== 'string') return null;
-  if (!isGramUnit(unit)) return null;
+  if (!isMassUnit(unit)) return null;
+  if (serving > MAX_SERVING_GRAMS) return null;
   return gramsToLabel(serving);
 }
 
-function isGramUnit(unit: string): boolean {
-  const cleaned = unit.trim().toLowerCase();
-  return cleaned === 'g' || cleaned === 'gram' || cleaned === 'grams';
+const MAX_SERVING_GRAMS = 5;
+
+function isMassUnit(unit: string): boolean {
+  const cleaned = unit.trim().toLowerCase().replace(/µ|μ/g, 'u');
+  return ['g', 'gram', 'grams', 'mg', 'milligram', 'milligrams', 'ug', 'mcg', 'microgram', 'micrograms'].includes(cleaned);
 }
 
 /** OFF stores vitamin and mineral `_serving` values in grams. The mass is rescaled, not reinterpreted. */
