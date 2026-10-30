@@ -56,7 +56,7 @@ export function ogSvg(input: OgInput): string {
     .join('');
   const circumference = 2 * Math.PI * 128;
   const dash = (Math.max(0, Math.min(100, input.score)) / 100) * circumference;
-  const summary = wrap(input.summary, 22, 340, 2)
+  const summary = wrap(input.summary, 22, 380, 2)
     .map((line, index) => `<text x="940" y="${505 + index * 30}" text-anchor="middle" font-family="Inter" font-weight="500" font-size="22" fill="#FFFFFF" fill-opacity="0.82">${escapeXml(line)}</text>`)
     .join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">

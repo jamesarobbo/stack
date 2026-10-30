@@ -14,7 +14,7 @@ export type LibraryGoalKey = (typeof LIBRARY_GOALS)[number]['key'];
 export const LIBRARY_SEGMENTS = [
   { key: 'new', label: 'New' },
   { key: 'top', label: 'Most kept' },
-  { key: 'like_you', label: 'People like you' },
+  { key: 'like_you', label: 'Like you' },
   { key: 'saved', label: 'Saved' },
 ] as const;
 

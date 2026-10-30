@@ -9,7 +9,7 @@ import { REPORT_REASONS, goalLabel, type ReportReasonKey } from '@/src/copy/libr
 import { COHORT_EXPLAINER, DOCTOR_LINE, copyCountLabel, creditLine, shareMessage } from '@/src/copy/sharing';
 import { OFF_ATTRIBUTION } from '@/src/data/labels';
 import { recordCopy, type CohortReport, type PublicShare } from '@/src/data/sharing';
-import { localToday } from '@/src/dates';
+import { formatUsDate, localToday } from '@/src/dates';
 import { applyPlan, choicesFor, copiedProducts, planMerge, scoreAfter, shareCatalogueId, type MergeChoice, type MergeRow } from '@/src/domain/merge';
 import { formatDose } from '../../../shared/doses';
 import { track } from '@/src/telemetry';
@@ -332,7 +332,7 @@ export default function SharedStackScreen() {
 
       {viewer?.copied && !own ? (
         <Card>
-          <T weight="semibold">{inStack ? `You copied this on ${viewer.copied.copiedOn}` : 'You copied this before'}</T>
+          <T weight="semibold">{inStack ? `You copied this on ${formatUsDate(viewer.copied.copiedOn)}` : 'You copied this before'}</T>
           {changedSince ? (
             <T size={14} color={theme.muted}>
               It changed since you copied it. Copy the update to follow the new version.
@@ -380,16 +380,15 @@ export default function SharedStackScreen() {
               </T>
             ) : null}
             <T size={14} color={theme.muted}>
-              {[
-                `${formatDose(product.servingsPerDay)} a day`,
-                ...product.ingredients.map((ingredient) => `${ingredient.name} ${formatDose(ingredient.amount * product.servingsPerDay)} ${ingredient.unit}`),
-              ].join('. ')}
+              {`${formatDose(product.servingsPerDay)} a day. Per day: ${product.ingredients
+                .map((ingredient) => `${ingredient.name} ${formatDose(ingredient.amount * product.servingsPerDay)} ${ingredient.unit}`)
+                .join(', ')}`}
             </T>
           </View>
         ))}
         {stack.updatedOn && stack.changes.length > 0 ? (
           <View style={styles.changes}>
-            <T size={13} weight="semibold">{`Updated on ${stack.updatedOn}`}</T>
+            <T size={13} weight="semibold">{`Updated on ${formatUsDate(stack.updatedOn)}`}</T>
             {stack.changes.map((change) => (
               <T key={change} size={13} color={theme.muted}>
                 {change}
@@ -410,21 +409,21 @@ export default function SharedStackScreen() {
           {cohorts.metrics
             .filter((metric) => metric.slices.length > 0)
             .map((metric) => (
-              <View key={metric.metric} style={{ gap: 6 }}>
+              <View key={metric.metric} style={styles.metric}>
                 <T weight="semibold" size={15}>
                   {metric.label}
                 </T>
                 {metric.slices.map((slice) => (
                   <View key={slice.key} style={[styles.slice, slice.key === cohorts.viewerCohort ? styles.sliceYou : null]}>
-                    <View style={styles.rowBetween}>
-                      <T size={14} weight="semibold">
-                        {slice.key === cohorts.viewerCohort ? `${slice.label}, like you` : slice.label}
-                      </T>
-                      <T size={13} color={theme.muted}>
+                    <View style={{ flex: 1 }}>
+                      <T size={14}>{slice.key === cohorts.viewerCohort ? `${slice.label}, like you` : slice.label}</T>
+                      <T size={12} color={theme.muted}>
                         {slice.people}
                       </T>
                     </View>
-                    <T size={14}>{slice.line}</T>
+                    <T size={14} weight="semibold" color={theme.text} style={{ textAlign: 'right', maxWidth: '50%' }}>
+                      {sentence(slice.band)}
+                    </T>
                   </View>
                 ))}
               </View>
@@ -483,6 +482,10 @@ export default function SharedStackScreen() {
   );
 }
 
+function sentence(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 const styles = StyleSheet.create({
   title: { letterSpacing: -0.6 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
@@ -495,7 +498,8 @@ const styles = StyleSheet.create({
   choiceOn: { backgroundColor: theme.teal },
   product: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 2 },
   changes: { backgroundColor: theme.bg, borderRadius: 12, padding: 12, gap: 4, marginTop: 4 },
-  slice: { borderRadius: 12, backgroundColor: theme.bg, padding: 10, gap: 2 },
+  metric: { gap: 2, borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 10 },
+  slice: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 10 },
   sliceYou: { backgroundColor: theme.tealSoft },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

@@ -16,6 +16,7 @@ import {
 import { creatorResults, sharePayloadProducts, type OwnShare, type ShareView } from '@/src/data/sharing';
 import { scoreStack } from '@/src/domain/auditScore';
 import { earliestReady, submittedFields, type OutcomeMetric, type OutcomeResult } from '@/src/domain/outcome';
+import { formatUsDate } from '@/src/dates';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
 import { font, theme } from '@/src/theme';
@@ -214,13 +215,13 @@ export default function ShareScreen() {
               ) : null}
             </View>
             <T size={14} color={theme.teal} style={{ fontFamily: font.medium }}>
-              {current.url}
+              {shortLink(current.url)}
             </T>
             <T size={13} color={theme.muted}>
               {[
                 current.listed ? 'Listed in Discover' : 'Link only',
                 copyCountLabel(current.copyCount),
-                current.updatedOn ? `Updated on ${current.updatedOn}` : `Shared on ${current.createdOn}`,
+                current.updatedOn ? `Updated on ${formatUsDate(current.updatedOn)}` : `Shared on ${formatUsDate(current.createdOn)}`,
               ]
                 .filter(Boolean)
                 .join('. ')}
@@ -289,7 +290,7 @@ export default function ShareScreen() {
               </T>
             ) : eligible.length === 0 ? (
               <T size={14} color={theme.muted}>
-                {readyOn ? `${NOT_ENOUGH_OUTCOME} The first one is ready on ${readyOn}.` : NOT_ENOUGH_OUTCOME}
+                {readyOn ? `${NOT_ENOUGH_OUTCOME} The first one is ready on ${formatUsDate(readyOn)}.` : NOT_ENOUGH_OUTCOME}
               </T>
             ) : null}
             <Choice label="No personal result" selected={selected === 'none'} onPress={() => setSelected('none')} />
@@ -378,6 +379,12 @@ export default function ShareScreen() {
       ) : null}
     </Screen>
   );
+}
+
+/** The full link goes in the share sheet. On screen, host and the start of the slug are enough to recognise it. */
+function shortLink(url: string): string {
+  const match = /^https?:\/\/([^/]+)\/s\/([a-f0-9]+)/.exec(url);
+  return match ? `${match[1]}/s/${match[2]?.slice(0, 10)}\u2026` : url;
 }
 
 function ReviewRow({ label, value }: { label: string; value: string }) {

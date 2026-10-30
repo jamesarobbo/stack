@@ -8,6 +8,7 @@ import { api, ApiError } from '@/src/api';
 import { DISCOVER_LABEL, LIBRARY_GOALS, LIBRARY_SEGMENTS, SEGMENT_NOTES, type LibraryGoalKey, type LibrarySegmentKey } from '@/src/copy/library';
 import { copyCountLabel } from '@/src/copy/sharing';
 import type { LibraryItem, LibraryPage } from '@/src/data/sharing';
+import { formatUsDate } from '@/src/dates';
 import { useApp } from '@/src/state';
 import { font, theme } from '@/src/theme';
 
@@ -198,7 +199,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
       ) : null}
       {item.goals.length > 0 || kept || item.updatedOn ? (
         <T size={12} color={theme.muted}>
-          {[item.goals.map((goal) => goal.label).join(', '), kept, item.updatedOn ? `Updated on ${item.updatedOn}` : null].filter(Boolean).join('. ')}
+          {[item.goals.map((goal) => goal.label).join(', '), kept, item.updatedOn ? `Updated on ${formatUsDate(item.updatedOn)}` : null].filter(Boolean).join('. ')}
         </T>
       ) : null}
     </Pressable>
