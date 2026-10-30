@@ -8,7 +8,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: APP_NAME,
   slug: APP_SLUG,
+  owner: 'jamesarobbo',
   version: '0.1.0',
+  runtimeVersion: {
+    policy: 'sdkVersion',
+  },
+  updates: {
+    url: 'https://u.expo.dev/8e8c7f9d-29a6-4db2-9509-58ad926604ca',
+  },
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: APP_SCHEME,
@@ -74,5 +81,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     appName: APP_NAME,
+    eas: {
+      projectId: '8e8c7f9d-29a6-4db2-9509-58ad926604ca',
+    },
   },
 });
