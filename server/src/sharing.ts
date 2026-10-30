@@ -423,7 +423,7 @@ export async function setOutcomeConsent(db: D1Database, slug: string, userId: st
 
 /** Keeps share_copies.in_stack in step with the copier's synced stack. Copied products carry catalogueId share:<slug>. */
 export async function syncCopiesFromStack(db: D1Database, userId: string, catalogueIds: (string | null | undefined)[]): Promise<void> {
-  const slugs = [...new Set(catalogueIds.filter((id): id is string => typeof id === 'string' && id.startsWith('share:')).map((id) => id.slice(6)))];
+  const slugs = [...new Set(catalogueIds.filter((id): id is string => typeof id === 'string' && id.startsWith('share:')).map((id) => id.slice(6).split(':')[0] ?? ''))].filter(Boolean);
   await db
     .prepare(
       `UPDATE share_copies SET

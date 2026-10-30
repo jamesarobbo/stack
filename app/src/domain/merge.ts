@@ -100,11 +100,23 @@ export function scoreAfter(mine: ProductInput[], rows: MergeRow[]): { before: nu
   return { before, after: result.score, summary: result.summary };
 }
 
-/** A product was copied from this share when it carries its catalogue id. */
-export function shareCatalogueId(slug: string): string {
-  return `share:${slug}`;
+/**
+ * A product was copied from this share when it carries its catalogue id.
+ * The :off suffix keeps Open Food Facts attribution when the copy is shared again.
+ */
+export function shareCatalogueId(slug: string, fromOpenFoodFacts = false): string {
+  return `share:${slug}${fromOpenFoodFacts ? ':off' : ''}`;
+}
+
+export function copiedFrom(catalogueId: string | null | undefined): string | null {
+  if (!catalogueId?.startsWith('share:')) return null;
+  return catalogueId.slice(6).split(':')[0] || null;
+}
+
+export function isOpenFoodFactsProduct(catalogueId: string | null | undefined): boolean {
+  return !!catalogueId && (catalogueId.startsWith('off:') || (catalogueId.startsWith('share:') && catalogueId.endsWith(':off')));
 }
 
 export function copiedProducts(mine: ProductInput[], slug: string): ProductInput[] {
-  return mine.filter((item) => item.catalogueId === shareCatalogueId(slug));
+  return mine.filter((item) => copiedFrom(item.catalogueId) === slug);
 }

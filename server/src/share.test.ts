@@ -151,6 +151,23 @@ describe('versions and copies', () => {
     await scheduled(env);
     expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(3);
 
+    const kept = {
+      id: 'k1',
+      name: 'Magnesium glycinate',
+      brand: null,
+      note: null,
+      priceCents: 0,
+      servingsPerContainer: 60,
+      servingsPerDay: 2,
+      startDate: '2026-01-01',
+      catalogueId: `share:${share.slug}:off`,
+      ingredients: [],
+    };
+    const synced = await request(env, '/v1/sync/stack', { method: 'PUT', token: tokens[1], body: { products: [kept] } });
+    expect(synced.status).toBe(200);
+    await scheduled(env);
+    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(3);
+
     await request(env, '/v1/sync/stack', { method: 'PUT', token: tokens[0], body: { products: [] } });
     await scheduled(env);
     expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBeNull();

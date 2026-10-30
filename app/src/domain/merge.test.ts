@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyPlan, copiedProducts, planMerge, scoreAfter, type SharedProduct } from './merge';
+import { applyPlan, copiedFrom, copiedProducts, isOpenFoodFactsProduct, planMerge, scoreAfter, shareCatalogueId, type SharedProduct } from './merge';
 import type { ProductInput } from './types';
 
 function mine(id: string, name: string, key: string, amount: number, brand: string | null = null, catalogueId: string | null = null): ProductInput {
@@ -50,5 +50,16 @@ describe('merge preview', () => {
   it('finds the products copied from a share', () => {
     const list = [...current, mine('c1', 'Glycine', 'glycine', 3000, null, 'share:abc')];
     expect(copiedProducts(list, 'abc').map((item) => item.id)).toEqual(['c1']);
+  });
+
+  it('keeps Open Food Facts provenance on copied products', () => {
+    expect(shareCatalogueId('abc', true)).toBe('share:abc:off');
+    expect(copiedFrom('share:abc:off')).toBe('abc');
+    expect(copiedFrom('off:123')).toBeNull();
+    expect(isOpenFoodFactsProduct('share:abc:off')).toBe(true);
+    expect(isOpenFoodFactsProduct('share:abc')).toBe(false);
+    expect(isOpenFoodFactsProduct('off:0123')).toBe(true);
+    const list = [mine('c2', 'Zinc', 'zinc', 15, null, 'share:abc:off')];
+    expect(copiedProducts(list, 'abc').map((item) => item.id)).toEqual(['c2']);
   });
 });
