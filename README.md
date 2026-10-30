@@ -50,7 +50,7 @@ The HealthKit config plugin requests read access for:
 - step count
 - active energy
 
-Oura, WHOOP, and Garmin are shown as coming soon. Label scan is a button with no scanner yet.
+Oura, WHOOP, and Garmin are shown as coming soon. Barcode lookup uses the phone camera in Expo Go. Photographing a whole label is still later.
 
 ### Checks
 
