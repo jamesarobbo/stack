@@ -44,7 +44,7 @@ export type NormalisedLabel = {
   servingsPerDay: number;
   servingsCounted: boolean;
   ingredients: NormalisedIngredient[];
-  source: 'dsld' | 'user';
+  source: 'dsld' | 'off' | 'user';
 };
 
 export type LabelHit = {

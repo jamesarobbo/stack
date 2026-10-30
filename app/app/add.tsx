@@ -6,7 +6,17 @@ import { DateField } from '@/src/components/DateField';
 import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { COMMON_INGREDIENTS, type CommonIngredient } from '@/src/data/commonIngredients';
-import { getDsldLabel, lookupUpc, saveUserLabel, searchLabels, type LabelHit, type RemoteLabel } from '@/src/data/labels';
+import {
+  BARCODE_NOT_FOUND,
+  getDsldLabel,
+  lookupUpc,
+  OFF_ATTRIBUTION,
+  OFF_DOSE_PROMPT,
+  saveUserLabel,
+  searchLabels,
+  type LabelHit,
+  type RemoteLabel,
+} from '@/src/data/labels';
 import { DEFAULT_UNIT } from '@/src/data/units';
 import { clampStartDate, localToday } from '@/src/dates';
 import type { IngredientInput } from '@/src/domain/types';
@@ -27,6 +37,7 @@ export default function AddScreen() {
   const [seed, setSeed] = useState<CommonIngredient | null>(null);
   const [barcode, setBarcode] = useState(one(params.upc));
   const [prefill, setPrefill] = useState<RemoteLabel | null>(null);
+  const [offDraft, setOffDraft] = useState<RemoteLabel | null>(null);
   const [loadingLabel, setLoadingLabel] = useState(() => Boolean(one(params.dsld) || one(params.upc)));
   const [labelError, setLabelError] = useState<string | null>(null);
 
@@ -39,6 +50,8 @@ export default function AddScreen() {
       if (cancel) return;
       setLoadingLabel(true);
       setLabelError(null);
+      setPrefill(null);
+      setOffDraft(null);
       const job = dsld
         ? getDsldLabel(dsld).then((result) => result.label)
         : lookupUpc(upc, app.sessionToken).then((result) => {
@@ -46,7 +59,15 @@ export default function AddScreen() {
               if (!cancel) {
                 setMode('manual');
                 setBarcode(result.upc || upc);
-                setLabelError('This barcode is not in the NIH database. Enter what the bottle says.');
+                setLabelError(BARCODE_NOT_FOUND);
+              }
+              return null;
+            }
+            if (result.label.source === 'off') {
+              if (!cancel) {
+                setMode('manual');
+                setBarcode(result.label.upc || result.upc || upc);
+                setOffDraft(result.label);
               }
               return null;
             }
@@ -79,6 +100,8 @@ export default function AddScreen() {
       </T>
       {prefill ? (
         <Prefill label={prefill} onClear={() => setPrefill(null)} />
+      ) : offDraft ? (
+        <ManualAdd barcode={barcode} onBarcode={setBarcode} seed={null} off={offDraft} onClearOff={() => setOffDraft(null)} />
       ) : (
         <>
           <View style={styles.switch}>
@@ -112,7 +135,7 @@ export default function AddScreen() {
               }}
             />
           ) : (
-            <ManualAdd barcode={barcode} onBarcode={setBarcode} seed={seed} />
+            <ManualAdd barcode={barcode} onBarcode={setBarcode} seed={seed} off={null} onClearOff={null} />
           )}
         </>
       )}
@@ -338,18 +361,27 @@ function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }
   );
 }
 
-function ManualAdd({ barcode, onBarcode, seed }: { barcode: string; onBarcode: (value: string) => void; seed: CommonIngredient | null }) {
+function ManualAdd({
+  barcode,
+  onBarcode,
+  seed,
+  off,
+  onClearOff,
+}: {
+  barcode: string;
+  onBarcode: (value: string) => void;
+  seed: CommonIngredient | null;
+  off: RemoteLabel | null;
+  onClearOff: (() => void) | null;
+}) {
   const app = useApp();
-  const [name, setName] = useState('');
+  const [name, setName] = useState(off?.name ?? '');
+  const [brand, setBrand] = useState(off?.brand ?? '');
   const [price, setPrice] = useState('');
-  const [servings, setServings] = useState('30');
-  const [perDay, setPerDay] = useState('1');
+  const [servings, setServings] = useState(off?.servingsCounted ? String(off.servingsPerContainer) : '30');
+  const [perDay, setPerDay] = useState(off ? String(off.servingsPerDay || 1) : '1');
   const [startDate, setStartDate] = useState(localToday());
-  const [ingredients, setIngredients] = useState<IngredientInput[]>([
-    seed
-      ? { key: seed.key, name: seed.name, amount: 0, unit: seed.unit, costWeight: 1 }
-      : { key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 },
-  ]);
+  const [ingredients, setIngredients] = useState<IngredientInput[]>(initialIngredients(off, seed));
   const [error, setError] = useState<string | null>(null);
 
   function update(index: number, patch: Partial<IngredientInput>) {
@@ -365,9 +397,32 @@ function ManualAdd({ barcode, onBarcode, seed }: { barcode: string; onBarcode: (
     });
   }
 
+  const servingNote = off && off.servingSize && off.servingSize !== '1 serving' ? off.servingSize : '';
+
   return (
     <View style={{ gap: 10 }}>
+      {off ? (
+        <View style={styles.notice}>
+          <T weight="semibold">{OFF_DOSE_PROMPT}</T>
+        </View>
+      ) : null}
+      {off ? (
+        <T size={12} color={theme.faint}>
+          {OFF_ATTRIBUTION}
+        </T>
+      ) : null}
+      {servingNote ? (
+        <T size={13} color={theme.muted}>
+          {`Serving size from the lookup: ${servingNote}.`}
+        </T>
+      ) : null}
+      {off && !off.servingsCounted ? (
+        <T size={13} color={theme.muted}>
+          Serving count was not on the lookup, so 30 is a placeholder. Check the bottle.
+        </T>
+      ) : null}
       <Field label="Product" value={name} onChangeText={setName} placeholder="What the bottle says" />
+      {off ? <Field label="Brand" value={brand} onChangeText={setBrand} placeholder="Brand on the bottle" /> : null}
       <Field label="Barcode (optional)" value={barcode} onChangeText={onBarcode} placeholder="088395056116" keyboard="number-pad" />
       <Field label="Price (USD)" value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
       <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
@@ -432,23 +487,25 @@ function ManualAdd({ barcode, onBarcode, seed }: { barcode: string; onBarcode: (
             setError('A barcode needs 8 to 14 digits, or leave it blank.');
             return;
           }
+          const brandName = brand.trim();
           await app.addManual({
             name: name.trim(),
+            brand: brandName || null,
             priceCents,
             servingsPerContainer,
             servingsPerDay,
             startDate: clampStartDate(startDate),
             catalogueId: digits ? `upc:${digits}` : null,
-            note: digits ? `Barcode ${digits}. Not in the NIH DSLD.` : null,
+            note: productNote(digits, off),
             ingredients: cleaned.map((ingredient) => ({ ...ingredient, costWeight: 1 })),
           });
           if (digits && app.sessionToken) {
             const remote: RemoteLabel = {
               dsldId: null,
               name: name.trim(),
-              brand: '',
+              brand: brandName,
               upc: digits,
-              servingSize: '1 serving',
+              servingSize: off?.servingSize || '1 serving',
               servingsPerContainer,
               servingsPerDay,
               servingsCounted: true,
@@ -470,11 +527,41 @@ function ManualAdd({ barcode, onBarcode, seed }: { barcode: string; onBarcode: (
           router.back();
         }}
       />
+      {off && onClearOff ? (
+        <Pressable accessibilityRole="button" onPress={onClearOff}>
+          <T weight="semibold" color={theme.teal}>
+            Clear this lookup
+          </T>
+        </Pressable>
+      ) : null}
       <T size={12} color={theme.muted}>
         This records what you typed. It does not calculate a dose. Sign in to reuse a barcode you entered.
       </T>
     </View>
   );
+}
+
+function initialIngredients(off: RemoteLabel | null, seed: CommonIngredient | null): IngredientInput[] {
+  if (off && off.ingredients.length > 0) {
+    return off.ingredients.map((ingredient) => ({
+      key: ingredient.key,
+      name: ingredient.name,
+      amount: ingredient.amount,
+      unit: ingredient.unit,
+      costWeight: 1,
+    }));
+  }
+  if (seed) return [{ key: seed.key, name: seed.name, amount: 0, unit: seed.unit, costWeight: 1 }];
+  return [{ key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 }];
+}
+
+function productNote(digits: string, off: RemoteLabel | null): string | null {
+  if (!digits) return null;
+  if (off) {
+    const serving = off.servingSize && off.servingSize !== '1 serving' ? ` Serving size: ${off.servingSize}.` : '';
+    return `Barcode ${digits}.${serving}`;
+  }
+  return `Barcode ${digits}. Not in the NIH DSLD.`;
 }
 
 function Field({
@@ -519,6 +606,13 @@ const styles = StyleSheet.create({
     fontFamily: font.regular,
     fontSize: 16,
     color: theme.text,
+  },
+  notice: {
+    backgroundColor: theme.amberBg,
+    borderColor: theme.amberBorder,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
   },
   scanLink: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

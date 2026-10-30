@@ -6,6 +6,8 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ENVIRONMENT = "development"
 APPLE_AUDIENCE = "app.stack.mobile"
+# Contact address or URL sent with Open Food Facts lookups. Replace with a monitored address.
+CONTACT_EMAIL = "https://github.com/jamesarobbo/stack"
 
 # D1 database `stack`.
 [[d1_databases]]

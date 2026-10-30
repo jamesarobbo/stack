@@ -1,0 +1,13 @@
+{
+  "code": "5021265247400",
+  "status": 1,
+  "status_verbose": "product found",
+  "product": {
+    "product_name": "Ultra Vitamin D 2000 Iu (d3 50µg) Extra Strength",
+    "brands": "Vitabiotics",
+    "serving_size": "1 tablet",
+    "nutriments": {
+      "energy-kcal_100g": 0
+    }
+  }
+}

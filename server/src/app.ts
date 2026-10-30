@@ -12,6 +12,7 @@ import {
   upcDigits,
   type NormalisedLabel,
 } from './dsld';
+import { OFF_ATTRIBUTION, loadOffUpc, offUserAgent } from './off';
 import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from './revenuecat';
 
 export type Bindings = {
@@ -21,6 +22,9 @@ export type Bindings = {
   APPLE_AUDIENCE: string;
   REVENUECAT_WEBHOOK_AUTH: string;
   DSLD_FETCH?: (input: string, init?: RequestInit) => Promise<Response>;
+  OFF_FETCH?: (input: string, init?: RequestInit) => Promise<Response>;
+  /** Contact address or URL placed in the Open Food Facts User-Agent. */
+  CONTACT_EMAIL?: string;
 };
 
 type UserRow = { id: string; email: string | null; apple_sub: string | null };
@@ -203,10 +207,17 @@ app.get('/v1/labels/upc/:code', async (c) => {
   }
   try {
     const result = await loadUpc(c.env.DB, dsldFetcher(c.env), digits);
-    return c.json({ ...result, attribution: DSLD_ATTRIBUTION });
-  } catch (error) {
-    return labelError(c, error);
+    if (result.found && result.label) return c.json({ ...result, attribution: DSLD_ATTRIBUTION });
+  } catch {
+    // NIH missed or could not be reached. Try Open Food Facts, then manual entry.
   }
+  try {
+    const off = await loadOffUpc(c.env.DB, offFetcher(c.env), digits, offUserAgent(c.env.CONTACT_EMAIL));
+    if (off.found && off.label) return c.json({ ...off, attribution: OFF_ATTRIBUTION });
+  } catch {
+    // A timeout or a bad response is a miss. The app opens manual entry.
+  }
+  return c.json({ found: false, upc: digits, label: null, attribution: DSLD_ATTRIBUTION });
 });
 
 app.get('/v1/labels/dsld/:id', async (c) => {
@@ -285,6 +296,10 @@ export default app;
 
 function dsldFetcher(env: Bindings): (input: string, init?: RequestInit) => Promise<Response> {
   return env.DSLD_FETCH ?? fetch;
+}
+
+function offFetcher(env: Bindings): (input: string, init?: RequestInit) => Promise<Response> {
+  return env.OFF_FETCH ?? env.DSLD_FETCH ?? fetch;
 }
 
 function labelError(c: { json: (body: unknown, status?: number) => Response }, error: unknown): Response {

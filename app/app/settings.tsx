@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput } from 'react-native';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
-import { DSLD_ATTRIBUTION, DSLD_URL } from '@/src/data/labels';
+import { DSLD_ATTRIBUTION, DSLD_URL, OFF_ATTRIBUTION, OFF_URL } from '@/src/data/labels';
 import { useApp } from '@/src/state';
 import { settingsDriverKind } from '@/src/settings';
 import { font, theme } from '@/src/theme';
@@ -125,7 +125,7 @@ export default function SettingsScreen() {
       <Card>
         <T weight="semibold">About label data</T>
         <T size={14} color={theme.muted}>
-          Product search and barcode lookup use the NIH Office of Dietary Supplements Dietary Supplement Label Database. The app asks our server, which caches labels, so your phone does not call NIH directly.
+          Product search uses the NIH Office of Dietary Supplements Dietary Supplement Label Database. A barcode NIH does not have can use Open Food Facts for the name and brand. You still check the doses on the bottle. The app asks our server, which keeps a short cache, so your phone does not call those sites directly.
         </T>
         <T size={13} color={theme.muted}>
           {DSLD_ATTRIBUTION}
@@ -133,6 +133,14 @@ export default function SettingsScreen() {
         <Pressable accessibilityRole="button" onPress={() => void Linking.openURL(DSLD_URL)}>
           <T weight="semibold" color={theme.teal}>
             dsld.od.nih.gov
+          </T>
+        </Pressable>
+        <T size={13} color={theme.muted}>
+          {OFF_ATTRIBUTION}
+        </T>
+        <Pressable accessibilityRole="button" onPress={() => void Linking.openURL(OFF_URL)}>
+          <T weight="semibold" color={theme.teal}>
+            world.openfoodfacts.org
           </T>
         </Pressable>
       </Card>

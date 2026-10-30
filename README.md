@@ -118,14 +118,22 @@ npx wrangler secret put REVENUECAT_WEBHOOK_AUTH
 - `POST /v1/auth/signout`, `GET /v1/me`, `DELETE /v1/account`
 - `PUT` and `GET /v1/sync/stack`: supplement list only. A body that includes health samples is rejected.
 - `POST /v1/webhooks/revenuecat`: `Authorization: Bearer <REVENUECAT_WEBHOOK_AUTH>`. Updates `subscriptions` for entitlement `pro`.
-- `GET /v1/labels/search?q=`, `GET /v1/labels/dsld/:id`, and `GET /v1/labels/upc/:code`: NIH DSLD search and barcode lookup, cached on the Worker.
-- `PUT /v1/labels/upc/:code`: signed-in users can store a label the database did not have, keyed by UPC.
+- `GET /v1/labels/search?q=`, `GET /v1/labels/dsld/:id`, and `GET /v1/labels/upc/:code`: NIH DSLD search and barcode lookup. The barcode route then tries Open Food Facts. The two caches stay in separate D1 tables.
+- `PUT /v1/labels/upc/:code`: signed-in users can store a label they confirmed, keyed by UPC. That copy is per account, including when the form was prefilled from Open Food Facts.
 
 Call `Purchases.logIn(userId)` with the Stack user id so the webhook's `app_user_id` matches. The app does that after sign-in when RevenueCat is configured.
 
 ## Labels
 
-Product search and barcode lookup call the Worker, which calls the NIH Dietary Supplement Label Database (`https://api.ods.od.nih.gov/dsld/v9/`) and caches the normalised label in D1 and the Cache API. The Worker stops new NIH calls after 800 in an hour, under the public limit of 1,000 per hour per IP. DSLD stores UPC-A with spaces, and a lot of labels have no barcode. CFU is often only in the ingredient notes. The phone keeps a short list of common ingredient names for manual entry when search is offline. Settings cites DSLD.
+Product search calls the Worker, which calls the NIH Dietary Supplement Label Database (`https://api.ods.od.nih.gov/dsld/v9/`) and caches the normalised label in D1 (`dsld_cache`) and the Cache API. The Worker stops new NIH calls after 800 in an hour, under the public limit of 1,000 per hour per IP.
+
+Barcode lookup checks the signed-in user's own saved label, then NIH DSLD, then Open Food Facts (`https://world.openfoodfacts.org/api/v2/product/<ean>.json`). Open Food Facts fills the name and brand for a UK or EU barcode. A vitamin or mineral amount is copied only when the response has `_serving` in grams (`_unit` of `g`). A per-100g figure, an IU or microgram unit, or a dose written in the product name is left blank. The add screen asks you to check or add the doses from the bottle before saving. The saved product goes to that account only (`contributed_labels`).
+
+Open Food Facts rows live in `off_cache` for 24 hours, with `source` set to `off`. They are not mixed into the DSLD catalogue. The database is ODbL. The add screen and Settings show: Product data from Open Food Facts, available under the ODbL.
+
+The Worker sends `User-Agent: Stack/0.1 (<CONTACT_EMAIL>)`. `CONTACT_EMAIL` in `server/wrangler.toml` is the address or URL in that header. Replace it with a monitored contact.
+
+DSLD stores UPC-A with spaces, and a lot of labels have no barcode. CFU is often only in the ingredient notes. The phone keeps a short list of common ingredient names for manual entry when search is offline. Settings cites DSLD and Open Food Facts.
 
 ## What the screens do
 
@@ -150,7 +158,7 @@ Labels use sentence case. Do not set `textTransform` to `uppercase`, and do not 
 ## What's stubbed
 
 - Oura, WHOOP, and Garmin connections
-- Photographing a supplement label (barcode lookup against NIH DSLD is implemented)
+- Photographing a supplement label (barcode lookup against NIH DSLD, then Open Food Facts, is implemented)
 - Email delivery (development returns the code; production does not send mail)
 - RevenueCat products and the iOS SDK key (the paywall, entitlement id, and webhook are wired)
 - PostHog and Sentry (wired, disabled without keys)

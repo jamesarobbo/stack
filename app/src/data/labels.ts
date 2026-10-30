@@ -18,12 +18,17 @@ export type RemoteLabel = {
   servingsPerDay: number;
   servingsCounted: boolean;
   ingredients: { key: string; name: string; amount: number; unit: string; costWeight: number }[];
-  source: 'dsld' | 'user';
+  source: 'dsld' | 'off' | 'user';
 };
 
 export const DSLD_URL = 'https://dsld.od.nih.gov/';
 export const DSLD_ATTRIBUTION =
   'National Institutes of Health, Office of Dietary Supplements. Dietary Supplement Label Database, 2026. https://dsld.od.nih.gov/.';
+
+export const OFF_URL = 'https://world.openfoodfacts.org/';
+export const OFF_ATTRIBUTION = 'Product data from Open Food Facts, available under the ODbL';
+export const OFF_DOSE_PROMPT = 'Check the doses on the label, or add any that are missing, before you save.';
+export const BARCODE_NOT_FOUND = 'This barcode is not in the NIH database or Open Food Facts. Enter what the bottle says.';
 
 export function searchLabels(query: string): Promise<{ hits: LabelHit[]; attribution: string }> {
   return api(`/v1/labels/search?q=${encodeURIComponent(query)}`);
