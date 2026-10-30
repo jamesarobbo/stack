@@ -1,12 +1,15 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { BackButton, Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { BackButton, Button, Card, Disclaimer, Pill, Screen, SectionLabel, T } from '@/src/components/ui';
 import { ASSOCIATION } from '@/src/config';
+import { MONTHLY_REPORT_LABEL } from '@/src/copy/labels';
 import { localToday } from '@/src/dates';
+import { REPORT_EMPTY, freshStartGaps } from '@/src/domain/emptyStates';
 import { buildMonthlyReport, travelLabel } from '@/src/domain/report';
 import type { Verdict } from '@/src/domain/types';
 import { formatUsd, signed } from '@/src/format';
+import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
 
@@ -21,7 +24,7 @@ export default function ReportScreen() {
     return (
       <Screen>
         <BackButton label="Close" />
-        <Eyebrow left="Pro · monthly report" right="Pro only" />
+        <SectionLabel label={MONTHLY_REPORT_LABEL} badge="Pro" />
         <T weight="bold" size={32} style={styles.title}>
           The monthly report is part of Pro
         </T>
@@ -37,7 +40,41 @@ export default function ReportScreen() {
   return (
     <Screen>
       <BackButton label="Close" />
-      <Eyebrow left="Pro · monthly report" right="Pro" />
+      <SectionLabel label={MONTHLY_REPORT_LABEL} badge="Pro" />
+      {freshStartGaps({ products: app.products.length, wearableSamples: app.samples.length }).length > 0 ? (
+        <ReportEmpty products={app.products.length} />
+      ) : (
+        <ReportBody report={report} />
+      )}
+      <Disclaimer text="Wearable associations only. Not medical advice." />
+    </Screen>
+  );
+}
+
+function ReportEmpty({ products }: { products: number }) {
+  return (
+    <>
+      <T weight="bold" size={32} style={styles.title}>
+        {REPORT_EMPTY.title}
+      </T>
+      {products === 0 ? (
+        <T size={15} color={theme.muted}>
+          {REPORT_EMPTY.products}
+        </T>
+      ) : null}
+      <T size={15} color={theme.muted}>
+        {REPORT_EMPTY.wearable}
+      </T>
+      <T size={15} color={theme.muted}>
+        {currentWearableEmptyCopy()}
+      </T>
+    </>
+  );
+}
+
+function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> }) {
+  return (
+    <>
       <T weight="bold" size={32} style={styles.title}>
         {report.month}
       </T>
@@ -93,7 +130,7 @@ export default function ReportScreen() {
           {formatUsd(report.wastedCents)}
         </T>
         <T size={14} color={theme.muted}>
-          {`${report.dropCount} product${report.dropCount === 1 ? '' : 's'} labeled drop · ${report.nearLimitCount + report.overLimitCount} upper-limit flag${report.nearLimitCount + report.overLimitCount === 1 ? '' : 's'}`}
+          {`${report.dropCount} product${report.dropCount === 1 ? '' : 's'} labeled drop, ${report.nearLimitCount + report.overLimitCount} upper-limit flag${report.nearLimitCount + report.overLimitCount === 1 ? '' : 's'}`}
         </T>
         <T size={14}>
           {`Savings score ${report.savingsScore}. 100 means none of the monthly spend is tied to a duplicate ingredient.`}
@@ -104,15 +141,14 @@ export default function ReportScreen() {
         <T weight="semibold" size={16}>
           Confounders logged
         </T>
-        <T size={14}>{`Hard training days · ${report.hardTrainingDays}`}</T>
-        <T size={14}>{`Alcohol evenings · ${report.alcoholDays} flagged`}</T>
-        <T size={14}>{`Travel · ${travelLabel(report.travelDays)}`}</T>
+        <T size={14}>{`Hard training days: ${report.hardTrainingDays}`}</T>
+        <T size={14}>{`Alcohol evenings: ${report.alcoholDays} flagged`}</T>
+        <T size={14}>{`Travel: ${travelLabel(report.travelDays)}`}</T>
         <T size={12} color={theme.muted}>
           Flags are context. The basic before/after on Impact still uses every day in the window.
         </T>
       </Card>
-      <Disclaimer text="Wearable associations only. Not medical advice." />
-    </Screen>
+    </>
   );
 }
 

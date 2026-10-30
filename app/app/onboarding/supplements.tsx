@@ -77,11 +77,9 @@ export default function SupplementStep() {
           </View>
         </>
       ) : (
-        <Pressable accessibilityRole="button" onPress={() => app.restoreExample()}>
-          <T weight="semibold" color={theme.teal}>
-            Load the example stack
-          </T>
-        </Pressable>
+        <T size={14} color={theme.muted}>
+          Nothing added yet. You can also do this later from My stack.
+        </T>
       )}
     </OnboardingFrame>
   );

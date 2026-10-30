@@ -6,6 +6,7 @@ import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } fr
 import { connectAppleHealth } from '../health/connect';
 import { randomId } from '../id';
 import { clearSettings, getSetting, registerSettingsPersistence, setSetting } from '../settings';
+import { sampleSeedAction, shouldClearExampleHealthSource, shouldResetSeededName } from './sampleSeed';
 import { db } from './client';
 import { dayTags, healthSamples, productIngredients, products, settingsRows } from './schema';
 
@@ -130,10 +131,23 @@ async function insertSamples(samples: SampleInput[], source: string) {
   }
 }
 
-export async function seedIfEmpty() {
-  const existing = await db.select({ id: products.id }).from(products).limit(1);
-  if (existing.length > 0) return;
-  await loadExample();
+/** One-time: drop the fictional seed if the user never edited it. Never inserts example data. */
+export async function clearUntouchedSampleOnce() {
+  const action = sampleSeedAction({
+    sampleSeedCleared: getSetting('sampleSeedCleared'),
+    usingSampleData: getSetting('usingSampleData'),
+  });
+  if (action === 'skip') return;
+  if (action === 'clear') {
+    await db.delete(productIngredients);
+    await db.delete(products);
+    await db.delete(healthSamples);
+    await db.delete(dayTags);
+    if (shouldResetSeededName(action, getSetting('displayName'))) await setSetting('displayName', '');
+    if (shouldClearExampleHealthSource(action, getSetting('healthSource'))) await setSetting('healthSource', '');
+    await setSetting('usingSampleData', '0');
+  }
+  await setSetting('sampleSeedCleared', '1');
 }
 
 export async function loadExample() {
@@ -213,13 +227,11 @@ export async function addTag(kind: TagKind, date = localToday()) {
 
 export async function connectHealth(): Promise<string> {
   const result = await connectAppleHealth();
-  if (result.mode === 'healthkit' && result.samples && result.samples.length > 0) {
+  if (result.mode === 'healthkit') {
     await db.delete(healthSamples);
-    await insertSamples(result.samples, 'healthkit');
+    if (result.samples && result.samples.length > 0) await insertSamples(result.samples, 'healthkit');
     await setSetting('healthSource', 'healthkit');
     await setSetting('usingSampleData', '0');
-  } else {
-    await setSetting('healthSource', getSetting('healthSource') ?? 'example');
   }
   return result.message;
 }

@@ -7,9 +7,10 @@ import * as schema from './schema';
 /**
  * Chrome does not start a Worker until the current turn yields, and
  * expo-sqlite's sync API busy-waits in that same turn. The first open on web
- * therefore times out. A later turn finds the worker already running.
- * While that worker compiles SQLite's wasm, the library's short Atomics.pause
- * budget is too small, so the retry uses a slightly longer pause.
+ * can time out, or the worker can answer before its VFS is registered.
+ * A later attempt finds the worker ready. While that worker compiles SQLite's
+ * wasm, the library's short Atomics.pause budget is too small, so the retry
+ * uses a slightly longer pause.
  */
 function setPause(value: (() => void) | undefined) {
   if (typeof Atomics === 'undefined') return;
@@ -38,6 +39,11 @@ export type AppDatabase = ReturnType<typeof openSqlite>;
 
 export let db: AppDatabase;
 
+function isWebSqliteWarmup(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return error.message.includes('Sync operation timeout') || error.message.includes('Invalid VFS state');
+}
+
 async function openFresh(): Promise<AppDatabase> {
   if (Platform.OS !== 'web') {
     db = openSqlite();
@@ -46,15 +52,23 @@ async function openFresh(): Promise<AppDatabase> {
 
   setPause(() => undefined);
   try {
-    db = openSqlite();
-    return db;
-  } catch (error) {
-    if (!(error instanceof Error) || !error.message.includes('Sync operation timeout')) throw error;
-  }
+    try {
+      db = openSqlite();
+      return db;
+    } catch (error) {
+      if (!isWebSqliteWarmup(error)) throw error;
+    }
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
-  setPause(slowPause);
-  try {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    setPause(slowPause);
+    try {
+      db = openSqlite();
+      return db;
+    } catch (error) {
+      if (!isWebSqliteWarmup(error)) throw error;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
     db = openSqlite();
     return db;
   } finally {

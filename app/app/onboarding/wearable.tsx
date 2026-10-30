@@ -60,7 +60,7 @@ export default function WearableStep() {
           <Ionicons name="phone-portrait-outline" size={18} color={theme.teal} />
           <T weight="semibold">Apple Health</T>
           <T size={12} color={selected ? theme.teal : theme.muted}>
-            {linked ? 'Connected' : tried ? 'Sample data on this device' : 'Tap to connect'}
+            {linked ? 'Connected' : tried ? 'Not connected' : 'Tap to connect'}
           </T>
         </Pressable>
         {COMING.map((item) => (

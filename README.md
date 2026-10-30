@@ -15,9 +15,9 @@ Health samples stay on the device. After sign-in, only the supplement list you t
 
 ## App
 
-### Expo Go (sample wearable data)
+### Expo Go
 
-HealthKit is not in Expo Go. The app still runs there, with a fictional example stack and wearable series.
+HealthKit is not in Expo Go. The app starts empty: onboarding, then a stack with nothing in it. Impact, Audit, and the monthly report explain what is missing. Expo Go does not invent wearable days. A development build can read Apple Health.
 
 ```bash
 cd app
@@ -68,7 +68,9 @@ Audit and impact maths live in `app/src/domain` and are covered by Vitest. They 
 - Products, ingredients, wearable days, and day tags: `expo-sqlite` + Drizzle (`app/src/db`, migrations in `app/drizzle`)
 - Settings: MMKV in a dev or store build. Expo Go falls back to the SQLite `settings` table. Web uses `localStorage`.
 
-The first launch loads a fictional stack (Alex) so the screens have something to show. Remove it, or delete local data in Settings.
+A normal launch does not load example products, wearable days, reports, or audit results. Onboarding runs until it is finished. An older install that still has the untouched fictional seed is cleared once on update. Edits you already made are kept.
+
+Example products and wearable days stay behind More, then Developer tools: Load example data. That section is off unless you are in a development build. Clear all data is in the same place, and again under Settings.
 
 ### Sign-in, purchases, telemetry
 
@@ -128,7 +130,7 @@ Product search and barcode lookup call the Worker, which calls the NIH Dietary S
 ## What the screens do
 
 1. **Onboarding:** eight short screens. Goal, rough monthly spend, a wearable (or skip), supplements (NIH search, barcode, or typing), a short audit loader, a result that uses the real audit, sign-in to save it, then the Pro paywall with Continue with Free. Progress reads 1 of 8. A reload never opens on the monthly report. The report has a Close control, and Pro preview can be turned off from More.
-2. **My Stack:** each product's monthly cost and the total. Monthly cost is `(price / servings) × servings per day × 30`.
+2. **My Stack:** each product's monthly cost and the total. Add stays in the header and in a bar above the tabs. Monthly cost is `(price / servings) × servings per day × 30`. An empty stack asks you to add a supplement.
 3. **Audit:** rolls ingredients up, prices the duplicate shares, and soft-flags a vitamin or mineral at or above 90% of the NIH ODS adult upper limit. Notes come from `app/src/data/interactions.ts`. Overlap dollars keep the largest single share and treat the rest as the extra spend. That is an estimate, not a market price for the ingredient.
 4. **Impact:** 21 days before a start date versus 21 days after, for deep sleep, HRV, and resting heart rate. Copy says the shift is associated, not caused. One before/after is free.
 5. **Pro:** confounder notes (training load, alcohol, travel), multi-supplement comparison, savings score, and a monthly report with keep / drop / unclear. Drop means the overlap dollars sit on that bottle and the wearable window did not move. It is not advice to stop.
@@ -143,6 +145,8 @@ Free is the stack log, the duplicate dollars, the upper-limit flags, and a singl
 
 Do not use an em dash (U+2014) or an en dash (U+2013) anywhere in this project: UI copy, strings, seed data, docs, comments, commit messages, or pull request text. Use a comma, full stop, colon, parentheses, or a plain hyphen. Write a range as "2 to 4", not with an en dash. `npm run check:dashes` fails if a tracked text file contains either character. Lockfiles and vendored files are excluded.
 
+Labels use sentence case. Do not set `textTransform` to `uppercase`, and do not track small labels out with wide letter spacing. `npm run check:case` fails if a tracked source file does.
+
 ## What's stubbed
 
 - Oura, WHOOP, and Garmin connections
@@ -154,7 +158,7 @@ Do not use an em dash (U+2014) or an en dash (U+2013) anywhere in this project: 
 - A public landing page (planned later as Workers static assets)
 - Confounders are tags you log, not inferred from a calendar
 - Sync is last-write-wins for the supplement list. Health samples are never synced.
-- The example stack's ingredient cost weights are set so the overlap story is $12 magnesium and $15 B vitamins. New products split cost evenly across ingredients.
+- The example stack's ingredient cost weights are set so the overlap story is $12 magnesium and $15 B vitamins. It loads only from More, then Developer tools. New products split cost evenly across ingredients.
 
 ## Regulatory
 

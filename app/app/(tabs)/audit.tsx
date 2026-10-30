@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { ADD_SUPPLEMENT_ROUTE } from '@/src/copy/labels';
 import { auditStack, formatWasted } from '@/src/domain/audit';
+import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
 import { formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
@@ -12,9 +14,24 @@ export default function AuditScreen() {
   const audit = useMemo(() => auditStack(app.products), [app.products]);
   const flagCount = audit.limits.length;
 
+  if (app.products.length === 0) {
+    return (
+      <Screen>
+        <Eyebrow left="Audit" />
+        <T weight="bold" size={32} style={styles.title}>
+          {AUDIT_EMPTY.title}
+        </T>
+        <T size={15} color={theme.muted}>
+          {AUDIT_EMPTY.body}
+        </T>
+        <Button label="Add a supplement" onPress={() => router.push(ADD_SUPPLEMENT_ROUTE)} />
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
-      <Eyebrow left="Audit results" right={app.usingSampleData ? 'Fictional example' : undefined} />
+      <Eyebrow left="Audit" right={app.usingSampleData ? 'Example data' : undefined} />
       <T weight="bold" size={32} style={styles.title}>
         Where spend and doses overlap
       </T>

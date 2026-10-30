@@ -2,9 +2,11 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { BarChart } from '@/src/components/BarChart';
-import { Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
+import { Button, Card, Disclaimer, Eyebrow, Pill, Screen, T } from '@/src/components/ui';
 import { ASSOCIATION } from '@/src/config';
+import { ADD_SUPPLEMENT_ROUTE } from '@/src/copy/labels';
 import { auditStack, productWastedCents } from '@/src/domain/audit';
+import { IMPACT_EMPTY, freshStartGaps } from '@/src/domain/emptyStates';
 import {
   associationSentence,
   compareMetric,
@@ -13,26 +15,46 @@ import {
   verdictFor,
 } from '@/src/domain/impact';
 import { signed } from '@/src/format';
+import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
 
 export default function ImpactScreen() {
   const app = useApp();
-  const initial = app.products.find((product) => product.id === 'example-magnesium')?.id ?? app.products[0]?.id ?? '';
+  const gaps = freshStartGaps({ products: app.products.length, wearableSamples: app.samples.length });
+  const initial = app.products[0]?.id ?? '';
   const [selectedId, setSelectedId] = useState(initial);
+  const [connectNote, setConnectNote] = useState<string | null>(null);
   const product = app.products.find((item) => item.id === selectedId) ?? app.products[0];
   const audit = useMemo(() => auditStack(app.products), [app.products]);
 
-  if (!product) {
+  if (!product || gaps.includes('wearable')) {
+    const needsProduct = gaps.includes('products');
     return (
       <Screen>
         <Eyebrow left="Wearable impact" />
         <T weight="bold" size={32} style={styles.title}>
-          Add a product first
+          {needsProduct ? IMPACT_EMPTY.productsTitle : IMPACT_EMPTY.wearableTitle}
         </T>
         <T size={15} color={theme.muted}>
-          Impact compares the 21 days before a start date with the 21 days after. It needs a product and wearable days.
+          {needsProduct ? IMPACT_EMPTY.productsBody : IMPACT_EMPTY.wearableBody}
         </T>
+        <T size={15} color={theme.muted}>
+          {currentWearableEmptyCopy()}
+        </T>
+        {needsProduct ? <Button label="Add a supplement" onPress={() => router.push(ADD_SUPPLEMENT_ROUTE)} /> : null}
+        <Button
+          label="Connect Apple Health"
+          tone={needsProduct ? 'ghost' : 'teal'}
+          onPress={() => {
+            void app.connectWearable().then(setConnectNote);
+          }}
+        />
+        {connectNote ? (
+          <T size={14} color={theme.muted}>
+            {connectNote}
+          </T>
+        ) : null}
       </Screen>
     );
   }
@@ -53,11 +75,11 @@ export default function ImpactScreen() {
     wastedCents: productWastedCents(product.id, audit),
     confounderHeavy: confounders.heavy,
   });
-  const source = app.healthSource === 'healthkit' ? 'Apple Health' : 'Sample wearable data';
+  const source = app.healthSource === 'healthkit' ? 'Apple Health' : app.usingSampleData ? 'Example wearable data' : 'Wearable days on this device';
 
   return (
     <Screen>
-      <Eyebrow left="Wearable impact" right={app.usingSampleData ? 'Fictional example' : undefined} />
+      <Eyebrow left="Wearable impact" right={app.usingSampleData ? 'Example data' : undefined} />
       <T weight="bold" size={32} style={styles.title}>
         {product.name}
       </T>
@@ -167,7 +189,7 @@ function Stat({
   const color = delta == null ? theme.muted : delta > 0 ? (tone === 'blue' ? theme.blue : theme.teal) : delta < 0 ? theme.muted : theme.muted;
   return (
     <View style={styles.stat}>
-      <T size={11} weight="semibold" color={theme.muted} style={styles.statLabel}>
+      <T size={12} weight="semibold" color={theme.muted}>
         {label}
       </T>
       <T weight="bold" size={20}>
@@ -212,7 +234,6 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 4,
   },
-  statLabel: { textTransform: 'uppercase', letterSpacing: 0.4 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderRadius: 999, borderWidth: 1, borderColor: '#E1E4EA', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#fff' },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

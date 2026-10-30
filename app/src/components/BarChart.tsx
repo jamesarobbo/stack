@@ -22,7 +22,7 @@ export function BarChart({
           {title}
         </T>
         <T size={12} color={theme.muted}>
-          Baseline · After
+          Baseline and after
         </T>
       </View>
       <View style={styles.plot}>

@@ -1,7 +1,7 @@
 import type { SampleInput } from '../domain/types';
 
 export type HealthConnection = {
-  mode: 'example' | 'healthkit';
+  mode: 'unavailable' | 'healthkit';
   message: string;
   samples?: SampleInput[];
 };

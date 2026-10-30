@@ -15,7 +15,7 @@ import {
   replaceProductsFromSync,
   updateIngredientUnit,
   updateProductStartDate,
-  seedIfEmpty,
+  clearUntouchedSampleOnce,
 } from './db/repository';
 import { configurePurchases, purchasePlan, restorePurchases, revenueCatIsPro, type PurchaseResult } from './purchases';
 import { getSetting, setSetting } from './settings';
@@ -74,8 +74,8 @@ const Ctx = createContext<AppState | null>(null);
 
 function readFlags() {
   return {
-    displayName: getSetting('displayName') || 'Alex',
-    usingSampleData: getSetting('usingSampleData') !== '0',
+    displayName: getSetting('displayName') ?? '',
+    usingSampleData: getSetting('usingSampleData') === '1',
     healthSource: getSetting('healthSource'),
     onboardingComplete: getSetting('onboardingComplete') === '1',
     previewPro: getSetting('previewPro') === '1',
@@ -124,7 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         await prepareSettings();
-        await seedIfEmpty();
+        await clearUntouchedSampleOnce();
         if (cancelled) return;
         await applySnapshot();
         await initTelemetry();
@@ -193,7 +193,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await applySnapshot();
       },
       setName: async (name) => {
-        await setSetting('displayName', name.trim() || 'Alex');
+        await setSetting('displayName', name.trim());
         await applySnapshot();
       },
       exportData: async () => JSON.stringify(await exportPayload(), null, 2),

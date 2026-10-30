@@ -56,14 +56,25 @@ export function Screen({
 export function Eyebrow({ left, right }: { left: string; right?: string }) {
   return (
     <View style={styles.rowBetween}>
-      <T size={12} weight="semibold" color={theme.muted} style={styles.eyebrow}>
+      <T size={13} weight="semibold" color={theme.muted}>
         {left}
       </T>
       {right ? (
-        <T size={12} weight="semibold" color={theme.faint} style={styles.eyebrow}>
+        <T size={13} weight="medium" color={theme.faint}>
           {right}
         </T>
       ) : null}
+    </View>
+  );
+}
+
+export function SectionLabel({ label, badge }: { label: string; badge?: string }) {
+  return (
+    <View style={styles.sectionLabel}>
+      <T size={13} weight="semibold" color={theme.muted}>
+        {label}
+      </T>
+      {badge ? <Pill tone="teal">{badge}</Pill> : null}
     </View>
   );
 }
@@ -211,7 +222,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingBottom: 28, gap: 14 },
   footer: { paddingHorizontal: 20, paddingTop: 8, backgroundColor: theme.bg, gap: 8 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: { letterSpacing: 0.8, textTransform: 'uppercase' },
+  sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   card: {
     backgroundColor: theme.card,
     borderRadius: theme.radius,

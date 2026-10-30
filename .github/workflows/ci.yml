@@ -67,6 +67,9 @@ jobs:
       - name: No em dash or en dash
         run: npm run check:dashes
 
+      - name: No uppercase labels
+        run: npm run check:case
+
   deploy:
     name: Deploy Worker
     needs: check

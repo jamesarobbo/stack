@@ -72,8 +72,12 @@ export function spendLine(key: string | null, monthlyCents: number): string | nu
 
 export function wearableLine(choice: string | null): string {
   if (choice === 'healthkit') return 'Apple Health is connected, so the before and after can use your own nights.';
-  if (choice === 'sample') return 'This phone is using sample wearable data until a development build reads Apple Health.';
-  if (choice === 'skipped') return 'You skipped a wearable. The before and after uses sample data until Apple Health is connected.';
+  if (choice === 'sample') {
+    return 'Apple Health is not connected on this device, so there are no wearable days yet. A development build can read it. Stack does not fill in sample nights.';
+  }
+  if (choice === 'skipped') {
+    return 'You skipped a wearable. Impact and the monthly report stay empty until a few weeks of Apple Health data are on this device.';
+  }
   return 'A wearable is how Stack shows whether a change lines up with your own nights.';
 }
 

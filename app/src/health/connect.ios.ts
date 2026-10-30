@@ -1,6 +1,13 @@
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import type { HealthMetric, SampleInput } from '../domain/types';
+import { healthConnectFailureCopy, type WearablePlatform } from './emptyCopy';
 import type { HealthConnection } from './types';
+
+function wearablePlatform(): WearablePlatform {
+  if (Platform.OS === 'ios' || Platform.OS === 'android' || Platform.OS === 'web') return Platform.OS;
+  return 'other';
+}
 
 const READ_TYPES = [
   'HKCategoryTypeIdentifierSleepAnalysis',
@@ -38,11 +45,11 @@ function rowsFrom(bucket: Bucket, metric: HealthMetric, mode: 'sum' | 'avg'): Sa
 }
 
 export async function connectAppleHealth(): Promise<HealthConnection> {
-  if (Constants.executionEnvironment === 'storeClient') {
+  const expoGo = Constants.executionEnvironment === 'storeClient';
+  if (expoGo) {
     return {
-      mode: 'example',
-      message:
-        'Expo Go cannot read HealthKit. Sample data stays on this device. A development build reads Apple Health.',
+      mode: 'unavailable',
+      message: healthConnectFailureCopy({ expoGo: true, platform: wearablePlatform() }),
     };
   }
 
@@ -63,8 +70,8 @@ export async function connectAppleHealth(): Promise<HealthConnection> {
     const available = await Healthkit.isHealthDataAvailableAsync();
     if (!available) {
       return {
-        mode: 'example',
-        message: 'Apple Health is not available here. Sample data stays on this device.',
+        mode: 'unavailable',
+        message: healthConnectFailureCopy({ expoGo: false, platform: 'ios' }),
       };
     }
 
@@ -107,8 +114,8 @@ export async function connectAppleHealth(): Promise<HealthConnection> {
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'HealthKit could not be read.';
     return {
-      mode: 'example',
-      message: `${detail} Sample data stays on this device.`,
+      mode: 'unavailable',
+      message: healthConnectFailureCopy({ expoGo: false, platform: 'ios', detail }),
     };
   }
 }

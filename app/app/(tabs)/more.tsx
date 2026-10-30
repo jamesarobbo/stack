@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Card, Eyebrow, Screen, T } from '@/src/components/ui';
 import { APP_NAME, APP_TAGLINE } from '@/src/config';
+import { CLEAR_ALL_DATA_LABEL, LOAD_EXAMPLE_LABEL } from '@/src/copy/labels';
 import { devToolsInProfile, openDevTools } from '@/src/devMenu';
+import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
 import { theme } from '@/src/theme';
 
@@ -29,22 +31,32 @@ export default function MoreScreen() {
       <Row title={app.isPro ? 'Pro is on' : 'Stack Pro'} detail={app.isPro ? 'Multi-compare, confounders, monthly report' : '$7.99/month or $59/year'} onPress={() => router.push('/paywall')} />
       <Row title="Monthly report" detail={app.isPro ? 'Keep, drop, or unclear' : 'Pro'} onPress={() => router.push('/report')} />
       <Row title={app.sessionToken ? 'Signed in' : 'Sign in'} detail={app.email || 'Syncs your supplement list only'} onPress={() => router.push('/sign-in')} />
-      <Row title="Settings" detail="Export, delete, example data" onPress={() => router.push('/settings')} />
+      <Row title="Settings" detail="Export and delete" onPress={() => router.push('/settings')} />
       <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} />
-      {devToolsInProfile() ? <Row title="Developer tools" detail="Expo tools, kept off the page" onPress={openDevTools} /> : null}
+      <DeveloperTools />
       <Card>
         <T weight="semibold">Wearable reads</T>
-        <T size={13} color={theme.muted}>
-          {app.healthSource === 'healthkit'
-            ? 'Apple Health samples on this device.'
-            : 'Sample data on this device. A development build can read Apple Health.'}
-        </T>
-        <Metric label="Deep sleep" value={latest.deep_sleep_min} />
-        <Metric label="HRV SDNN" value={latest.hrv_sdnn_ms} />
-        <Metric label="Resting heart rate" value={latest.resting_hr_bpm} />
-        <Metric label="VO2 max" value={latest.vo2_max} />
-        <Metric label="Steps" value={latest.steps} />
-        <Metric label="Active energy" value={latest.active_energy_kcal} />
+        {app.samples.length === 0 ? (
+          <T size={14} color={theme.muted}>
+            {currentWearableEmptyCopy()}
+          </T>
+        ) : (
+          <>
+            <T size={13} color={theme.muted}>
+              {app.healthSource === 'healthkit'
+                ? 'Apple Health samples on this device.'
+                : app.usingSampleData
+                  ? 'Example wearable days loaded from Developer tools.'
+                  : 'Wearable days stored on this device.'}
+            </T>
+            <Metric label="Deep sleep" value={latest.deep_sleep_min} />
+            <Metric label="HRV SDNN" value={latest.hrv_sdnn_ms} />
+            <Metric label="Resting heart rate" value={latest.resting_hr_bpm} />
+            <Metric label="VO2 max" value={latest.vo2_max} />
+            <Metric label="Steps" value={latest.steps} />
+            <Metric label="Active energy" value={latest.active_energy_kcal} />
+          </>
+        )}
       </Card>
       {app.syncNote ? (
         <T size={13} color={theme.muted}>
@@ -68,9 +80,50 @@ function latestMetrics(samples: { metric: string; date: string; value: number }[
     const rows = samples.filter((sample) => sample.metric === metric).sort((a, b) => a.date.localeCompare(b.date));
     const last = rows[rows.length - 1];
     const unit = UNITS[metric] ?? '';
-    out[metric] = last ? `${Math.round(last.value)}${unit ? ` ${unit}` : ''} · ${last.date}` : 'No days yet';
+    out[metric] = last ? `${Math.round(last.value)}${unit ? ` ${unit}` : ''}, ${last.date}` : 'No days yet';
   }
   return out;
+}
+
+function DeveloperTools() {
+  const app = useApp();
+  const [confirmClear, setConfirmClear] = useState(false);
+  if (typeof __DEV__ === 'undefined' || !__DEV__) return null;
+  return (
+    <Card>
+      <T weight="semibold">Developer tools</T>
+      <T size={13} color={theme.muted}>
+        Example data is off unless you load it. Loading replaces the stack, wearable days, and tags on this device.
+      </T>
+      <Pressable accessibilityRole="button" onPress={() => void app.restoreExample()}>
+        <T weight="semibold" color={theme.teal}>
+          {LOAD_EXAMPLE_LABEL}
+        </T>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => {
+          if (!confirmClear) {
+            setConfirmClear(true);
+            return;
+          }
+          setConfirmClear(false);
+          void app.deleteLocal();
+        }}
+      >
+        <T weight="semibold" color={theme.flagText}>
+          {confirmClear ? 'Clear all data now' : CLEAR_ALL_DATA_LABEL}
+        </T>
+      </Pressable>
+      {devToolsInProfile() ? (
+        <Pressable accessibilityRole="button" onPress={openDevTools}>
+          <T weight="semibold" color={theme.teal}>
+            Expo tools
+          </T>
+        </Pressable>
+      ) : null}
+    </Card>
+  );
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

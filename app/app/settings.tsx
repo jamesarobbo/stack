@@ -53,7 +53,9 @@ export default function SettingsScreen() {
           {`Settings store: ${settingsDriverKind === 'mmkv' ? 'MMKV' : settingsDriverKind === 'localStorage' ? 'browser storage' : 'SQLite fallback'}. Health samples are not uploaded.`}
         </T>
         <T size={14} color={theme.muted}>
-          {app.usingSampleData ? 'The stack and wearable days are the fictional example.' : 'You have changed the example data.'}
+          {app.usingSampleData
+            ? 'The stack and wearable days are the fictional example from Developer tools.'
+            : 'Your stack starts empty. Add what you take.'}
         </T>
         {app.previewPro ? (
           <Pressable accessibilityRole="button" onPress={() => void app.setPreviewPro(false)}>
@@ -65,11 +67,6 @@ export default function SettingsScreen() {
         <Pressable accessibilityRole="button" onPress={() => void exportData()}>
           <T weight="semibold" color={theme.teal}>
             Export my data
-          </T>
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => void app.restoreExample()}>
-          <T weight="semibold" color={theme.teal}>
-            Load the example stack
           </T>
         </Pressable>
       </Card>

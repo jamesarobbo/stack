@@ -21,7 +21,7 @@ export default function TabLayout() {
         name="stack"
         options={{
           title: 'Stack',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="layers-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
         }}
       />
       <Tabs.Screen
