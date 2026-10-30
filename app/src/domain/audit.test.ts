@@ -33,6 +33,36 @@ describe('unit conversion', () => {
   it('ignores empty amounts', () => {
     expect(toCanonical('magnesium', 0, 'mg')).toBeNull();
   });
+
+  it('converts vitamin A IU and mcg RAE into mcg', () => {
+    const fromIu = toCanonical('vitamin-a', 1000, 'IU');
+    expect(fromIu?.unit).toBe('mcg');
+    expect(fromIu?.amount).toBeCloseTo(300, 5);
+    expect(toCanonical('vitamin-a', 3000, 'mcg RAE')).toEqual({ amount: 3000, unit: 'mcg' });
+  });
+
+  it('converts vitamin E IU into mg', () => {
+    const result = toCanonical('vitamin-e', 1000, 'IU');
+    expect(result?.unit).toBe('mg');
+    expect(result?.amount).toBeCloseTo(670, 5);
+  });
+
+  it('converts folate mcg DFE into folic acid mcg', () => {
+    const result = toCanonical('folate', 1000, 'mcg DFE');
+    expect(result?.unit).toBe('mcg');
+    expect(result?.amount).toBeCloseTo(600, 5);
+  });
+
+  it('treats niacin mg NE as mg and magnesium grams as mg', () => {
+    expect(toCanonical('niacin', 20, 'mg NE')).toEqual({ amount: 20, unit: 'mg' });
+    expect(toCanonical('magnesium', 1, 'g')).toEqual({ amount: 1000, unit: 'mg' });
+    expect(toCanonical('vitamin-d', 1, 'mg')).toEqual({ amount: 40000, unit: 'iu' });
+  });
+
+  it('does not count mL or CFU toward a mass limit', () => {
+    expect(toCanonical('vitamin-d', 5, 'mL')).toBeNull();
+    expect(toCanonical('vitamin-d', 10, 'CFU (billion)')).toBeNull();
+  });
 });
 
 describe('example stack audit', () => {

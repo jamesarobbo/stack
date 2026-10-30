@@ -2,8 +2,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
+import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { searchCatalogue, type CatalogueItem } from '@/src/data/catalogue';
+import { DEFAULT_UNIT } from '@/src/data/units';
 import { clampStartDate, localToday } from '@/src/dates';
 import type { IngredientInput } from '@/src/domain/types';
 import { useApp } from '@/src/state';
@@ -99,7 +101,7 @@ function ManualAdd() {
   const [perDay, setPerDay] = useState('1');
   const [startDate, setStartDate] = useState(localToday());
   const [ingredients, setIngredients] = useState<IngredientInput[]>([
-    { key: '', name: '', amount: 0, unit: 'mg', costWeight: 1 },
+    { key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 },
   ]);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,12 +126,12 @@ function ManualAdd() {
             onChangeText={(value) => update(index, { amount: Number(value) || 0 })}
             keyboard="decimal-pad"
           />
-          <Field label="Unit" value={ingredient.unit} onChangeText={(value) => update(index, { unit: value })} placeholder="mg, mcg, IU, g" />
+          <UnitField value={ingredient.unit} onChange={(unit) => update(index, { unit })} />
         </Card>
       ))}
       <Pressable
         accessibilityRole="button"
-        onPress={() => setIngredients((current) => [...current, { key: '', name: '', amount: 0, unit: 'mg', costWeight: 1 }])}
+        onPress={() => setIngredients((current) => [...current, { key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 }])}
       >
         <T weight="semibold" color={theme.teal}>
           Add another ingredient

@@ -69,7 +69,7 @@ export function buildExample(today: string): {
         key: 'b-complex',
         name: 'B-complex (B6 / B12)',
         amount: 1,
-        unit: 'blend',
+        unit: 'other',
         costWeight: 15,
         summary: 'TMG blend overlap',
         family: 'b-complex',
@@ -113,7 +113,7 @@ export function buildExample(today: string): {
         key: 'b-complex',
         name: 'B-complex (B6 / B12)',
         amount: 1,
-        unit: 'blend',
+        unit: 'other',
         costWeight: 16,
         summary: 'Multi',
         family: 'b-complex',
@@ -121,7 +121,7 @@ export function buildExample(today: string): {
       }),
       ingredient({ key: 'vitamin-b6', name: 'Vitamin B6', amount: 10, unit: 'mg', costWeight: 0 }),
       ingredient({ key: 'vitamin-b12', name: 'Vitamin B12', amount: 100, unit: 'mcg', costWeight: 0 }),
-      ingredient({ key: 'trace-minerals', name: 'Trace minerals', amount: 1, unit: 'blend', costWeight: 1, summary: 'Trace minerals' }),
+      ingredient({ key: 'trace-minerals', name: 'Trace minerals', amount: 1, unit: 'other', costWeight: 1, summary: 'Trace minerals' }),
     ]),
     product('example-d3', 'Vitamin D3 4,000 IU', 'Morning with food', 1400, -190, today, [
       ingredient({

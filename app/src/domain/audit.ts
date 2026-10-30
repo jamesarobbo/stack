@@ -1,28 +1,37 @@
 import { INTERACTION_RULES } from '../data/interactions';
+import { normalizeUnit } from '../data/units';
 import { UPPER_LIMITS } from '../data/upperLimits';
 import { formatNumber, formatUsd } from '../format';
 import type { IngredientInput, ProductInput } from './types';
 
+/**
+ * Multiply a label amount by the factor to reach the unit whose factor is 1.
+ * Vitamin D: 1 mcg = 40 IU. Vitamin A retinol: 1 IU = 0.3 mcg RAE.
+ * Vitamin E (natural alpha-tocopherol): 1 IU = 0.67 mg.
+ * Folate's upper limit is folic acid: 1 mcg DFE = 0.6 mcg folic acid.
+ * Niacin mg NE uses the same milligram scale as the upper limit.
+ * CFU and mL are not a mass, so they are absent and do not count toward a limit.
+ */
 const CONVERSIONS: Record<string, Record<string, number>> = {
-  'vitamin-d': { iu: 1, mcg: 40, ug: 40, mg: 40_000 },
-  'vitamin-a': { mcg: 1, ug: 1, iu: 0.3, mg: 1000 },
-  'vitamin-e': { mg: 1, iu: 0.67 },
-  'vitamin-c': { mg: 1, g: 1000 },
-  'vitamin-b6': { mg: 1, mcg: 0.001 },
-  folate: { mcg: 1, ug: 1, mg: 1000 },
-  niacin: { mg: 1, mcg: 0.001 },
-  choline: { mg: 1, g: 1000 },
-  calcium: { mg: 1, g: 1000 },
-  iron: { mg: 1, mcg: 0.001 },
-  zinc: { mg: 1, mcg: 0.001 },
+  'vitamin-d': { iu: 1, mcg: 40, mg: 40_000, g: 40_000_000 },
+  'vitamin-a': { mcg: 1, 'mcg rae': 1, iu: 0.3, mg: 1000, g: 1_000_000 },
+  'vitamin-e': { mg: 1, iu: 0.67, mcg: 0.001, g: 1000 },
+  'vitamin-c': { mg: 1, g: 1000, mcg: 0.001 },
+  'vitamin-b6': { mg: 1, mcg: 0.001, g: 1000 },
+  folate: { mcg: 1, 'mcg dfe': 0.6, mg: 1000, g: 1_000_000 },
+  niacin: { mg: 1, 'mg ne': 1, mcg: 0.001, g: 1000 },
+  choline: { mg: 1, g: 1000, mcg: 0.001 },
+  calcium: { mg: 1, g: 1000, mcg: 0.001 },
+  iron: { mg: 1, mcg: 0.001, g: 1000 },
+  zinc: { mg: 1, mcg: 0.001, g: 1000 },
   magnesium: { mg: 1, g: 1000, mcg: 0.001 },
-  selenium: { mcg: 1, ug: 1, mg: 1000 },
-  iodine: { mcg: 1, ug: 1, mg: 1000 },
-  copper: { mg: 1, mcg: 0.001 },
-  manganese: { mg: 1, mcg: 0.001 },
-  molybdenum: { mcg: 1, ug: 1, mg: 1000 },
-  boron: { mg: 1, mcg: 0.001 },
-  'vitamin-b12': { mcg: 1, ug: 1, mg: 1000 },
+  selenium: { mcg: 1, mg: 1000, g: 1_000_000 },
+  iodine: { mcg: 1, mg: 1000, g: 1_000_000 },
+  copper: { mg: 1, mcg: 0.001, g: 1000 },
+  manganese: { mg: 1, mcg: 0.001, g: 1000 },
+  molybdenum: { mcg: 1, mg: 1000, g: 1_000_000 },
+  boron: { mg: 1, mcg: 0.001, g: 1000 },
+  'vitamin-b12': { mcg: 1, mg: 1000, g: 1_000_000 },
 };
 
 export type CostShare = {
@@ -71,13 +80,6 @@ export type AuditResult = {
   interactions: InteractionFinding[];
   subtitle: string;
 };
-
-export function normalizeUnit(unit: string): string {
-  const cleaned = unit.trim().toLowerCase().replace('µ', 'u');
-  if (cleaned === 'ug' || cleaned === 'μg') return 'mcg';
-  if (cleaned === 'iu') return 'iu';
-  return cleaned;
-}
 
 export function monthlyCostCents(
   priceCents: number,

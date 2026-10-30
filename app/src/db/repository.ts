@@ -1,6 +1,7 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { buildExample } from '../data/example';
 import type { CatalogueItem } from '../data/catalogue';
+import { coerceUnit } from '../data/units';
 import { clampStartDate, localToday } from '../dates';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from '../domain/types';
 import { connectAppleHealth } from '../health/connect';
@@ -108,7 +109,7 @@ async function insertProduct(product: ProductInput, createdAt: string) {
       key: ingredient.key,
       name: ingredient.name,
       amount: ingredient.amount,
-      unit: ingredient.unit,
+      unit: coerceUnit(ingredient.unit),
       costWeight: ingredient.costWeight,
       summary: ingredient.summary ?? null,
       family: ingredient.family ?? null,
@@ -204,6 +205,14 @@ export async function addCatalogueProduct(item: CatalogueItem, startDate: string
 
 export async function updateProductStartDate(id: string, startDate: string) {
   await db.update(products).set({ startDate: clampStartDate(startDate) }).where(eq(products.id, id));
+  await setSetting('usingSampleData', '0');
+}
+
+export async function updateIngredientUnit(productId: string, key: string, name: string, unit: string) {
+  await db
+    .update(productIngredients)
+    .set({ unit: coerceUnit(unit) })
+    .where(and(eq(productIngredients.productId, productId), eq(productIngredients.key, key), eq(productIngredients.name, name)));
   await setSetting('usingSampleData', '0');
 }
 
