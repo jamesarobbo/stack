@@ -7,7 +7,6 @@ import { ScoreBadge } from '@/src/components/share';
 import { Button, Card, Pill, ProductRow, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
-import { DISCOVER_LABEL } from '@/src/copy/library';
 import { SHARE_STACK_LABEL } from '@/src/copy/sharing';
 import { auditStack } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
@@ -32,20 +31,15 @@ export default function StackScreen() {
         <T size={14} color={theme.muted}>
           {APP_NAME} adds up what the labels say you pay.
         </T>
-        <View style={styles.links}>
-          <Pressable accessibilityRole="button" onPress={() => router.push('/discover')} style={styles.link}>
-            <T size={15} weight="semibold" color={theme.teal}>
-              {DISCOVER_LABEL}
-            </T>
-          </Pressable>
-          {app.products.length > 0 ? (
+        {app.products.length > 0 ? (
+          <View style={styles.links}>
             <Pressable accessibilityRole="button" onPress={() => router.push('/share')} style={styles.link}>
               <T size={15} weight="semibold" color={theme.teal}>
                 {SHARE_STACK_LABEL}
               </T>
             </Pressable>
-          ) : null}
-        </View>
+          </View>
+        ) : null}
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Card>

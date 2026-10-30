@@ -1,4 +1,10 @@
 export const DISCOVER_LABEL = 'Discover';
+export const DISCOVER_TAB_HREF = '/(tabs)/discover';
+export const DISCOVER_LEAD = 'Stacks people chose to list, with their doses checked. Link-only shares never appear here.';
+export const DISCOVER_EMPTY_TITLE = 'No listed stacks yet';
+export const DISCOVER_EMPTY_BODY = 'When someone lists a stack, it shows up here. A link-only share stays off this list.';
+export const DISCOVER_SPARSE = 'This is every listed stack right now.';
+export const BROWSE_LISTED = 'Browse listed stacks';
 
 export const LIBRARY_GOALS = [
   { key: 'sleep', label: 'Sleep' },

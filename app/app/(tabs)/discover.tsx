@@ -3,9 +3,19 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Chip, CompositionStrip, FadeIn, ScoreBadge, Segmented } from '@/src/components/share';
-import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
+import { Button, Card, EmptyLead, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
-import { DISCOVER_LABEL, LIBRARY_GOALS, LIBRARY_SEGMENTS, SEGMENT_NOTES, type LibraryGoalKey, type LibrarySegmentKey } from '@/src/copy/library';
+import {
+  DISCOVER_EMPTY_BODY,
+  DISCOVER_EMPTY_TITLE,
+  DISCOVER_LEAD,
+  DISCOVER_SPARSE,
+  LIBRARY_GOALS,
+  LIBRARY_SEGMENTS,
+  SEGMENT_NOTES,
+  type LibraryGoalKey,
+  type LibrarySegmentKey,
+} from '@/src/copy/library';
 import { copyCountLabel } from '@/src/copy/sharing';
 import type { LibraryItem, LibraryPage } from '@/src/data/sharing';
 import { formatUsDate } from '@/src/dates';
@@ -27,6 +37,8 @@ export default function DiscoverScreen() {
   const request = useRef(0);
   const key = `${segment}|${query}|${goal ?? ''}|${app.sessionToken ?? ''}`;
   const loading = loadedKey !== key;
+  const filtered = query.length > 0 || goal != null;
+  const sparse = !loading && !filtered && !note && nextOffset == null && items.length > 0 && items.length < 3;
 
   useEffect(() => {
     const timer = setTimeout(() => setQuery(typed.trim()), 300);
@@ -95,12 +107,8 @@ export default function DiscoverScreen() {
 
   return (
     <Screen>
-      <BackButton />
-      <T weight="bold" size={32} style={styles.title}>
-        {DISCOVER_LABEL}
-      </T>
-      <T size={15} color={theme.muted}>
-        Stacks people chose to list, with their doses checked. Link-only shares never appear here.
+      <T size={16} color={theme.muted}>
+        {DISCOVER_LEAD}
       </T>
       <View style={styles.search}>
         <Ionicons name="search" size={18} color={theme.faint} />
@@ -116,7 +124,7 @@ export default function DiscoverScreen() {
           style={styles.searchInput}
         />
         {typed ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setTyped('')} hitSlop={8}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setTyped('')} hitSlop={8} style={styles.clear}>
             <Ionicons name="close-circle" size={18} color={theme.faint} />
           </Pressable>
         ) : null}
@@ -152,10 +160,13 @@ export default function DiscoverScreen() {
         </FadeIn>
       ))}
 
-      {!loading && items.length === 0 && !note ? (
-        <Card>
-          <T>No listed stacks yet.</T>
-        </Card>
+      {sparse ? (
+        <T size={14} color={theme.muted}>
+          {DISCOVER_SPARSE}
+        </T>
+      ) : null}
+      {!loading && items.length === 0 && !note && !filtered ? (
+        <EmptyLead icon="compass-outline" title={DISCOVER_EMPTY_TITLE} body={DISCOVER_EMPTY_BODY} />
       ) : null}
       {nextOffset != null ? <Button label="Load more" tone="ghost" onPress={() => void loadMore()} /> : null}
     </Screen>
@@ -164,64 +175,79 @@ export default function DiscoverScreen() {
 
 function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) {
   const kept = copyCountLabel(item.copyCount);
+  const open = () => router.push(`/s/${item.slug}`);
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${item.stackName}, audit score ${item.auditScore}`}
-      onPress={() => router.push(`/s/${item.slug}`)}
-      style={({ pressed }) => [styles.card, pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : null]}
-    >
+    <View style={styles.card}>
       <View style={styles.cardTop}>
-        <ScoreBadge score={item.auditScore} size={68} />
-        <View style={{ flex: 1, gap: 3 }}>
-          <T weight="bold" size={18} style={{ letterSpacing: -0.3 }}>
-            {item.stackName}
-          </T>
-          <T size={13} color={theme.muted}>
-            {`${item.creatorName || 'A Stack user'}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
-          </T>
-          <T size={14} weight="semibold">
-            {item.summary}
-          </T>
-        </View>
-        <Pressable accessibilityRole="button" accessibilityLabel={item.saved ? 'Remove from saved' : 'Save'} onPress={onSave} hitSlop={10} style={styles.save}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${item.stackName}, audit score ${item.auditScore}`}
+          onPress={open}
+          style={({ pressed }) => [styles.cardMain, pressed ? { opacity: 0.92 } : null]}
+        >
+          <ScoreBadge score={item.auditScore} size={68} />
+          <View style={{ flex: 1, gap: 3 }}>
+            <T weight="bold" size={18} style={{ letterSpacing: -0.3 }}>
+              {item.stackName}
+            </T>
+            <T size={13} color={theme.muted}>
+              {`${item.creatorName || 'A Stack user'}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
+            </T>
+            <T size={14} weight="semibold">
+              {item.summary}
+            </T>
+          </View>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={item.saved ? 'Remove from saved' : 'Save'}
+          onPress={onSave}
+          hitSlop={6}
+          style={styles.save}
+        >
           <Ionicons name={item.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={theme.teal} />
         </Pressable>
       </View>
-      <CompositionStrip items={item.composition} />
-      {item.likeYou ? (
-        <View style={styles.likeYou}>
-          <T size={13} weight="semibold" color={theme.tealDark}>
-            {item.likeYou.label}
-          </T>
-          <T size={13}>{item.likeYou.line}</T>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.stackName}`} onPress={open} style={({ pressed }) => (pressed ? { opacity: 0.92 } : null)}>
+        <View style={{ gap: 14 }}>
+          <CompositionStrip items={item.composition} />
+          {item.likeYou ? (
+            <View style={styles.likeYou}>
+              <T size={13} weight="semibold" color={theme.tealDark}>
+                {item.likeYou.label}
+              </T>
+              <T size={13}>{item.likeYou.line}</T>
+            </View>
+          ) : null}
+          {item.goals.length > 0 || kept || item.updatedOn ? (
+            <T size={12} color={theme.muted}>
+              {[item.goals.map((goal) => goal.label).join(', '), kept, item.updatedOn ? `Updated on ${formatUsDate(item.updatedOn)}` : null].filter(Boolean).join('. ')}
+            </T>
+          ) : null}
         </View>
-      ) : null}
-      {item.goals.length > 0 || kept || item.updatedOn ? (
-        <T size={12} color={theme.muted}>
-          {[item.goals.map((goal) => goal.label).join(', '), kept, item.updatedOn ? `Updated on ${formatUsDate(item.updatedOn)}` : null].filter(Boolean).join('. ')}
-        </T>
-      ) : null}
-    </Pressable>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { letterSpacing: -0.6 },
   search: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    minHeight: 48,
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#E4E7EC',
     paddingHorizontal: 12,
   },
-  searchInput: { flex: 1, paddingVertical: 12, fontFamily: font.regular, fontSize: 16, color: theme.text },
+  searchInput: { flex: 1, minHeight: 44, paddingVertical: 12, fontFamily: font.regular, fontSize: 16, color: theme.text },
+  clear: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   chips: { gap: 8, paddingRight: 8 },
   card: { backgroundColor: theme.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#EEF0F3', gap: 14 },
-  cardTop: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  save: { padding: 4 },
+  cardTop: { flexDirection: 'row', gap: 4, alignItems: 'flex-start' },
+  cardMain: { flex: 1, flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  save: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   likeYou: { backgroundColor: theme.tealSoft, borderRadius: 12, padding: 10, gap: 2 },
 });

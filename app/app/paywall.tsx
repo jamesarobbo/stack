@@ -5,6 +5,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { OnboardingProgress } from '@/src/components/OnboardingProgress';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { PRO_ANNUAL_CENTS, PRO_ANNUAL_SAVINGS_CENTS, PRO_MONTHLY_CENTS } from '@/src/config';
+import { BROWSE_LISTED, DISCOVER_TAB_HREF } from '@/src/copy/library';
 import { auditStack } from '@/src/domain/audit';
 import { formatUsd } from '@/src/format';
 import { EXPECTATION, goalEcho, wearableLine } from '@/src/onboarding/answers';
@@ -32,6 +33,11 @@ export default function PaywallScreen() {
   async function finishFree() {
     await app.completeOnboarding();
     router.replace('/(tabs)/audit');
+  }
+
+  async function browseListed() {
+    await app.completeOnboarding();
+    router.replace(DISCOVER_TAB_HREF);
   }
 
   async function start() {
@@ -151,6 +157,13 @@ export default function PaywallScreen() {
 
       <Button label={app.previewPro ? 'Turn off preview' : `Start Pro: ${price}`} onPress={() => void start()} />
       {fromOnboarding ? <Button label="Continue with Free" tone="ghost" onPress={() => void finishFree()} /> : null}
+      {fromOnboarding ? (
+        <Pressable accessibilityRole="link" onPress={() => void browseListed()} style={styles.link}>
+          <T size={15} weight="semibold" color={theme.teal} style={{ textAlign: 'center' }}>
+            {BROWSE_LISTED}
+          </T>
+        </Pressable>
+      ) : null}
       <Pressable
         accessibilityRole="button"
         onPress={async () => {
@@ -203,4 +216,5 @@ const styles = StyleSheet.create({
   tableHead: { flexDirection: 'row', alignItems: 'center' },
   tableRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   col: { width: 44, textAlign: 'center', alignItems: 'center' },
+  link: { minHeight: 44, justifyContent: 'center' },
 });

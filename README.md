@@ -165,7 +165,7 @@ The public page is `GET /s/<slug>` on the Worker, on a white background with a S
 
 Copy to my stack shows a preview first: products you already take, overlaps, what is new, and your score after. Each row can be added, skipped, or replace yours. The products are written in one transaction with `catalogueId` `share:<slug>`, so the copy lands whole or not at all, and it can be copied again after deleting them. Copying works before sign-in and counts once the person signs in.
 
-Discover is a link on My Stack, not another tab. One control switches New, Most kept, People like you, and Saved. The rules are in `docs/stack-library.md`.
+Discover is the second tab, after Stack: Stack, Discover, Audit, Impact, More. One control switches New, Most kept, Like you, and Saved. Audit offers Browse listed stacks when the dose audit has a gap. The last onboarding step can open Discover after Continue with Free. The rules are in `docs/stack-library.md`.
 
 ## CI
 

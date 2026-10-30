@@ -19,6 +19,7 @@ These are fixed. A design pass does not relax them.
 - No emoji, in the product or in code strings.
 - No house icon. The Stack tab uses `layers-outline`. The mark is three white bars in a teal rounded square (the public page `.mark`, and the same mark in `server/src/og.ts`).
 - Main tabs have no page title and no breadcrumb. `headerShown` is false in `app/app/(tabs)/_layout.tsx`. Detail screens keep a title and `BackButton`.
+- Five tabs, in this order: Stack (`layers-outline`), Discover (`compass-outline`), Audit (`search-outline`), Impact (`stats-chart-outline`), More (`ellipsis-horizontal`). Discover is a tab. Do not put it back as a link on My Stack. Do not add a sixth tab.
 - One add control. The "Add supplement" bar on My Stack is the only add control on that screen, including the empty state. Audit, Impact, More, and the report do not add products. Enforced by `app/src/copy/addPlacement.test.ts`.
 - No fake urgency and no fake social proof. No countdown, no "popular", no "copied by 0 people". "Kept by N people" stays hidden below 3.
 - The audit score is doses and overlaps only. It never takes price. The Pro savings figure is a separate dollar amount, and it is the only place amber means money. Formula: `docs/audit-score.md`, implementation: `shared/auditScore.ts`.
@@ -27,7 +28,7 @@ These are fixed. A design pass does not relax them.
 
 Match these. Do not invent a parallel style.
 
-- Share sheet, score hero, result hero, meters, Discover cards, merge preview: `app/src/components/share.tsx`, screens in `app/app/share.tsx`, `app/app/s/[slug].tsx`, `app/app/discover.tsx`.
+- Share sheet, score hero, result hero, meters, Discover cards, merge preview: `app/src/components/share.tsx`, screens in `app/app/share.tsx`, `app/app/s/[slug].tsx`, `app/app/(tabs)/discover.tsx`.
 - Primitives: `app/src/components/ui.tsx` (`T`, `Screen`, `Card`, `Button`, `Pill`, `BackButton`).
 - Public page and the 1200 by 630 preview: `server/src/sharePage.ts`, `server/src/og.ts`.
 - Tokens: `app/src/theme.ts`. Copy strings: `app/src/copy/`.

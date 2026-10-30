@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
   chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4E7EC' },
   chipOn: { backgroundColor: theme.teal, borderColor: theme.teal },
   segmented: { flexDirection: 'row', backgroundColor: '#E9ECF0', borderRadius: 12, padding: 3, gap: 2 },
-  segment: { flex: 1, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 9, justifyContent: 'center' },
+  segment: { flex: 1, minHeight: 38, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 9, justifyContent: 'center' },
   segmentOn: { backgroundColor: '#FFFFFF', shadowColor: '#101828', shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   toggle: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', paddingVertical: 4 },
   box: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: '#C9CFD8', alignItems: 'center', justifyContent: 'center', marginTop: 1 },

@@ -131,7 +131,6 @@ function RootNav() {
       <Stack.Screen name="privacy" />
       <Stack.Screen name="product/[id]" />
       <Stack.Screen name="share" />
-      <Stack.Screen name="discover" />
       <Stack.Screen name="s/[slug]" />
     </Stack>
   );

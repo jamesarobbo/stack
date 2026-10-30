@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { DoseMeters, FadeIn, ScoreHero } from '@/src/components/share';
 import { Card, Disclaimer, EmptyLead, Pill, Screen, T } from '@/src/components/ui';
 import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
+import { BROWSE_LISTED, DISCOVER_TAB_HREF } from '@/src/copy/library';
 import { auditStack, formatWasted } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
@@ -16,6 +17,7 @@ export default function AuditScreen() {
   const audit = useMemo(() => auditStack(app.products), [app.products]);
   const scored = useMemo(() => scoreProducts(app.products), [app.products]);
   const flagCount = audit.limits.length;
+  const hasGaps = audit.duplicates.length > 0 || audit.limits.length > 0 || scored.score < 80;
 
   if (app.products.length === 0) {
     return (
@@ -36,6 +38,13 @@ export default function AuditScreen() {
       <FadeIn>
         <ScoreHero score={scored.score} summary={scored.summary} reasons={scored.reasons} />
       </FadeIn>
+      {hasGaps ? (
+        <Pressable accessibilityRole="link" onPress={() => router.navigate(DISCOVER_TAB_HREF)} style={styles.link}>
+          <T weight="semibold" color={theme.teal}>
+            {BROWSE_LISTED}
+          </T>
+        </Pressable>
+      ) : null}
       <View style={styles.savings}>
         <Pill tone="amber">Possible savings</Pill>
         <T weight="bold" size={32} style={styles.savingsTitle}>

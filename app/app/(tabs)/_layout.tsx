@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { DISCOVER_LABEL } from '@/src/copy/library';
 import { font, theme } from '@/src/theme';
 
 export default function TabLayout() {
@@ -22,6 +23,13 @@ export default function TabLayout() {
         options={{
           title: 'Stack',
           tabBarIcon: ({ color, size }) => <Ionicons name="layers-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="discover"
+        options={{
+          title: DISCOVER_LABEL,
+          tabBarIcon: ({ color, size }) => <Ionicons name="compass-outline" color={typeof color === 'string' ? color : theme.faint} size={size} />,
         }}
       />
       <Tabs.Screen

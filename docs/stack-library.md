@@ -1,6 +1,6 @@
 # Stack library
 
-Discover lists shared stacks that the owner has opted in. A link-only share is the default. It stays out of Discover and the public page stays `noindex`. Listing and indexing use the same switch: List in Discover. Unlisting hides the stack from Discover. Other people's saves are kept and come back if it is listed again.
+Discover is a main tab. It lists shared stacks that the owner has opted in. A link-only share is the default. It stays out of Discover and the public page stays `noindex`. Listing and indexing use the same switch: List in Discover. Unlisting hides the stack from Discover. Other people's saves are kept and come back if it is listed again.
 
 A stack with any ingredient above twice its upper limit, or a product name with a disease word, is not listed.
 
