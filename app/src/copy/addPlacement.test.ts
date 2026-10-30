@@ -10,12 +10,13 @@ function source(relativePath: string): string {
 }
 
 describe('where add controls live', () => {
-  it('keeps the sticky Add bar and the empty-state add control on My Stack', () => {
+  it('keeps a single Add supplement bar on My Stack', () => {
     const stack = source('app/(tabs)/stack.tsx');
     expect(stack).toContain('ADD_SUPPLEMENT_LABEL');
-    expect(stack).toContain('Add a supplement');
     expect(stack).toContain('ADD_SUPPLEMENT_ROUTE');
+    expect(stack).not.toContain('Add a supplement');
     expect(stack).not.toContain('ADD_BUTTON_LABEL');
+    expect(stack.match(/<Button/g)).toHaveLength(1);
   });
 
   it('does not repeat the tab name in a header eyebrow', () => {

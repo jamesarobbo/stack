@@ -79,7 +79,7 @@ The sharing screens do it like this. Copy the pattern instead of decorating.
 ## Where the same pieces show up
 
 - Audit leads with `ScoreHero`, then the amber savings block, then `DoseMeters`. The dose score is the same `scoreProducts` helper the share screen uses. Price is not an input.
-- My Stack keeps the monthly spend as the largest number. A `ScoreBadge` sits under it and opens Audit. Discover and Share stack are text links in the header, at least 44 points tall.
+- My Stack keeps the monthly spend as the largest number. A `ScoreBadge` sits under it and opens Audit. Discover and Share stack are text links in the header, at least 44 points tall. The only add control is the Add supplement bar, including when the stack is empty.
 - Impact leads with deep sleep on `tealSoft`. The other two metrics sit beside each other. The chart bars are taller, and the tag controls are full chip height.
 - The monthly report is titled "Monthly report" with a Pro pill on the same row. Overlap dollars sit on the amber block. That savings score is the Pro dollar figure, not the dose score, so it does not use the teal ring.
 - Onboarding choices that are a sentence stay full-width rows, with a check when selected and a `tealSoft` fill. Age and sex are short, so they use `Chip`. The result step shows `ScoreHero` once there is a product.

@@ -86,9 +86,8 @@ export default function StackScreen() {
               Nothing in your stack yet
             </T>
             <T size={14} color={theme.muted}>
-              Search the NIH label database, scan a barcode, or add a bottle by hand.
+              Search the NIH label database, scan a barcode, or add a bottle by hand. The bar below is the way to add one.
             </T>
-            <Button label="Add a supplement" onPress={openAdd} />
           </Card>
         ) : (
           app.products.map((product) => (

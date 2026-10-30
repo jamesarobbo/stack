@@ -19,7 +19,7 @@ These are fixed. A design pass does not relax them.
 - No emoji, in the product or in code strings.
 - No house icon. The Stack tab uses `layers-outline`. The mark is three white bars in a teal rounded square (the public page `.mark`, and the same mark in `server/src/og.ts`).
 - Main tabs have no page title and no breadcrumb. `headerShown` is false in `app/app/(tabs)/_layout.tsx`. Detail screens keep a title and `BackButton`.
-- One add control. The "Add supplement" bar on My Stack, plus the empty-state line "Add a supplement" on that same screen. Audit, Impact, More, and the report do not add products. Enforced by `app/src/copy/addPlacement.test.ts`.
+- One add control. The "Add supplement" bar on My Stack is the only add control on that screen, including the empty state. Audit, Impact, More, and the report do not add products. Enforced by `app/src/copy/addPlacement.test.ts`.
 - No fake urgency and no fake social proof. No countdown, no "popular", no "copied by 0 people". "Kept by N people" stays hidden below 3.
 - The audit score is doses and overlaps only. It never takes price. The Pro savings figure is a separate dollar amount, and it is the only place amber means money. Formula: `docs/audit-score.md`, implementation: `shared/auditScore.ts`.
 
