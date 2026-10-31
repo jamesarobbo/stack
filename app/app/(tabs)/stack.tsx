@@ -11,12 +11,13 @@ import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
 import { auditStack } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
+import { localToday } from '@/src/dates';
 import { formatMoney } from '@/src/format';
 import { joinMoney } from '../../../shared/money';
 import { isValidTime } from '../../../shared/reminders';
 import { requestReminderAccess } from '@/src/reminders/notify';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 function nowTime(): string {
   const now = new Date();
@@ -35,6 +36,15 @@ export default function StackScreen() {
   const showOffer = app.reminderOffer && app.products.length > 0 && !app.usingSampleData;
   const showCheckIn = app.products.length > 0 && (app.dailyReminder || app.logs.length > 0);
   const showLogToday = app.products.length > 0 && !showCheckIn && !showOffer && !app.logTodayDismissed;
+  const todayKey = localToday();
+  const takenToday = new Set(app.logs.filter((log) => log.day === todayKey).map((log) => log.productId));
+  const takenCount = app.products.reduce((count, product) => count + (takenToday.has(product.id) ? 1 : 0), 0);
+  const logStatus =
+    takenCount === 0
+      ? 'Nothing logged yet today'
+      : takenCount >= app.products.length
+        ? 'All taken today'
+        : `${takenCount} of ${app.products.length} taken today`;
 
   return (
     <View style={styles.screen}>
@@ -66,15 +76,23 @@ export default function StackScreen() {
             <View style={styles.logRow}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Log today"
+                accessibilityLabel={`Log today. ${logStatus}`}
                 onPress={() => router.push('/today')}
                 style={({ pressed }) => [styles.logMain, pressed ? { opacity: 0.88 } : null]}
               >
-                <T weight="semibold">Log today</T>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <T weight="semibold" size={17}>
+                    Log today
+                  </T>
+                  <T size={14} color={theme.muted}>
+                    {logStatus}
+                  </T>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={theme.muted} />
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Dismiss"
+                accessibilityLabel="Dismiss log today"
                 onPress={() => void app.dismissLogToday()}
                 style={({ pressed }) => [styles.logDismiss, pressed ? { opacity: 0.88 } : null]}
               >
@@ -183,9 +201,9 @@ function localStyles(theme: Theme) {
   group: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
   links: { flexDirection: 'row', gap: 16 },
   link: { minHeight: 44, justifyContent: 'center' },
-  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20, gap: 14 },
+  scroll: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, gap: 14 },
   logRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
-  logMain: { flex: 1, minHeight: 44, justifyContent: 'center' },
+  logMain: { flex: 1, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 4 },
   logDismiss: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   spend: { letterSpacing: -1.5, lineHeight: 50 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -199,9 +217,9 @@ function localStyles(theme: Theme) {
     marginTop: 4,
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingHorizontal: space.xl,
+    paddingTop: space.sm,
+    paddingBottom: space.md,
     backgroundColor: theme.bg,
     borderTopWidth: 1,
     borderTopColor: theme.line,
