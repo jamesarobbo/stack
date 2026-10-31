@@ -1,6 +1,7 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { createElement, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
+import { useState } from 'react';
+import { Modal, Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatClock, isValidTime } from '../../../shared/reminders';
 import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
@@ -18,27 +19,38 @@ function timeFromDate(date: Date): string {
 
 /**
  * A clock time the person chose.
- * iOS uses the compact control, which opens the time picker when tapped.
- * Android opens the system dialog. Web uses a time input.
- * Nothing stays on screen as a spinner wheel.
+ * One row shows the label and the value. Tap opens a native sheet on iOS
+ * with a spinner wheel, Cancel, and Done. Android keeps the system dialog.
  */
 export function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (time: string) => void }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   const scheme = useColorScheme();
-  const [open, setOpen] = useState(false);
+  const insets = useSafeAreaInsets();
   const shown = isValidTime(value) ? value : '08:00';
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(shown);
 
-  function commit(date?: Date) {
-    if (!date) return;
+  function openSheet() {
+    setDraft(shown);
+    setOpen(true);
+  }
+
+  function onAndroidChange(event: DateTimePickerEvent, date?: Date) {
+    setOpen(false);
+    if (event.type === 'dismissed' || !date) return;
     const next = timeFromDate(date);
     if (next !== value) onChange(next);
   }
 
-  function onPickerChange(event: DateTimePickerEvent, date?: Date) {
-    if (Platform.OS !== 'ios') setOpen(false);
-    if (event.type === 'dismissed') return;
-    commit(date);
+  function onIosSpin(_event: DateTimePickerEvent, date?: Date) {
+    if (!date) return;
+    setDraft(timeFromDate(date));
+  }
+
+  function confirmIos() {
+    if (isValidTime(draft) && draft !== value) onChange(draft);
+    setOpen(false);
   }
 
   return (
@@ -46,48 +58,50 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
       <T size={16} weight="semibold" style={{ flex: 1 }}>
         {label}
       </T>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${formatClock(shown)}`}
+        accessibilityHint="Opens a time picker"
+        onPress={openSheet}
+        style={({ pressed }) => [styles.value, pressed ? { opacity: 0.85 } : null]}
+      >
+        <T weight="semibold">{formatClock(shown)}</T>
+      </Pressable>
+
+      {Platform.OS === 'android' && open ? (
+        <DateTimePicker value={dateFromTime(shown)} mode="time" display="default" onChange={onAndroidChange} />
+      ) : null}
+
       {Platform.OS === 'ios' ? (
-        <DateTimePicker
-          value={dateFromTime(shown)}
-          mode="time"
-          display="compact"
-          themeVariant={scheme === 'dark' ? 'dark' : 'light'}
-          accentColor={theme.action}
-          accessibilityLabel={label}
-          onChange={onPickerChange}
-        />
-      ) : Platform.OS === 'web' ? (
-        createElement('input', {
-          type: 'time',
-          value: shown,
-          'aria-label': label,
-          onChange: (event: { target: { value: string } }) => {
-            if (isValidTime(event.target.value)) onChange(event.target.value);
-          },
-          style: {
-            backgroundColor: theme.greyPill,
-            color: theme.text,
-            colorScheme: scheme === 'dark' ? 'dark' : 'light',
-            border: 'none',
-            borderRadius: 8,
-            minHeight: 36,
-            padding: '8px 12px',
-            fontSize: 16,
-            fontWeight: '600',
-          },
-        })
-      ) : (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${label}, ${formatClock(shown)}`}
-          onPress={() => setOpen(true)}
-          style={({ pressed }) => [styles.value, pressed ? { opacity: 0.85 } : null]}
-        >
-          <T weight="semibold">{formatClock(shown)}</T>
-        </Pressable>
-      )}
-      {Platform.OS !== 'ios' && Platform.OS !== 'web' && open ? (
-        <DateTimePicker value={dateFromTime(shown)} mode="time" display="default" onChange={onPickerChange} />
+        <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
+          <View style={[styles.sheet, { backgroundColor: theme.bg, paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={[styles.sheetBar, { borderBottomColor: theme.line }]}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Cancel" onPress={() => setOpen(false)} hitSlop={8} style={styles.sheetAction}>
+                <T size={17} color={theme.action}>
+                  Cancel
+                </T>
+              </Pressable>
+              <T weight="semibold" size={17} style={{ flex: 1, textAlign: 'center' }}>
+                {label}
+              </T>
+              <Pressable accessibilityRole="button" accessibilityLabel="Done" onPress={confirmIos} hitSlop={8} style={styles.sheetAction}>
+                <T size={17} weight="semibold" color={theme.action}>
+                  Done
+                </T>
+              </Pressable>
+            </View>
+            <DateTimePicker
+              value={dateFromTime(draft)}
+              mode="time"
+              display="spinner"
+              themeVariant={scheme === 'dark' ? 'dark' : 'light'}
+              accentColor={theme.action}
+              accessibilityLabel={label}
+              onChange={onIosSpin}
+              style={styles.spinner}
+            />
+          </View>
+        </Modal>
       ) : null}
     </View>
   );
@@ -104,5 +118,15 @@ function localStyles(theme: Theme) {
       paddingHorizontal: 12,
       paddingVertical: 8,
     },
+    sheet: { flex: 1 },
+    sheetBar: {
+      minHeight: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    sheetAction: { minWidth: 72, minHeight: 44, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+    spinner: { alignSelf: 'center', width: '100%' },
   });
 }

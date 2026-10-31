@@ -1,16 +1,15 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { createElement, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
+import { useState } from 'react';
+import { Modal, Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clampStartDate, formatUsDate, isoFromLocalDate, localDateFromIso, localToday } from '../dates';
 import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /**
  * Start date for a supplement.
- * One row: the label on the left, the date on the right.
- * iOS uses the compact control, which opens a calendar popover.
- * Android opens the system dialog. Web uses a date input.
- * Nothing stays on screen as a spinner wheel.
+ * One row shows the label and the value. Tap opens a native sheet on iOS
+ * with a spinner wheel, Cancel, and Done. Android keeps the system dialog.
  * The value is YYYY-MM-DD and cannot be after today.
  */
 export function DateField({
@@ -25,19 +24,31 @@ export function DateField({
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   const scheme = useColorScheme();
+  const insets = useSafeAreaInsets();
   const today = localToday();
   const iso = clampStartDate(value, today);
   const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(iso);
 
-  function commit(date?: Date) {
-    if (!date) return;
+  function openSheet() {
+    setDraft(iso);
+    setOpen(true);
+  }
+
+  function onAndroidChange(event: DateTimePickerEvent, date?: Date) {
+    setOpen(false);
+    if (event.type === 'dismissed' || !date) return;
     onChange(clampStartDate(isoFromLocalDate(date), today));
   }
 
-  function onPickerChange(event: DateTimePickerEvent, date?: Date) {
-    if (Platform.OS !== 'ios') setOpen(false);
-    if (event.type === 'dismissed') return;
-    commit(date);
+  function onIosSpin(_event: DateTimePickerEvent, date?: Date) {
+    if (!date) return;
+    setDraft(clampStartDate(isoFromLocalDate(date), today));
+  }
+
+  function confirmIos() {
+    onChange(clampStartDate(draft, today));
+    setOpen(false);
   }
 
   return (
@@ -45,77 +56,60 @@ export function DateField({
       <T size={16} weight="semibold" style={{ flex: 1 }}>
         {label}
       </T>
-      {Platform.OS === 'ios' ? (
-        <DateTimePicker
-          value={localDateFromIso(iso)}
-          mode="date"
-          display="compact"
-          maximumDate={localDateFromIso(today)}
-          themeVariant={scheme === 'dark' ? 'dark' : 'light'}
-          accentColor={theme.action}
-          accessibilityLabel={label}
-          onChange={onPickerChange}
-        />
-      ) : Platform.OS === 'web' ? (
-        <WebDate iso={iso} today={today} label={label} color={theme.text} fill={theme.greyPill} onChange={onChange} />
-      ) : (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${label}, ${formatUsDate(iso)}`}
-          onPress={() => setOpen(true)}
-          style={({ pressed }) => [styles.value, pressed ? { opacity: 0.85 } : null]}
-        >
-          <T weight="semibold">{formatUsDate(iso)}</T>
-        </Pressable>
-      )}
-      {Platform.OS !== 'ios' && Platform.OS !== 'web' && open ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${formatUsDate(iso)}`}
+        accessibilityHint="Opens a date picker"
+        onPress={openSheet}
+        style={({ pressed }) => [styles.value, pressed ? { opacity: 0.85 } : null]}
+      >
+        <T weight="semibold">{formatUsDate(iso)}</T>
+      </Pressable>
+
+      {Platform.OS === 'android' && open ? (
         <DateTimePicker
           value={localDateFromIso(iso)}
           mode="date"
           display="default"
           maximumDate={localDateFromIso(today)}
-          onChange={onPickerChange}
+          onChange={onAndroidChange}
         />
+      ) : null}
+
+      {Platform.OS === 'ios' ? (
+        <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
+          <View style={[styles.sheet, { backgroundColor: theme.bg, paddingBottom: Math.max(insets.bottom, 16) }]}>
+            <View style={[styles.sheetBar, { borderBottomColor: theme.line }]}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Cancel" onPress={() => setOpen(false)} hitSlop={8} style={styles.sheetAction}>
+                <T size={17} color={theme.action}>
+                  Cancel
+                </T>
+              </Pressable>
+              <T weight="semibold" size={17} style={{ flex: 1, textAlign: 'center' }}>
+                {label}
+              </T>
+              <Pressable accessibilityRole="button" accessibilityLabel="Done" onPress={confirmIos} hitSlop={8} style={styles.sheetAction}>
+                <T size={17} weight="semibold" color={theme.action}>
+                  Done
+                </T>
+              </Pressable>
+            </View>
+            <DateTimePicker
+              value={localDateFromIso(draft)}
+              mode="date"
+              display="spinner"
+              maximumDate={localDateFromIso(today)}
+              themeVariant={scheme === 'dark' ? 'dark' : 'light'}
+              accentColor={theme.action}
+              accessibilityLabel={label}
+              onChange={onIosSpin}
+              style={styles.spinner}
+            />
+          </View>
+        </Modal>
       ) : null}
     </View>
   );
-}
-
-function WebDate({
-  iso,
-  today,
-  label,
-  color,
-  fill,
-  onChange,
-}: {
-  iso: string;
-  today: string;
-  label: string;
-  color: string;
-  fill: string;
-  onChange: (iso: string) => void;
-}) {
-  return createElement('input', {
-    type: 'date',
-    value: iso,
-    max: today,
-    'aria-label': label,
-    onChange: (event: Event) => {
-      const next = (event.target as HTMLInputElement).value;
-      if (next) onChange(clampStartDate(next, today));
-    },
-    style: {
-      color,
-      backgroundColor: fill,
-      fontSize: 16,
-      fontWeight: '600',
-      border: 'none',
-      borderRadius: 8,
-      minHeight: 36,
-      padding: '8px 12px',
-    },
-  });
 }
 
 function localStyles(theme: Theme) {
@@ -135,5 +129,15 @@ function localStyles(theme: Theme) {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    sheet: { flex: 1 },
+    sheetBar: {
+      minHeight: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    sheetAction: { minWidth: 72, minHeight: 44, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+    spinner: { alignSelf: 'center', width: '100%' },
   });
 }
