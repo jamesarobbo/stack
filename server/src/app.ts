@@ -15,6 +15,7 @@ import {
 } from './dsld';
 import { OFF_ATTRIBUTION, loadOffUpc, offUserAgent } from './off';
 import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from './revenuecat';
+import { parseIntake } from './intake';
 import { blockCreator, copyCountLabel, intParam, refreshDailyStats, reportShare, searchLibrary, setSaved, syncSearchRow, type LibrarySegment } from './library';
 import { ogImageVersion, ogSvg, publishedResult, renderOgPng, storyImageVersion, storySvg, type OgAssets } from './og';
 import { spendSentence } from '../../shared/money';
@@ -240,6 +241,40 @@ app.put('/v1/sync/stack', async (c) => {
   return c.json({ ok: true, updatedAt: now });
 });
 
+app.put('/v1/sync/intake', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const parsed = parseIntake(await readJson(c));
+  if (!parsed) return c.json({ error: 'Intake payload was not valid.' }, 400);
+  const statements = [
+    ...parsed.logs.map((log) =>
+      c.env.DB.prepare(
+        `INSERT INTO intake_logs (id, user_id, product_id, day, taken_at) VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(user_id, product_id, day) DO UPDATE SET taken_at = excluded.taken_at, id = excluded.id`,
+      ).bind(log.id, user.id, log.productId, log.day, log.takenAt),
+    ),
+    ...parsed.removed.map((item) =>
+      c.env.DB.prepare('DELETE FROM intake_logs WHERE user_id = ? AND product_id = ? AND day = ?').bind(user.id, item.productId, item.day),
+    ),
+  ];
+  if (statements.length > 0) await c.env.DB.batch(statements);
+  return c.json({ ok: true });
+});
+
+app.get('/v1/sync/intake', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const since = new Date(Date.now() - 400 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const rows = await c.env.DB.prepare(
+    'SELECT id, product_id, day, taken_at FROM intake_logs WHERE user_id = ? AND day >= ? ORDER BY day DESC LIMIT 500',
+  )
+    .bind(user.id, since)
+    .all<{ id: string; product_id: string; day: string; taken_at: string }>();
+  return c.json({
+    logs: rows.results.map((row) => ({ id: row.id, productId: row.product_id, day: row.day, takenAt: row.taken_at })),
+  });
+});
+
 app.get('/v1/sync/stack', async (c) => {
   const user = await userFromRequest(c);
   if (!user) return c.json({ error: 'Sign in required.' }, 401);
@@ -359,6 +394,7 @@ app.delete('/v1/account', async (c) => {
     db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id),
     db.prepare('DELETE FROM subscriptions WHERE user_id = ?').bind(user.id),
     db.prepare('DELETE FROM synced_stacks WHERE user_id = ?').bind(user.id),
+    db.prepare('DELETE FROM intake_logs WHERE user_id = ?').bind(user.id),
     db.prepare('DELETE FROM contributed_labels WHERE user_id = ?').bind(user.id),
     db.prepare(`DELETE FROM share_search WHERE share_id IN (${mine})`).bind(user.id),
     db.prepare(`DELETE FROM share_saves WHERE user_id = ? OR share_id IN (${mine})`).bind(user.id, user.id),

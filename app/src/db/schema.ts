@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const products = sqliteTable('products', {
   id: text('id').primaryKey(),
@@ -45,3 +45,21 @@ export const settingsRows = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
 });
+
+export const reminders = sqliteTable('reminders', {
+  id: text('id').primaryKey(),
+  productId: text('product_id').notNull(),
+  time: text('time').notNull(),
+  days: text('days').notNull(),
+});
+
+export const intakeLogs = sqliteTable(
+  'intake_logs',
+  {
+    id: text('id').primaryKey(),
+    productId: text('product_id').notNull(),
+    day: text('day').notNull(),
+    takenAt: text('taken_at').notNull(),
+  },
+  (table) => [uniqueIndex('intake_product_day').on(table.productId, table.day)],
+);

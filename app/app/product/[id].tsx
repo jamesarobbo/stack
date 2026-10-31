@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
+import { RemindersCard } from '@/src/components/RemindersCard';
 import { DoseMeters } from '@/src/components/share';
 import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
@@ -115,6 +116,13 @@ export default function ProductScreen() {
           </View>
         ))}
       </Card>
+      <RemindersCard
+        productId={product.id}
+        reminders={app.reminders}
+        onAdd={(time, days) => app.addReminder(product.id, time, days)}
+        onChange={(id, patch) => app.updateReminder(id, patch)}
+        onRemove={(id) => app.removeReminder(id)}
+      />
       <Button
         label="Remove from stack"
         tone="ghost"

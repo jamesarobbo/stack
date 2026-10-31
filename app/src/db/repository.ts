@@ -1,5 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { isCurrency, type CurrencyCode } from '../../../shared/money';
+import { isValidTime, normalizeDays, type IntakeLog, type Reminder } from '../../../shared/reminders';
 import { buildExample } from '../data/example';
 import { coerceUnit } from '../data/units';
 import { clampStartDate, localToday } from '../dates';
@@ -11,12 +12,14 @@ import { randomId } from '../id';
 import { clearSettings, getSetting, registerSettingsPersistence, setSetting } from '../settings';
 import { sampleSeedAction, shouldClearExampleHealthSource, shouldResetSeededName } from './sampleSeed';
 import { db } from './client';
-import { dayTags, healthSamples, productIngredients, products, settingsRows } from './schema';
+import { dayTags, healthSamples, intakeLogs, productIngredients, products, reminders, settingsRows } from './schema';
 
 export type Snapshot = {
   products: ProductInput[];
   samples: SampleInput[];
   tags: TagInput[];
+  reminders: Reminder[];
+  logs: IntakeLog[];
 };
 
 let persistenceReady = false;
@@ -80,6 +83,8 @@ export async function loadSnapshot(): Promise<Snapshot> {
   const ingredientRows = await db.select().from(productIngredients);
   const sampleRows = await db.select().from(healthSamples);
   const tagRows = await db.select().from(dayTags);
+  const reminderRows = await db.select().from(reminders);
+  const logRows = await db.select().from(intakeLogs);
   const ordered = [...productRows].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   return {
     products: ordered.map((row) => mapProduct(row, ingredientRows)),
@@ -89,6 +94,8 @@ export async function loadSnapshot(): Promise<Snapshot> {
       value: row.value,
     })),
     tags: tagRows.map((row) => ({ date: row.date, kind: row.kind as TagKind })),
+    reminders: reminderRows.map((row) => ({ id: row.id, productId: row.productId, time: row.time, days: row.days })),
+    logs: logRows.map((row) => ({ id: row.id, productId: row.productId, day: row.day, takenAt: row.takenAt })),
   };
 }
 
@@ -175,6 +182,11 @@ export async function loadExample() {
   if (example.tags.length > 0) {
     await db.insert(dayTags).values(example.tags.map((tag) => ({ id: randomId(), date: tag.date, kind: tag.kind })));
   }
+  const keep = new Set(example.products.map((product) => product.id));
+  const reminderRows = await db.select().from(reminders);
+  for (const row of reminderRows) {
+    if (!keep.has(row.productId)) await db.delete(reminders).where(eq(reminders.id, row.id));
+  }
   await setSetting('displayName', 'Alex');
   await setSetting('usingSampleData', '1');
   await setSetting('healthSource', 'example');
@@ -232,7 +244,71 @@ export async function updateIngredientUnit(productId: string, key: string, name:
 export async function removeProduct(id: string) {
   await db.delete(productIngredients).where(eq(productIngredients.productId, id));
   await db.delete(products).where(eq(products.id, id));
+  await db.delete(reminders).where(eq(reminders.productId, id));
+  await db.delete(intakeLogs).where(eq(intakeLogs.productId, id));
   await setSetting('usingSampleData', '0');
+}
+
+export async function addReminder(productId: string, time: string, days: string): Promise<void> {
+  if (!isValidTime(time)) return;
+  const normalized = normalizeDays(days);
+  if (!normalized) return;
+  await db.insert(reminders).values({ id: randomId(), productId, time, days: normalized });
+}
+
+export async function updateReminder(id: string, patch: { time?: string; days?: string }): Promise<void> {
+  const next: { time?: string; days?: string } = {};
+  if (patch.time !== undefined) {
+    if (!isValidTime(patch.time)) return;
+    next.time = patch.time;
+  }
+  if (patch.days !== undefined) {
+    const normalized = normalizeDays(patch.days);
+    if (!normalized) return;
+    next.days = normalized;
+  }
+  if (!next.time && !next.days) return;
+  await db.update(reminders).set(next).where(eq(reminders.id, id));
+}
+
+export async function removeReminder(id: string): Promise<void> {
+  await db.delete(reminders).where(eq(reminders.id, id));
+}
+
+export async function markTaken(productId: string, day: string): Promise<IntakeLog> {
+  const takenAt = new Date().toISOString();
+  const existing = await db
+    .select()
+    .from(intakeLogs)
+    .where(and(eq(intakeLogs.productId, productId), eq(intakeLogs.day, day)));
+  if (existing[0]) {
+    await db.update(intakeLogs).set({ takenAt }).where(eq(intakeLogs.id, existing[0].id));
+    return { id: existing[0].id, productId, day, takenAt };
+  }
+  const id = randomId();
+  await db.insert(intakeLogs).values({ id, productId, day, takenAt });
+  return { id, productId, day, takenAt };
+}
+
+export async function clearTaken(productId: string, day: string): Promise<void> {
+  await db.delete(intakeLogs).where(and(eq(intakeLogs.productId, productId), eq(intakeLogs.day, day)));
+}
+
+export async function mergeIntakeLogs(incoming: IntakeLog[]): Promise<void> {
+  for (const log of incoming) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(log.day)) continue;
+    const existing = await db
+      .select()
+      .from(intakeLogs)
+      .where(and(eq(intakeLogs.productId, log.productId), eq(intakeLogs.day, log.day)));
+    if (!existing[0]) {
+      await db.insert(intakeLogs).values({ id: log.id, productId: log.productId, day: log.day, takenAt: log.takenAt });
+      continue;
+    }
+    if (log.takenAt > existing[0].takenAt) {
+      await db.update(intakeLogs).set({ takenAt: log.takenAt }).where(eq(intakeLogs.id, existing[0].id));
+    }
+  }
 }
 
 export async function addTag(kind: TagKind, date = localToday()) {
@@ -291,6 +367,8 @@ export async function addProducts(list: NewProduct[], options: { replaceIds?: st
     for (const id of options.replaceIds ?? []) {
       tx.delete(productIngredients).where(eq(productIngredients.productId, id)).run();
       tx.delete(products).where(eq(products.id, id)).run();
+      tx.delete(reminders).where(eq(reminders.productId, id)).run();
+      tx.delete(intakeLogs).where(eq(intakeLogs.productId, id)).run();
     }
     list.forEach((input, index) => {
       const id = randomId();
@@ -334,6 +412,8 @@ export async function addProducts(list: NewProduct[], options: { replaceIds?: st
 export async function deleteLocalData() {
   await db.delete(productIngredients);
   await db.delete(products);
+  await db.delete(reminders);
+  await db.delete(intakeLogs);
   await db.delete(healthSamples);
   await db.delete(dayTags);
   await db.delete(settingsRows);
@@ -347,6 +427,8 @@ export async function exportPayload() {
     exportedAt: new Date().toISOString(),
     note: 'Educational export of what you logged on this device. Not a medical record.',
     products: snapshot.products,
+    reminders: snapshot.reminders,
+    intakeLogs: snapshot.logs,
     healthSamples: snapshot.samples,
     dayTags: snapshot.tags,
   };
@@ -355,6 +437,11 @@ export async function exportPayload() {
 export async function replaceProductsFromSync(incoming: ProductInput[]) {
   await db.delete(productIngredients);
   await db.delete(products);
+  const keep = new Set(incoming.map((product) => product.id));
+  const reminderRows = await db.select().from(reminders);
+  for (const row of reminderRows) {
+    if (!keep.has(row.productId)) await db.delete(reminders).where(eq(reminders.id, row.id));
+  }
   for (let index = 0; index < incoming.length; index += 1) {
     const product = incoming[index];
     if (!product) continue;

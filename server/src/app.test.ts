@@ -48,6 +48,29 @@ describe('email auth and sync', () => {
     expect(users.n).toBe(0);
   });
 
+  it('syncs a taken tick and drops it with the account', async () => {
+    const { env, sqlite } = createTestEnv();
+    const token = await signIn(env, 'taken@example.com');
+    expect((await request(env, '/v1/sync/intake')).status).toBe(401);
+    const saved = await request(env, '/v1/sync/intake', {
+      method: 'PUT',
+      token,
+      body: { logs: [{ id: 'log-1', productId: 'mag', day: '2026-10-31', takenAt: '2026-10-31T08:00:00.000Z' }] },
+    });
+    expect(saved.status).toBe(200);
+    const listed = await json<{ logs: { id: string; productId: string; day: string }[] }>(await request(env, '/v1/sync/intake', { token }));
+    expect(listed.logs[0]).toMatchObject({ id: 'log-1', productId: 'mag', day: '2026-10-31' });
+    const rejected = await request(env, '/v1/sync/intake', {
+      method: 'PUT',
+      token,
+      body: { logs: [{ id: 'bad', productId: 'mag', day: 'yesterday', takenAt: '2026-10-31T08:00:00.000Z' }] },
+    });
+    expect(rejected.status).toBe(400);
+    await request(env, '/v1/account', { method: 'DELETE', token });
+    const left = sqlite.prepare('SELECT COUNT(*) AS n FROM intake_logs').get() as { n: number };
+    expect(left.n).toBe(0);
+  });
+
   it('never returns the code from a deployed Worker', async () => {
     const { env } = createTestEnv({ ENVIRONMENT: 'production' });
     const local = await json<{ devCode?: string }>(await request(env, '/v1/auth/email/start', { method: 'POST', body: { email: 'a@b.co' } }));

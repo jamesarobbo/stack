@@ -100,6 +100,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         barcodeScannerEnabled: true,
       },
     ],
+    [
+      'expo-notifications',
+      {
+        color: '#0066CC',
+        enableRemoteNotifications: false,
+      },
+    ],
   ],
   experiments: {
     typedRoutes: false,

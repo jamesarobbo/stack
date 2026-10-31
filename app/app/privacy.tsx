@@ -22,7 +22,7 @@ export default function PrivacyScreen() {
       <Card>
         <T weight="semibold">What an account stores</T>
         <T size={14} color={theme.muted}>
-          After you sign in, the supplement list you entered can sync: names, label amounts, price and its currency, servings, and start dates. You can delete that account from Settings. Deleting local data is separate and clears this device.
+          After you sign in, the supplement list you entered can sync: names, label amounts, price and its currency, servings, and start dates. If you mark a reminder as taken, that tick syncs as the product and the date, not a dose. Reminder times stay on this phone. You can delete that account from Settings. Deleting local data is separate and clears this device.
         </T>
       </Card>
       <Card>

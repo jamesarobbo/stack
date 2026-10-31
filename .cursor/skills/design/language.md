@@ -76,6 +76,10 @@ A product shows one row for the start date: the label on the left, the date on t
 
 Currency is chosen in More, then Settings. It starts from the device locale and falls back to US dollars. Prices and savings stay gold. A public page shows the monthly total in the currency it was entered in. Discover cards do not show a price. Nothing is converted.
 
+## Reminders
+
+A product starts with reminders off. The person adds a time, and the picker opens only when that time is tapped. Days default to every day. Today appears at the top of My Stack only when a reminder exists. The words do not suggest a dose or a schedule. Notification permission is asked only after a short explanation, the first time a reminder is turned on.
+
 ## Native config
 
 `userInterfaceStyle: 'automatic'`, the splash background `#F2F2F7`, and the Android adaptive icon background `#F2F2F7` are native. A shipped binary keeps the old values until a new build. Over the air, dark mode follows the system only where the binary already reports it (web, Expo Go, or a build that includes this config).

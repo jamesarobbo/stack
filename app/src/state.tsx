@@ -1,26 +1,36 @@
+import { router } from 'expo-router';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Platform } from 'react-native';
+import { AppState as DeviceState, Platform } from 'react-native';
 import { api, stackSyncBody } from './api';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from './domain/types';
+import { localToday } from './dates';
 import {
   addProduct,
   addProducts,
+  addReminder as insertReminder,
   addTag,
+  clearTaken,
   connectHealth,
   deleteLocalData,
   exportPayload,
   loadExample,
   loadSnapshot,
+  markTaken,
+  mergeIntakeLogs,
   prepareSettings,
   removeProduct,
+  removeReminder as deleteReminder,
   replaceProductsFromSync,
   updateIngredientUnit,
   updateProductPrice,
   updateProductStartDate,
+  updateReminder as patchReminder,
   clearUntouchedSampleOnce,
   refreshHealthIfStale,
   type NewProduct,
 } from './db/repository';
+import type { IntakeLog, Reminder } from '../../shared/reminders';
+import { syncSchedule, watchReminders } from './reminders/notify';
 import { configurePurchases, purchasePlan, restorePurchases, revenueCatIsPro, type PurchaseResult } from './purchases';
 import { syncProfile } from './data/profile';
 import { flushPendingCopies, submitCopierResults } from './data/sharing';
@@ -35,6 +45,8 @@ type AppState = {
   products: ProductInput[];
   samples: SampleInput[];
   tags: TagInput[];
+  reminders: Reminder[];
+  logs: IntakeLog[];
   displayName: string;
   usingSampleData: boolean;
   healthSource: string | null;
@@ -67,6 +79,10 @@ type AppState = {
   setStartDate: (id: string, startDate: string) => Promise<void>;
   setIngredientUnit: (productId: string, key: string, name: string, unit: string) => Promise<void>;
   setPrice: (id: string, priceCents: number) => Promise<void>;
+  addReminder: (productId: string, time: string, days: string) => Promise<void>;
+  updateReminder: (id: string, patch: { time?: string; days?: string }) => Promise<void>;
+  removeReminder: (id: string) => Promise<void>;
+  toggleTaken: (productId: string, day: string, taken: boolean) => Promise<void>;
   setCurrency: (code: string) => Promise<void>;
   logTag: (kind: TagKind) => Promise<void>;
   setPreviewPro: (on: boolean) => Promise<void>;
@@ -106,6 +122,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<ProductInput[]>([]);
   const [samples, setSamples] = useState<SampleInput[]>([]);
   const [tags, setTags] = useState<TagInput[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [logs, setLogs] = useState<IntakeLog[]>([]);
   const [flags, setFlags] = useState(readFlags);
   const [rcPro, setRcPro] = useState(false);
   const [syncNote, setSyncNote] = useState<string | null>(null);
@@ -115,6 +133,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProducts(snapshot.products);
     setSamples(snapshot.samples);
     setTags(snapshot.tags);
+    setReminders(snapshot.reminders);
+    setLogs(snapshot.logs);
     setFlags(readFlags());
     return snapshot;
   }, []);
@@ -157,9 +177,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [applySnapshot]);
 
+  const pushIntake = useCallback(async (body: { logs?: IntakeLog[]; removed?: { productId: string; day: string }[] }) => {
+    const token = getSetting('sessionToken');
+    if (!token) return;
+    try {
+      await api('/v1/sync/intake', { method: 'PUT', token, body });
+      setSyncNote(null);
+    } catch (error) {
+      setSyncNote(error instanceof Error ? error.message : 'Sync failed');
+    }
+  }, []);
+
+  const pullIntake = useCallback(async () => {
+    const token = getSetting('sessionToken');
+    if (!token) return;
+    const result = await api<{ logs: IntakeLog[] }>('/v1/sync/intake', { token });
+    await mergeIntakeLogs(result.logs ?? []);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+    void (async () => {
+      if (getSetting('sessionToken')) {
+        await pullIntake().catch(() => undefined);
+        if (!cancelled) await applySnapshot();
+      }
+      const snapshot = await loadSnapshot();
+      await syncSchedule(snapshot.reminders, snapshot.products);
+    })();
+    const stop = watchReminders((event) => {
+      void (async () => {
+        if (event.taken) {
+          const day = localToday();
+          for (const productId of event.productIds) {
+            const log = await markTaken(productId, day);
+            await pushIntake({ logs: [log] });
+          }
+          await applySnapshot();
+        }
+        router.push('/today');
+      })();
+    });
+    const subscription = DeviceState.addEventListener('change', (state) => {
+      if (state !== 'active') return;
+      void loadSnapshot().then((snapshot) => syncSchedule(snapshot.reminders, snapshot.products));
+    });
+    return () => {
+      cancelled = true;
+      stop();
+      subscription.remove();
+    };
+  }, [applySnapshot, pullIntake, pushIntake, ready]);
+
   const afterWrite = useCallback(async () => {
     const snapshot = await applySnapshot();
     await pushSilent(snapshot.products);
+    await syncSchedule(snapshot.reminders, snapshot.products);
   }, [applySnapshot, pushSilent]);
 
   const value = useMemo<AppState>(() => {
@@ -170,6 +244,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       products,
       samples,
       tags,
+      reminders,
+      logs,
       ...flags,
       isPro,
       syncNote,
@@ -216,6 +292,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await updateProductPrice(id, priceCents, getCurrency());
         await afterWrite();
       },
+      addReminder: async (productId, time, days) => {
+        await insertReminder(productId, time, days);
+        const snapshot = await applySnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
+      },
+      updateReminder: async (id, patch) => {
+        await patchReminder(id, patch);
+        const snapshot = await applySnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
+      },
+      removeReminder: async (id) => {
+        await deleteReminder(id);
+        const snapshot = await applySnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
+      },
+      toggleTaken: async (productId, day, taken) => {
+        if (taken) {
+          await clearTaken(productId, day);
+          await pushIntake({ removed: [{ productId, day }] });
+        } else {
+          const log = await markTaken(productId, day);
+          await pushIntake({ logs: [log] });
+        }
+        await applySnapshot();
+      },
       setCurrency: async (code) => {
         if (!isCurrency(code) || code === getCurrency()) return;
         await setSetting('currency', code);
@@ -241,10 +342,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await ensureCurrency();
         setRcPro(false);
         await applySnapshot();
+        await syncSchedule([], []);
       },
       restoreExample: async () => {
         await loadExample();
-        await applySnapshot();
+        const snapshot = await applySnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
       },
       sendEmailCode: async (email) => {
         const result = await api<{ devCode?: string }>('/v1/auth/email/start', {
@@ -265,7 +368,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await applySnapshot();
         await syncProfile(result.token).catch(() => undefined);
         await pushSilent(products);
+        await pullIntake().catch(() => undefined);
+        await applySnapshot();
         await flushPendingCopies(result.token, products).catch(() => undefined);
+        const snapshot = await loadSnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
         track('sign_in', { method: 'email' });
       },
       signInWithApple: async () => {
@@ -292,7 +399,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await applySnapshot();
         await syncProfile(result.token).catch(() => undefined);
         await pushSilent(products);
+        await pullIntake().catch(() => undefined);
+        await applySnapshot();
         await flushPendingCopies(result.token, products).catch(() => undefined);
+        const snapshot = await loadSnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
         track('sign_in', { method: 'apple' });
       },
       signOut: async () => {
@@ -304,6 +415,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await setSetting('userId', '');
         await setSetting('email', '');
         await applySnapshot();
+        const snapshot = await loadSnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
       },
       deleteAccount: async () => {
         const token = getSetting('sessionToken');
@@ -313,6 +426,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await setSetting('userId', '');
         await setSetting('email', '');
         await applySnapshot();
+        const snapshot = await loadSnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
       },
       uploadStack: async () => {
         await pushSilent(products);
@@ -322,7 +437,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!token) throw new Error('Sign in first.');
         const result = await api<{ products: ProductInput[] }>('/v1/sync/stack', { token });
         await replaceProductsFromSync(result.products ?? []);
-        await applySnapshot();
+        const snapshot = await applySnapshot();
+        await syncSchedule(snapshot.reminders, snapshot.products);
       },
       buy: async (plan) => {
         const result = await purchasePlan(plan);
@@ -336,7 +452,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return restored;
       },
     };
-  }, [afterWrite, applySnapshot, bootError, flags, products, pushSilent, rcPro, ready, refresh, samples, syncNote, tags]);
+  }, [afterWrite, applySnapshot, bootError, flags, logs, products, pullIntake, pushIntake, pushSilent, rcPro, ready, refresh, reminders, samples, syncNote, tags]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreBadge } from '@/src/components/share';
+import { TodayList } from '@/src/components/TodayList';
 import { Card, Pill, ProductRow, ShareButton, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
@@ -38,6 +39,16 @@ export default function StackScreen() {
         </T>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {app.reminders.length > 0 ? (
+          <Card>
+            <TodayList
+              reminders={app.reminders}
+              products={app.products}
+              logs={app.logs}
+              onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
+            />
+          </Card>
+        ) : null}
         <Card>
           <T size={13} color={theme.muted}>
             Estimated monthly spend
