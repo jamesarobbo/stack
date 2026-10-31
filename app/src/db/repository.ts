@@ -241,6 +241,15 @@ export async function updateIngredientUnit(productId: string, key: string, name:
   await setSetting('usingSampleData', '0');
 }
 
+export async function updateIngredientAmount(productId: string, key: string, name: string, amount: number) {
+  const next = Number.isFinite(amount) && amount > 0 ? amount : 0;
+  await db
+    .update(productIngredients)
+    .set({ amount: next })
+    .where(and(eq(productIngredients.productId, productId), eq(productIngredients.key, key), eq(productIngredients.name, name)));
+  await setSetting('usingSampleData', '0');
+}
+
 export async function removeProduct(id: string) {
   await db.delete(productIngredients).where(eq(productIngredients.productId, id));
   await db.delete(products).where(eq(products.id, id));

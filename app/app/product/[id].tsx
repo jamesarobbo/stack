@@ -4,11 +4,12 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
 import { DoseMeters } from '@/src/components/share';
 import { UnitField } from '@/src/components/UnitField';
+import type { UnitOption } from '@/src/data/units';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { applyScreenExit } from '@/src/navigation/exit';
 import { monthlyCostCents } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
-import { formatMoney, formatNumber } from '@/src/format';
+import { formatMoney } from '@/src/format';
 import { currencyOf } from '../../../shared/money';
 import { useApp } from '@/src/state';
 import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
@@ -102,20 +103,20 @@ export default function ProductScreen() {
           }}
         />
         {product.ingredients.map((ingredient) => (
-          <View key={`${ingredient.key}-${ingredient.name}`} style={{ gap: 6 }}>
-            <T size={14} weight="semibold">
-              {ingredient.name}
-            </T>
-            <T size={13} color={theme.muted}>
-              {formatNumber(ingredient.amount, ingredient.amount < 1 ? 1 : 0)}
-            </T>
-            <UnitField
-              value={ingredient.unit}
-              onChange={(unit) => {
-                if (unit !== ingredient.unit) void app.setIngredientUnit(product.id, ingredient.key, ingredient.name, unit);
-              }}
-            />
-          </View>
+          <IngredientDose
+            key={`${ingredient.key}-${ingredient.name}`}
+            name={ingredient.name}
+            amount={ingredient.amount}
+            unit={ingredient.unit}
+            onAmount={(amount) => {
+              if (amount !== ingredient.amount) void app.setIngredientAmount(product.id, ingredient.key, ingredient.name, amount);
+            }}
+            onUnit={(unit) => {
+              if (unit !== ingredient.unit) void app.setIngredientUnit(product.id, ingredient.key, ingredient.name, unit);
+            }}
+            styles={styles}
+            theme={theme}
+          />
         ))}
       </Card>
       <Button
@@ -131,10 +132,75 @@ export default function ProductScreen() {
   );
 }
 
+function IngredientDose({
+  name,
+  amount,
+  unit,
+  onAmount,
+  onUnit,
+  styles,
+  theme,
+}: {
+  name: string;
+  amount: number;
+  unit: string;
+  onAmount: (amount: number) => void;
+  onUnit: (unit: UnitOption) => void;
+  styles: ReturnType<typeof localStyles>;
+  theme: Theme;
+}) {
+  const [text, setText] = useState(amount ? String(amount) : '');
+  return (
+    <View style={{ gap: 6 }}>
+      <T size={14} weight="semibold">
+        {name}
+      </T>
+      <View style={styles.doseRow}>
+        <TextInput
+          value={text}
+          onChangeText={setText}
+          onBlur={() => {
+            const next = Number(text);
+            if (!Number.isFinite(next) || next <= 0) {
+              setText(amount ? String(amount) : '');
+              return;
+            }
+            onAmount(next);
+          }}
+          keyboardType="decimal-pad"
+          inputMode="decimal"
+          returnKeyType="done"
+          clearButtonMode="while-editing"
+          accessibilityLabel={`${name} amount`}
+          placeholder="0"
+          placeholderTextColor={theme.muted}
+          style={styles.doseAmount}
+        />
+        <UnitField compact value={unit} onChange={onUnit} />
+      </View>
+    </View>
+  );
+}
+
+
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8 },
   price: { letterSpacing: -1.2, lineHeight: 42 },
+  doseRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  doseAmount: {
+    flex: 1,
+    minHeight: 44,
+    backgroundColor: theme.bg,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.line,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    fontWeight: font.semibold,
+    color: theme.text,
+  },
   input: {
     minHeight: 48,
     backgroundColor: theme.bg,

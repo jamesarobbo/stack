@@ -4,25 +4,29 @@ import { coerceUnit, UNIT_OPTIONS, type UnitOption } from '../data/units';
 import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
-/** Web uses a native select. */
+/** Web uses a native select. compact hides the Unit label for amount rows. */
 export function UnitField({
   label = 'Unit',
   value,
   onChange,
+  compact = false,
 }: {
   label?: string;
   value: string;
   onChange: (unit: UnitOption) => void;
+  compact?: boolean;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   const selected = coerceUnit(value);
 
   return (
-    <View style={styles.wrap}>
-      <T size={12} weight="semibold" color={theme.muted}>
-        {label}
-      </T>
+    <View style={compact ? styles.compactWrap : styles.wrap}>
+      {compact ? null : (
+        <T size={12} weight="semibold" color={theme.muted}>
+          {label}
+        </T>
+      )}
       {createElement(
         'select',
         {
@@ -30,15 +34,15 @@ export function UnitField({
           value: selected,
           onChange: (event: { target: { value: string } }) => onChange(coerceUnit(event.target.value)),
           style: {
-            backgroundColor: theme.card,
+            backgroundColor: compact ? theme.greyPill : theme.card,
             color: theme.text,
-            border: `1px solid ${theme.line}`,
-            borderRadius: 12,
+            border: compact ? 'none' : `1px solid ${theme.line}`,
+            borderRadius: compact ? 10 : 12,
             minHeight: 44,
-            padding: '10px 12px',
+            padding: compact ? '10px 12px' : '10px 12px',
             fontSize: 16,
             fontWeight: 600,
-            width: '100%',
+            width: compact ? 'auto' : '100%',
           },
         },
         UNIT_OPTIONS.map((option) => createElement('option', { key: option, value: option }, option)),
@@ -50,5 +54,6 @@ export function UnitField({
 function localStyles(_theme: Theme) {
   return StyleSheet.create({
     wrap: { gap: 4 },
+    compactWrap: { alignSelf: 'stretch' },
   });
 }

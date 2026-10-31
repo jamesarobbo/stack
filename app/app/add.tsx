@@ -443,13 +443,21 @@ function ManualAdd({
       {ingredients.map((ingredient, index) => (
         <Card key={`${ingredient.key}-${index}`}>
           <Field label="Name" value={ingredient.name} onChangeText={(value) => update(index, { name: value, key: slug(value) })} placeholder="Magnesium" />
-          <Field
-            label="Amount"
-            value={ingredient.amount ? String(ingredient.amount) : ''}
-            onChangeText={(value) => update(index, { amount: Number(value) || 0 })}
-            keyboard="decimal-pad"
-          />
-          <UnitField value={ingredient.unit} onChange={(unit) => update(index, { unit })} />
+          <View style={styles.doseRow}>
+            <TextInput
+              value={ingredient.amount ? String(ingredient.amount) : ''}
+              onChangeText={(value) => update(index, { amount: Number(value) || 0 })}
+              placeholder="Amount"
+              placeholderTextColor={theme.faint}
+              keyboardType="decimal-pad"
+              inputMode="decimal"
+              returnKeyType="done"
+              clearButtonMode="while-editing"
+              accessibilityLabel="Amount"
+              style={styles.doseAmount}
+            />
+            <UnitField compact value={ingredient.unit} onChange={(unit) => update(index, { unit })} />
+          </View>
         </Card>
       ))}
       <Pressable
@@ -631,6 +639,20 @@ function localStyles(theme: Theme) {
     gap: 8,
     paddingVertical: 14,
     paddingHorizontal: 16,
+  },
+  doseRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  doseAmount: {
+    flex: 1,
+    minHeight: 44,
+    backgroundColor: theme.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.line,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontWeight: font.semibold,
+    fontSize: 16,
+    color: theme.text,
   },
   input: {
     backgroundColor: theme.card,

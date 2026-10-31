@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useCallback } from 'react';
 import { ActionSheetIOS, Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -6,17 +7,20 @@ import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /**
- * Ingredient unit. One row that opens a system menu.
- * iOS uses ActionSheetIOS. Android uses the native dropdown picker.
+ * Ingredient unit. Opens a system menu.
+ * compact: a short button for amount+unit rows (no Unit label).
+ * Full: labeled field for rare standalone use.
  */
 export function UnitField({
   label = 'Unit',
   value,
   onChange,
+  compact = false,
 }: {
   label?: string;
   value: string;
   onChange: (unit: UnitOption) => void;
+  compact?: boolean;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
@@ -39,6 +43,24 @@ export function UnitField({
   }, [onChange, theme.bg]);
 
   if (Platform.OS === 'android') {
+    if (compact) {
+      return (
+        <View style={styles.compactAndroid}>
+          <Picker
+            selectedValue={selected}
+            onValueChange={(next) => onChange(coerceUnit(String(next)))}
+            mode="dropdown"
+            accessibilityLabel="Unit"
+            dropdownIconColor={theme.muted}
+            style={styles.compactAndroidPicker}
+          >
+            {UNIT_OPTIONS.map((option) => (
+              <Picker.Item key={option} label={option} value={option} color={theme.text} />
+            ))}
+          </Picker>
+        </View>
+      );
+    }
     return (
       <View style={styles.wrap}>
         <T size={12} weight="semibold" color={theme.muted}>
@@ -62,6 +84,21 @@ export function UnitField({
     );
   }
 
+  if (compact) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Unit, ${selected}`}
+        accessibilityHint="Opens a menu of units"
+        onPress={openIos}
+        style={({ pressed }) => [styles.compact, pressed ? { opacity: 0.88 } : null]}
+      >
+        <T weight="semibold">{selected}</T>
+        <Ionicons name="chevron-down" size={16} color={theme.muted} />
+      </Pressable>
+    );
+  }
+
   return (
     <View style={styles.wrap}>
       <T size={12} weight="semibold" color={theme.muted}>
@@ -75,9 +112,7 @@ export function UnitField({
         style={({ pressed }) => [styles.field, pressed ? { opacity: 0.88 } : null]}
       >
         <T weight="semibold">{selected}</T>
-        <T size={13} color={theme.muted}>
-          Change
-        </T>
+        <Ionicons name="chevron-down" size={16} color={theme.muted} />
       </Pressable>
     </View>
   );
@@ -97,6 +132,28 @@ function localStyles(theme: Theme) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 12,
+    },
+    compact: {
+      backgroundColor: theme.greyPill,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      alignSelf: 'stretch',
+    },
+    compactAndroid: {
+      backgroundColor: theme.greyPill,
+      borderRadius: 10,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      minHeight: 44,
+      minWidth: 88,
+    },
+    compactAndroidPicker: {
+      width: 110,
+      color: theme.text,
     },
     androidField: {
       backgroundColor: theme.card,

@@ -19,6 +19,7 @@ import {
   removeProduct,
   replaceProductsFromSync,
   updateIngredientUnit,
+  updateIngredientAmount,
   updateProductPrice,
   updateProductStartDate,
   clearUntouchedSampleOnce,
@@ -76,6 +77,7 @@ type AppState = {
   remove: (id: string) => Promise<void>;
   setStartDate: (id: string, startDate: string) => Promise<void>;
   setIngredientUnit: (productId: string, key: string, name: string, unit: string) => Promise<void>;
+  setIngredientAmount: (productId: string, key: string, name: string, amount: number) => Promise<void>;
   setPrice: (id: string, priceCents: number) => Promise<void>;
   setDailyReminder: (on: boolean, time?: string) => Promise<void>;
   setDailyReminderTime: (time: string) => Promise<void>;
@@ -291,6 +293,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       setIngredientUnit: async (productId, key, name, unit) => {
         await updateIngredientUnit(productId, key, name, unit);
+        await afterWrite();
+      },
+      setIngredientAmount: async (productId, key, name, amount) => {
+        await updateIngredientAmount(productId, key, name, amount);
         await afterWrite();
       },
       setPrice: async (id, priceCents) => {
