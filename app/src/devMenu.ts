@@ -5,26 +5,34 @@ type DevMenuModule = {
   setToolsButtonVisible?: (visible: boolean) => void;
 };
 
-async function load(): Promise<DevMenuModule | null> {
+function devMenu(): DevMenuModule | null {
   if (Platform.OS === 'web') return null;
   try {
-    return (await import('expo-dev-menu')) as DevMenuModule;
+    // Optional native module. A dynamic import lets the gear paint before the hide runs.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-dev-menu') as DevMenuModule;
   } catch {
     return null;
   }
 }
 
-/** Hide Expo's blue floating gear. It sits on top of headers. Tools stay in More. */
+/** Hide Expo's blue floating gear as soon as this module loads, and again when the app is active. Tools stay in More. */
 export function hideFloatingDevTools() {
-  void load()
-    .then((menu) => menu?.setToolsButtonVisible?.(false))
-    .catch(() => undefined);
+  try {
+    devMenu()?.setToolsButtonVisible?.(false);
+  } catch {
+    /* The web stub throws. A release build may not include the menu. */
+  }
 }
 
+hideFloatingDevTools();
+
 export function openDevTools() {
-  void load()
-    .then((menu) => menu?.openMenu?.())
-    .catch(() => undefined);
+  try {
+    devMenu()?.openMenu?.();
+  } catch {
+    /* absent on web and some builds */
+  }
 }
 
 export function devToolsInProfile() {
