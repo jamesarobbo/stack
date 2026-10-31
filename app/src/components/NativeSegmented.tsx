@@ -24,7 +24,7 @@ const SegmentedControl = RNSegmentedControl as unknown as ComponentType<Segmente
 /**
  * Short exclusive choice set.
  * Uses the system segmented control on iOS and Android (Expo Go).
- * No outer grey container — only the native control's own track.
+ * No outer grey container - only the native control's own track.
  * Web keeps a simple row of buttons with the same API.
  */
 export function NativeSegmented<K extends string>({
@@ -87,7 +87,7 @@ export function NativeSegmented<K extends string>({
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-    // No outer wrapper. Stretch only — track color comes from backgroundColor prop.
+    // No outer wrapper. Stretch only - track color comes from backgroundColor prop.
     control: {
       alignSelf: 'stretch',
     },

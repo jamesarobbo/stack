@@ -14,7 +14,7 @@ import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /**
- * Read-only month history of logged days. Month browse only — days are not
+ * Read-only month history of logged days. Month browse only - days are not
  * selectable for logging (logging is always the device's local today).
  */
 export function MonthCalendar({
