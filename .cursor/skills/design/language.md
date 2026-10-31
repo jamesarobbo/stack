@@ -78,7 +78,7 @@ Currency is chosen in More, then Settings. It starts from the device locale and 
 
 ## Reminders
 
-A product starts with reminders off. The person adds a time, and the picker opens only when that time is tapped. Days default to every day. Today appears at the top of My Stack only when a reminder exists. The words do not suggest a dose or a schedule. Notification permission is asked only after a short explanation, the first time a reminder is turned on.
+One daily reminder for the whole app, off until the person turns it on in More, then Settings. The time picker opens only when that row is tapped, and only after the reminder is on. The notification says "Log what you took today". Today lists every supplement, with a Taken tick and All taken. It sits at the top of My Stack when the stack has products. A quiet line counts days logged in a row. Permission is asked only after a short explanation, the first time the reminder is turned on. The words do not suggest a dose or a time. Adding the first supplement can offer this once.
 
 ## Native config
 

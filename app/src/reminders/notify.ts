@@ -1,11 +1,12 @@
 import { Platform } from 'react-native';
-import { notificationSlots, reminderTitle, type Reminder, type ReminderSlot } from '../../../shared/reminders';
+import { DAILY_REMINDER_TEXT, isValidTime } from '../../../shared/reminders';
 
 export type ReminderAccess = 'granted' | 'denied' | 'unavailable';
 
 type NotificationsModule = typeof import('expo-notifications');
 
 const PREFIX = 'stack-';
+const IDENTIFIER = 'stack-daily';
 let loaded: NotificationsModule | null | undefined;
 let handlerReady = false;
 
@@ -38,13 +39,6 @@ async function prepare(Notifications: NotificationsModule): Promise<void> {
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
-  await Notifications.setNotificationCategoryAsync('stack-reminder', [
-    {
-      identifier: 'mark-taken',
-      buttonTitle: 'Mark as taken',
-      options: { opensAppToForeground: true },
-    },
-  ]);
 }
 
 export async function readReminderAccess(): Promise<ReminderAccess> {
@@ -73,59 +67,41 @@ export async function requestReminderAccess(): Promise<ReminderAccess> {
   }
 }
 
-export async function applySchedule(slots: ReminderSlot[]): Promise<void> {
+/** One local notification a day, or none. Cancels any older per-product reminders. */
+export async function syncDailyReminder(enabled: boolean, time: string | null): Promise<void> {
   const Notifications = await load();
   if (!Notifications) return;
   try {
-    const access = await readReminderAccess();
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     await Promise.all(
       scheduled.filter((item) => item.identifier.startsWith(PREFIX)).map((item) => Notifications.cancelScheduledNotificationAsync(item.identifier)),
     );
+    if (!enabled || !time || !isValidTime(time)) return;
+    const access = await readReminderAccess();
     if (access !== 'granted') return;
     await prepare(Notifications);
-    const limited = slots.slice(0, 60);
-    for (const slot of limited) {
-      const [hour, minute] = slot.time.split(':').map(Number);
-      const identifier = `${PREFIX}${slot.time.replace(':', '')}-${slot.weekday ?? 'd'}`;
-      await Notifications.scheduleNotificationAsync({
-        identifier,
-        content: {
-          title: reminderTitle(slot.names),
-          categoryIdentifier: 'stack-reminder',
-          data: { productIds: slot.productIds },
-        },
-        trigger:
-          slot.weekday == null
-            ? { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute, channelId: 'reminders' }
-            : {
-                type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-                weekday: slot.weekday + 1,
-                hour,
-                minute,
-                channelId: 'reminders',
-              },
-      });
-    }
+    const [hour, minute] = time.split(':').map(Number);
+    await Notifications.scheduleNotificationAsync({
+      identifier: IDENTIFIER,
+      content: {
+        title: DAILY_REMINDER_TEXT,
+        data: { screen: 'today' },
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute, channelId: 'reminders' },
+    });
   } catch {
-    // The native module is absent until a new build. Keep the saved times.
+    // The native module is absent until a new build. The saved choice stays.
   }
 }
 
-export async function syncSchedule(reminders: Reminder[], products: { id: string; name: string }[]): Promise<void> {
-  await applySchedule(notificationSlots(reminders, products));
-}
-
-export function watchReminders(onResponse: (event: { productIds: string[]; taken: boolean }) => void): () => void {
+export function watchReminders(onOpen: () => void): () => void {
   let remove: () => void = () => undefined;
   let cancelled = false;
   void load().then((Notifications) => {
     if (!Notifications || cancelled) return;
     try {
-      const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-        const data = response.notification.request.content.data as { productIds?: unknown };
-        const productIds = Array.isArray(data?.productIds) ? data.productIds.filter((id): id is string => typeof id === 'string') : [];
-        onResponse({ productIds, taken: response.actionIdentifier === 'mark-taken' });
+      const subscription = Notifications.addNotificationResponseReceivedListener(() => {
+        onOpen();
       });
       remove = () => subscription.remove();
     } catch {

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreBadge } from '@/src/components/share';
+import { ReminderOffer } from '@/src/components/DailyReminderCard';
 import { TodayList } from '@/src/components/TodayList';
 import { Card, Pill, ProductRow, ShareButton, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
@@ -12,8 +13,15 @@ import { auditStack } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
 import { formatMoney } from '@/src/format';
 import { joinMoney } from '../../../shared/money';
+import { isValidTime } from '../../../shared/reminders';
+import { requestReminderAccess } from '@/src/reminders/notify';
 import { useApp } from '@/src/state';
 import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+
+function nowTime(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
 
 export default function StackScreen() {
   const theme = useTheme();
@@ -39,15 +47,28 @@ export default function StackScreen() {
         </T>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {app.reminders.length > 0 ? (
+        {app.products.length > 0 ? (
           <Card>
             <TodayList
-              reminders={app.reminders}
               products={app.products}
               logs={app.logs}
               onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
+              onAllTaken={(day) => void app.markAllTaken(day)}
             />
           </Card>
+        ) : null}
+        {app.reminderOffer && app.products.length > 0 && !app.usingSampleData ? (
+          <ReminderOffer
+            onContinue={() => {
+              void (async () => {
+                await requestReminderAccess();
+                const stored = app.dailyReminderTime;
+                const time = stored && isValidTime(stored) ? stored : nowTime();
+                await app.setDailyReminder(true, time);
+              })();
+            }}
+            onDismiss={() => void app.dismissReminderOffer()}
+          />
         ) : null}
         <Card>
           <T size={13} color={theme.muted}>

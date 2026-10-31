@@ -5,6 +5,7 @@ import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { currencyName } from '../../shared/money';
+import { DailyReminderCard } from '@/src/components/DailyReminderCard';
 import { Chip } from '@/src/components/share';
 import { UsernameField } from '@/src/components/UsernameField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
@@ -83,6 +84,7 @@ export default function SettingsScreen() {
       <T weight="bold" size={32} style={styles.title}>
         Settings
       </T>
+      <DailyReminderCard />
       <Card>
         <Pressable accessibilityRole="button" accessibilityLabel="Currency" onPress={() => router.push('/currency')} style={styles.currencyRow}>
           <View style={{ flex: 1 }}>

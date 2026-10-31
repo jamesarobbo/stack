@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { isCurrency, type CurrencyCode } from '../../../shared/money';
-import { isValidTime, normalizeDays, type IntakeLog, type Reminder } from '../../../shared/reminders';
+import type { IntakeLog, Reminder } from '../../../shared/reminders';
 import { buildExample } from '../data/example';
 import { coerceUnit } from '../data/units';
 import { clampStartDate, localToday } from '../dates';
@@ -247,32 +247,6 @@ export async function removeProduct(id: string) {
   await db.delete(reminders).where(eq(reminders.productId, id));
   await db.delete(intakeLogs).where(eq(intakeLogs.productId, id));
   await setSetting('usingSampleData', '0');
-}
-
-export async function addReminder(productId: string, time: string, days: string): Promise<void> {
-  if (!isValidTime(time)) return;
-  const normalized = normalizeDays(days);
-  if (!normalized) return;
-  await db.insert(reminders).values({ id: randomId(), productId, time, days: normalized });
-}
-
-export async function updateReminder(id: string, patch: { time?: string; days?: string }): Promise<void> {
-  const next: { time?: string; days?: string } = {};
-  if (patch.time !== undefined) {
-    if (!isValidTime(patch.time)) return;
-    next.time = patch.time;
-  }
-  if (patch.days !== undefined) {
-    const normalized = normalizeDays(patch.days);
-    if (!normalized) return;
-    next.days = normalized;
-  }
-  if (!next.time && !next.days) return;
-  await db.update(reminders).set(next).where(eq(reminders.id, id));
-}
-
-export async function removeReminder(id: string): Promise<void> {
-  await db.delete(reminders).where(eq(reminders.id, id));
 }
 
 export async function markTaken(productId: string, day: string): Promise<IntakeLog> {
