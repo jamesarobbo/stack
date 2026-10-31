@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { EngagementStats, engagementPhrase } from '@/src/components/EngagementStats';
 import { ProductChips } from '@/src/components/ProductChips';
 import { Chip, FadeIn, ScoreRing, scoreTone, Segmented } from '@/src/components/share';
 import { Button, Card, EmptyLead, Screen, T } from '@/src/components/ui';
@@ -9,15 +10,13 @@ import { api, ApiError } from '@/src/api';
 import {
   DISCOVER_EMPTY_BODY,
   DISCOVER_EMPTY_TITLE,
-  DISCOVER_LEAD,
   DISCOVER_SPARSE,
   LIBRARY_GOALS,
   LIBRARY_SEGMENTS,
-  SEGMENT_NOTES,
   type LibraryGoalKey,
   type LibrarySegmentKey,
 } from '@/src/copy/library';
-import { copyCountLabel } from '@/src/copy/sharing';
+import { sharerName } from '@/src/copy/sharing';
 import type { LibraryItem, LibraryPage } from '@/src/data/sharing';
 import { formatUsDate } from '@/src/dates';
 import { useApp } from '@/src/state';
@@ -110,9 +109,6 @@ export default function DiscoverScreen() {
 
   return (
     <Screen>
-      <T size={16} color={theme.muted}>
-        {DISCOVER_LEAD}
-      </T>
       <View style={styles.search}>
         <Ionicons name="search" size={18} color={theme.muted} />
         <TextInput
@@ -138,9 +134,6 @@ export default function DiscoverScreen() {
           <Chip key={item.key} label={item.label} selected={goal === item.key} onPress={() => setGoal((current) => (current === item.key ? null : item.key))} />
         ))}
       </ScrollView>
-      <T size={13} color={theme.muted}>
-        {SEGMENT_NOTES[segment]}
-      </T>
 
       {note && items.length === 0 && !loading ? (
         <Card>
@@ -179,7 +172,7 @@ export default function DiscoverScreen() {
 function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
-  const kept = copyCountLabel(item.copyCount);
+  const phrase = engagementPhrase(item.copyCount, item.viewCount);
   const tone = scoreTone(item.auditScore);
   const open = () => router.push(`/s/${item.slug}`);
   return (
@@ -187,7 +180,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
       <View style={[styles.cardTop, styles.pad]}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${item.stackName}, dose score ${item.auditScore}`}
+          accessibilityLabel={[`${item.stackName}, dose score ${item.auditScore}`, phrase].filter(Boolean).join(', ')}
           onPress={open}
           style={({ pressed }) => [styles.cardMain, pressed ? { opacity: 0.92 } : null]}
         >
@@ -207,7 +200,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
                   {item.stackName}
                 </T>
                 <T size={13} color={theme.muted}>
-                  {`${item.creatorName || 'A Stack user'}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
+                  {`${sharerName(item.creatorName)}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
                 </T>
               </View>
             </View>
@@ -220,14 +213,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
                 </T>
               </View>
             ) : null}
-            {kept ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="people-outline" size={16} color={theme.muted} />
-                <T size={13} weight="semibold" color={theme.muted}>
-                  {kept}
-                </T>
-              </View>
-            ) : null}
+            <EngagementStats copies={item.copyCount} views={item.viewCount} />
           </View>
         </Pressable>
         <Pressable

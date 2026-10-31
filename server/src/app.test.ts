@@ -1,6 +1,6 @@
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { describe, expect, it } from 'vitest';
-import { createTestEnv, json, request, signIn } from '../test/env';
+import { createTestEnv, ensureUsername, json, request, signIn } from '../test/env';
 import app from './app';
 import { isReservedTestAddress, returnsDevCode, testEmails } from './auth';
 import { sha256Hex } from './crypto';
@@ -139,6 +139,7 @@ describe('links', () => {
   it('hands a pending link to the app opened from the same network', async () => {
     const { env } = createTestEnv();
     const token = await signIn(env, 'maker@example.com');
+    await ensureUsername(env, token, 'maker_link');
     const share = await json<{ slug: string }>(
       await request(env, '/v1/shares', { method: 'POST', token, body: { products: [{ ...magnesium, brand: 'Acme' }] } }),
     );

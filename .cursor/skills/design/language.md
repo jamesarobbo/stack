@@ -67,7 +67,7 @@ No bounce, no loop, no pulsing dot. Pressed buttons drop to opacity 0.88. Disabl
 
 ## Discover cards
 
-Name, then up to four short product chips and "+N more" if needed, then the dose score ring, then a published result with the real 12 week window, then "Copied by N people" from 3. A flat result says it showed no clear change. The note is "One person's wearable. Not proof it caused the change." Do not paint a small change green.
+Name, then up to four short product chips and "+N more" if needed, then the dose score ring, then a published result with the real 12 week window, then a copy icon from 3 copies and an eye icon from 10 views. The number is short (25, 1.2k). The accessibility label is the full count ("25 copies", "1,200 views"). The sharer is `@username`. With no username yet, the line is "A Stack user". A flat result says it showed no clear change. The note is "One person's wearable. Not proof it caused the change." Do not paint a small change green.
 
 ## Native config
 

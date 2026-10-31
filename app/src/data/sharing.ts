@@ -12,6 +12,8 @@ export type ShareView = {
   slug: string;
   url: string;
   displayName: string | null;
+  /** Lowercase public handle, without @. Null until the person chooses one. */
+  username: string | null;
   stackName: string;
   goals: string[];
   products: SharedProduct[];
@@ -19,6 +21,7 @@ export type ShareView = {
   score: { score: number; summary: string; reasons: ScoreReason[]; totals: DailyTotal[] };
   result: SharedResultView | null;
   copyCount: number | null;
+  viewCount: number | null;
   listed: boolean;
   version: number;
   createdOn: string;
@@ -58,6 +61,7 @@ export type LibraryItem = {
   productNames?: string[];
   outcomeLine?: string | null;
   copyCount: number | null;
+  viewCount: number | null;
   saved: boolean;
   updatedOn: string | null;
   likeYou: { label: string; line: string } | null;

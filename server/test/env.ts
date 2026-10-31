@@ -122,6 +122,17 @@ export async function signIn(env: TestEnv, email: string): Promise<string> {
   return verified.token;
 }
 
+/** Sets a public username when the account does not have one yet. Sharing requires it. */
+export async function ensureUsername(env: TestEnv, token: string, preferred?: string): Promise<string> {
+  const me = await json<{ profile?: { username?: string | null } }>(await request(env, '/v1/me', { token }));
+  if (me.profile?.username) return me.profile.username;
+  const name = preferred ?? `id${Math.random().toString(36).slice(2, 10)}`;
+  const response = await request(env, '/v1/me/username', { method: 'PUT', token, body: { username: name } });
+  const body = await json<{ username?: string; error?: string }>(response);
+  if (!response.ok || !body.username) throw new Error(body.error ?? 'Could not set a username');
+  return body.username;
+}
+
 /** Moves a user's account back in time so copy counting treats it as established. */
 export function ageAccount(sqlite: DatabaseSync, email: string, days: number) {
   const created = new Date(Date.now() - days * 86_400_000).toISOString();

@@ -22,6 +22,7 @@ import {
   parseLibraryGoals,
   refreshShareCopyCount,
   shownCopies,
+  shownViews,
   type LibraryGoal,
   type ShareCard,
 } from './library';
@@ -66,6 +67,9 @@ export type ShareView = {
   score: Pick<ScoreResult, 'score' | 'summary' | 'reasons' | 'totals'>;
   result: SharedResult | null;
   copyCount: number | null;
+  viewCount: number | null;
+  /** Lowercase public handle, without @. Null until the person chooses one. */
+  username: string | null;
   listed: boolean;
   version: number;
   createdOn: string;
@@ -96,7 +100,7 @@ export async function saveProfile(
   db: D1Database,
   userId: string,
   input: { ageRange?: unknown; sex?: unknown; displayName?: unknown },
-): Promise<{ ok: true; profile: { ageRange: string | null; sex: string | null; displayName: string | null } } | { ok: false; error: string }> {
+): Promise<{ ok: true; profile: { ageRange: string | null; sex: string | null; displayName: string | null; username: string | null } } | { ok: false; error: string }> {
   const sets: string[] = [];
   const params: unknown[] = [];
   if (isAgeRange(input.ageRange)) {
@@ -123,14 +127,17 @@ export async function saveProfile(
       .run();
   }
   const row = await readProfile(db, userId);
-  return { ok: true, profile: { ageRange: row?.age_range ?? null, sex: row?.sex ?? null, displayName: row?.display_name ?? null } };
+  return {
+    ok: true,
+    profile: { ageRange: row?.age_range ?? null, sex: row?.sex ?? null, displayName: row?.display_name ?? null, username: row?.username ?? null },
+  };
 }
 
 export async function readProfile(db: D1Database, userId: string) {
   return db
-    .prepare('SELECT age_range, sex, display_name, created_at FROM users WHERE id = ?')
+    .prepare('SELECT age_range, sex, display_name, username, created_at FROM users WHERE id = ?')
     .bind(userId)
-    .first<{ age_range: string | null; sex: string | null; display_name: string | null; created_at: string }>();
+    .first<{ age_range: string | null; sex: string | null; display_name: string | null; username: string | null; created_at: string }>();
 }
 
 export async function upsertShare(
@@ -141,18 +148,15 @@ export async function upsertShare(
   const parsed = parseProducts(input.products);
   if ('error' in parsed) return { ok: false, error: parsed.error };
   const products = parsed.products;
-  const displayName = cleanName(input.displayName);
-  if (displayName) {
-    const problem = nameProblem(displayName);
-    if (problem) return { ok: false, error: problemMessage(problem, 'name') };
-  }
+  const owner = await db.prepare('SELECT username FROM users WHERE id = ?').bind(userId).first<{ username: string | null }>();
+  if (!owner?.username) return { ok: false, error: 'Choose a username before sharing.' };
   const named = cleanName(input.stackName);
   if (named) {
     const problem = nameProblem(named);
     if (problem) return { ok: false, error: problemMessage(problem, 'stack name') };
   }
   const goals = parseLibraryGoals(input.goals);
-  const stackName = named ?? defaultStackName(displayName, products[0]?.name ?? null);
+  const stackName = named ?? defaultStackName(null, products[0]?.name ?? null);
   const scored = scoreStack(scoreInputs(products));
   const existing = await activeShare(db, userId);
   const previous = existing ? parseSnapshot(existing.snapshot) : null;
@@ -166,7 +170,7 @@ export async function upsertShare(
     result = presentResult(fields);
   }
 
-  const snapshot: ShareSnapshot = { displayName, stackName, goals, products, auditScore: scored.score, result };
+  const snapshot: ShareSnapshot = { displayName: null, stackName, goals, products, auditScore: scored.score, result };
   const payload = JSON.stringify(snapshot);
   if (payload.length > 80_000) return { ok: false, error: 'That stack is too large to share.' };
   const listed = input.listed === true || input.publicIndex === true;
@@ -198,7 +202,7 @@ export async function upsertShare(
       listed,
       discoverOk,
       stackName,
-      creatorName: displayName ?? '',
+      creatorName: owner.username,
       goals,
       ingredients: ingredientSearchText(products),
       auditScore: scored.score,
@@ -225,7 +229,7 @@ export async function upsertShare(
     listed,
     discoverOk,
     stackName,
-    creatorName: displayName ?? '',
+    creatorName: owner.username,
     goals,
     ingredients: ingredientSearchText(products),
     auditScore: scored.score,
@@ -309,7 +313,6 @@ export function describeChanges(before: ShareSnapshot, after: ShareSnapshot): st
   if (JSON.stringify(before.result) !== JSON.stringify(after.result)) {
     changes.push(after.result ? 'Personal result updated' : 'Personal result removed');
   }
-  if (before.displayName !== after.displayName) changes.push(after.displayName ? 'Name shown changed' : 'Name hidden');
   return changes.slice(0, 12);
 }
 
@@ -602,9 +605,13 @@ async function present(db: D1Database, row: ShareRow): Promise<ShareView> {
       changes = [];
     }
   }
+  const owner = await db.prepare('SELECT username FROM users WHERE id = ?').bind(row.user_id).first<{ username: string | null }>();
+  const views = await db.prepare('SELECT COUNT(*) AS n FROM share_views WHERE share_id = ?').bind(row.id).first<{ n: number }>();
   return {
     slug: row.slug,
-    displayName: snapshot?.displayName ?? null,
+    displayName: null,
+    username: owner?.username ?? null,
+    viewCount: shownViews(Number(views?.n ?? 0)),
     stackName: snapshot?.stackName ?? 'Shared stack',
     goals: snapshot?.goals ?? [],
     products,

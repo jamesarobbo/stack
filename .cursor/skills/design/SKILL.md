@@ -19,7 +19,7 @@ These are fixed. A design pass does not relax them.
 - Main tabs have no page title and no breadcrumb. `headerShown` is false in `app/app/(tabs)/_layout.tsx`. Detail screens keep a title and `BackButton`.
 - Five tabs, in this order: Stack (`layers-outline`), Discover (`compass-outline`), Audit (`search-outline`), Impact (`stats-chart-outline`), More (`ellipsis-horizontal`). Discover is a tab. Do not put it back as a link on My Stack. Do not add a sixth tab.
 - One add control. The "Add supplement" bar on My Stack is the only add control on that screen, including the empty state. The share icon at the top right is not an add control. Audit, Impact, More, and the report do not add products. Enforced by `app/src/copy/addPlacement.test.ts`.
-- No fake urgency and no fake social proof. No countdown, no "popular", no "copied by 0 people". "Copied by N people" stays hidden below 3.
+- No fake urgency and no fake social proof. No countdown, no "popular", no "copied by 0 people". Copy counts stay hidden below 3. View counts stay hidden below 10. A sharer is shown as `@username`, or "A Stack user" when they have not chosen one. Never show their real name on a shared surface.
 - The audit score is doses and overlaps only. It never takes price. The Pro savings figure is a separate dollar amount, and gold is the only money colour. Formula: `docs/audit-score.md`, implementation: `shared/auditScore.ts`. Discover Top does not rank by price or by wearable results.
 
 ## Reference surfaces

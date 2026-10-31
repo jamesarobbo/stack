@@ -18,6 +18,8 @@ import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from '
 import { blockCreator, copyCountLabel, intParam, refreshDailyStats, reportShare, searchLibrary, setSaved, syncSearchRow, type LibrarySegment } from './library';
 import { ogImageVersion, ogSvg, publishedResult, renderOgPng, storyImageVersion, storySvg, type OgAssets } from './og';
 import { addressKey, allow, clientAddress } from './rateLimit';
+import { normalizeUsername, usernameHandle } from '../../shared/username';
+import { setUsername, usernameAvailable, usernameRejection } from './username';
 import { renderSharePage, type PageContext } from './sharePage';
 import { recordShareView } from './shareViews';
 import {
@@ -207,6 +209,7 @@ app.get('/v1/me', async (c) => {
       ageRange: profile?.age_range ?? null,
       sex: profile?.sex ?? null,
       displayName: profile?.display_name ?? null,
+      username: profile?.username ?? null,
     },
   });
 });
@@ -368,6 +371,30 @@ app.delete('/v1/account', async (c) => {
   statements.push(db.prepare('DELETE FROM users WHERE id = ?').bind(user.id));
   await db.batch(statements);
   return c.json({ ok: true });
+});
+
+app.get('/v1/usernames/available', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  if (!(await allow(c.env.DB, `username-check:${user.id}`, 40, 60))) return tooMany(c);
+  const result = await usernameAvailable(c.env.DB, c.req.query('name') ?? '', user.id);
+  return c.json(result);
+});
+
+app.put('/v1/me/username', async (c) => {
+  const user = await userFromRequest(c);
+  if (!user) return c.json({ error: 'Sign in required.' }, 401);
+  const body = await readJson(c);
+  const raw = typeof body.username === 'string' ? body.username : '';
+  const rejection = usernameRejection(raw);
+  if (rejection) return c.json({ error: rejection }, 400);
+  const profile = await readProfile(c.env.DB, user.id);
+  const next = normalizeUsername(raw);
+  if (profile?.username === next) return c.json({ username: next });
+  if (!(await allow(c.env.DB, `username:${user.id}`, 5, 86_400))) return tooMany(c);
+  const saved = await setUsername(c.env.DB, user.id, raw);
+  if (!saved.ok) return c.json({ error: saved.error }, 400);
+  return c.json({ username: saved.username });
 });
 
 app.put('/v1/me/profile', async (c) => {
@@ -641,13 +668,13 @@ function shareUrl(c: AppContext, slug: string): string {
 function ogInput(c: AppContext, view: Awaited<ReturnType<typeof publicShare>> extends infer R ? (R extends { view: infer V } ? V : never) : never) {
   return {
     stackName: view.stackName,
-    creator: view.displayName ?? 'A Stack user',
+    creator: usernameHandle(view.username) ?? 'A Stack user',
     productCount: view.products.length,
     score: view.auditScore,
     summary: view.score.summary,
     composition: view.score.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit })),
     host: new URL(publicOrigin(c)).host,
-    result: publishedResult(view.result, view.displayName),
+    result: publishedResult(view.result, usernameHandle(view.username)),
     copyLabel: copyCountLabel(view.copyCount),
   };
 }

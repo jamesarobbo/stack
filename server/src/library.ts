@@ -1,4 +1,5 @@
 import { discoverOutcomeLine, isOutcomeMetric } from '../../shared/outcome';
+import { usernameHandle } from '../../shared/username';
 import { cohortKeyFor, cohortsForShare, type CohortSlice } from './cohorts';
 import { randomId } from './crypto';
 import { AUTO_HIDE_REPORTS, isReportReason } from './moderation';
@@ -30,6 +31,7 @@ export const GOAL_LABELS: Record<LibraryGoal, string> = {
 
 /** Copy counts below this are not shown. */
 export const MIN_SHOWN_COPIES = 3;
+export const MIN_SHOWN_VIEWS = 10;
 /** 30 day copy count, stored on kept_recent. Discover's Top rank does not use this window. */
 export const TOP_WINDOW_DAYS = 30;
 /** One copy is worth this many log-views in the Top rank. */
@@ -83,6 +85,7 @@ export type LibraryItem = {
   productNames: string[];
   outcomeLine: string | null;
   copyCount: number | null;
+  viewCount: number | null;
   saved: boolean;
   updatedOn: string | null;
   likeYou: { label: string; line: string } | null;
@@ -257,6 +260,10 @@ export function shownCopies(count: number): number | null {
   return count >= MIN_SHOWN_COPIES ? count : null;
 }
 
+export function shownViews(count: number): number | null {
+  return count >= MIN_SHOWN_VIEWS ? count : null;
+}
+
 type ShareListRow = {
   id: string;
   slug: string;
@@ -268,6 +275,7 @@ type ShareListRow = {
   card: string;
   snapshot: string;
   kept_count: number;
+  view_count: number;
   version: number;
   material_version: number;
   updated_at: string;
@@ -301,6 +309,7 @@ export async function searchLibrary(
 
   const params: unknown[] = [];
   let select = `SELECT s.id, s.slug, s.user_id, s.stack_name, s.creator_name, s.goals, s.audit_score, s.card, s.snapshot, s.kept_count,
+    (SELECT COUNT(*) FROM share_views v WHERE v.share_id = s.id) AS view_count,
     s.version, s.material_version, s.updated_at, s.created_at`;
   let from = 'shares s';
   let where = 's.listed = 1 AND s.discover_ok = 1 AND s.revoked_at IS NULL AND s.hidden_at IS NULL';
@@ -439,7 +448,7 @@ function toItem(row: ShareListRow): LibraryItem {
   return {
     slug: row.slug,
     stackName: row.stack_name,
-    creatorName: row.creator_name || null,
+    creatorName: usernameHandle(row.creator_name),
     goals,
     auditScore: row.audit_score,
     summary: card.summary,
@@ -448,6 +457,7 @@ function toItem(row: ShareListRow): LibraryItem {
     productNames: card.productNames && card.productNames.length > 0 ? card.productNames : snap.names,
     outcomeLine: card.outcomeKnown ? (card.outcomeLine ?? null) : snap.outcomeLine,
     copyCount: shownCopies(row.kept_count),
+    viewCount: shownViews(Number(row.view_count ?? 0)),
     saved: false,
     updatedOn: row.version > 1 ? row.updated_at.slice(0, 10) : null,
     likeYou: null,

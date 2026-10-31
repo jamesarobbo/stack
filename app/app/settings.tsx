@@ -1,8 +1,9 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Chip } from '@/src/components/share';
+import { UsernameField } from '@/src/components/UsernameField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { APP_NAME } from '@/src/config';
@@ -18,11 +19,19 @@ export default function SettingsScreen() {
   const styles = useThemedStyles(localStyles);
   const app = useApp();
   const [name, setName] = useState(app.displayName);
+  const [username, setUsername] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [ageRange, setAgeRange] = useState(getSetting('ageRange'));
   const [sex, setSex] = useState(getSetting('sex'));
   const [confirmAccount, setConfirmAccount] = useState(false);
   const [accountNote, setAccountNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!app.sessionToken) return;
+    void api<{ profile: { username: string | null } }>('/v1/me', { token: app.sessionToken })
+      .then((body) => setUsername(body.profile.username))
+      .catch(() => undefined);
+  }, [app.sessionToken]);
 
   async function saveAbout(next: { ageRange?: string; sex?: string }) {
     if (next.ageRange && isAgeRange(next.ageRange)) {
@@ -72,12 +81,19 @@ export default function SettingsScreen() {
         Settings
       </T>
       <Card>
-        <T size={12} weight="semibold" color={theme.muted}>
-          Name on the stack
-        </T>
-        <TextInput value={name} onChangeText={setName} style={styles.input} accessibilityLabel="Name on the stack" />
+        <T weight="semibold">Username</T>
         <T size={13} color={theme.muted}>
-          Only shown on a shared stack when you turn it on while sharing. Leave it empty to clear it.
+          {app.sessionToken
+            ? 'Shown as @name on a shared stack, in Discover, and on the link preview. You can change it a few times a day.'
+            : 'Sign in to choose the username shown when you share. Your real name is not used.'}
+        </T>
+        {app.sessionToken ? <UsernameField token={app.sessionToken} current={username} onSaved={setUsername} /> : null}
+      </Card>
+      <Card>
+        <T weight="semibold">Name on this device</T>
+        <TextInput value={name} onChangeText={setName} style={styles.input} accessibilityLabel="Name on this device" />
+        <T size={13} color={theme.muted}>
+          Used as the heading of My Stack on this device. It is not shown when you share.
         </T>
         <Button label="Save name" onPress={() => void app.setName(name)} />
       </Card>

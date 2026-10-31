@@ -1,5 +1,7 @@
+import { compactCount, copiesLabel, viewsLabel } from '../../shared/engagement';
+import { usernameHandle } from '../../shared/username';
 import { OFF_ATTRIBUTION } from './off';
-import { GOAL_LABELS, LIBRARY_GOALS, copyCountLabel, type LibraryGoal } from './library';
+import { GOAL_LABELS, LIBRARY_GOALS, type LibraryGoal } from './library';
 import { ogImageVersion, publishedResult, resultWindow, scoreTone, storyImageVersion } from './og';
 import type { ShareView } from './sharing';
 
@@ -13,7 +15,7 @@ const DISCLAIMER = 'Educational, not medical advice. Does not diagnose, treat, o
 export function renderSharePage(view: ShareView | null, context: PageContext): string {
   if (!view) return missingPage(context);
   const url = `${context.origin}/s/${view.slug}`;
-  const who = view.displayName ?? 'A Stack user';
+  const who = usernameHandle(view.username) ?? 'A Stack user';
   const count = view.products.length;
   const title = `${view.stackName}, shared on Stack`;
   const headline = view.result ? ` ${view.result.line}. ${view.result.disclaimer}.` : '';
@@ -86,7 +88,7 @@ function brandBar(openHref: string | null): string {
 }
 
 function pageBody(view: ShareView, context: PageContext): string {
-  const who = view.displayName ? escapeHtml(view.displayName) : 'A Stack user';
+  const who = escapeHtml(usernameHandle(view.username) ?? 'A Stack user');
   const openHref = `stack://s/${view.slug}`;
   const getHref = `/s/${view.slug}/get`;
   const goals = view.goals
@@ -125,12 +127,11 @@ function pageBody(view: ShareView, context: PageContext): string {
       return `<li class="product"><div><p class="product-name">${escapeHtml(product.name)}</p>${brand}</div><p class="muted small">${escapeHtml(formatServings(perDay))}${lines ? `. ${lines} a day` : ''}</p></li>`;
     })
     .join('');
-  const published = publishedResult(view.result, view.displayName);
+  const published = publishedResult(view.result, usernameHandle(view.username));
   const result = published
     ? `<section class="card result rise d2"><p class="result-kicker">${escapeHtml(published.kicker)}</p><p class="result-value">${escapeHtml(published.value)}</p><p class="result-word">${escapeHtml(published.label)} ${escapeHtml(published.word)}</p><p class="muted small">${escapeHtml(resultWindow(published))}</p></section>`
     : '';
-  const kept = copyCountLabel(view.copyCount);
-  const copies = kept ? `<p class="copies">${escapeHtml(kept)}</p>` : '';
+  const copies = engagementHtml(view);
   const changes =
     view.updatedOn && view.changes.length > 0
       ? `<details class="changes"><summary>Updated on ${escapeHtml(formatDate(view.updatedOn))}</summary><ul>${view.changes.map((change) => `<li>${escapeHtml(change)}</li>`).join('')}</ul></details>`
@@ -182,6 +183,22 @@ ${result}
 </main>`;
 }
 
+const COPY_ICON =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const EYE_ICON =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+
+function engagementHtml(view: ShareView): string {
+  const parts: string[] = [];
+  if (view.copyCount != null) parts.push(statHtml(COPY_ICON, view.copyCount, copiesLabel(view.copyCount)));
+  if (view.viewCount != null) parts.push(statHtml(EYE_ICON, view.viewCount, viewsLabel(view.viewCount)));
+  return parts.length > 0 ? `<div class="stats">${parts.join('')}</div>` : '';
+}
+
+function statHtml(icon: string, count: number, label: string): string {
+  return `<span class="stat" role="img" aria-label="${escapeHtml(label)}">${icon}<span aria-hidden="true">${escapeHtml(compactCount(count))}</span></span>`;
+}
+
 function formatServings(value: number): string {
   const shown = Number.isInteger(value) ? String(value) : String(Math.round(value * 10) / 10);
   return `${shown} a day`;
@@ -220,7 +237,9 @@ p { margin: 0; line-height: 1.45; }
 .byline { color: var(--muted); font-size: 16px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .chip { font-size: 13px; font-weight: 600; color: var(--teal-deep); background: var(--teal-soft); border-radius: 999px; padding: 6px 12px; }
-.copies { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--teal); }
+.stats { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; color: var(--muted); }
+.stat { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; }
+.stat svg { width: 16px; height: 16px; }
 .shelf { margin: 4px 0 8px; border-radius: 18px; overflow: hidden; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin: 16px 0; }
 .score-card { position: relative; display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; color: var(--ink); overflow: hidden; background: var(--card); }

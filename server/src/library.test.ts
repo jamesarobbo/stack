@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
-import { ageAccount, createTestEnv, json, request, signIn, type TestEnv } from '../test/env';
+import { ageAccount, createTestEnv, ensureUsername, json, request, signIn, type TestEnv } from '../test/env';
 import { scheduled } from './app';
 import { ftsMatch, TOP_RANK_SQL, topScore } from './library';
 import { isBotUserAgent, recordShareView } from './shareViews';
@@ -16,11 +16,22 @@ function product(name: string, key: string, amount = 100) {
   };
 }
 
-type Item = { slug: string; stackName: string; copyCount: number | null; saved: boolean; likeYou: { line: string } | null; summary: string };
+type Item = {
+  slug: string;
+  stackName: string;
+  creatorName: string | null;
+  copyCount: number | null;
+  viewCount: number | null;
+  saved: boolean;
+  likeYou: { line: string } | null;
+  summary: string;
+};
 type Page = { items: Item[]; nextOffset: number | null; note: string | null };
 
 async function listStack(env: TestEnv, email: string, body: Record<string, unknown>) {
   const token = await signIn(env, email);
+  const local = email.replace(/[^a-z0-9]/gi, '').slice(0, 12).toLowerCase();
+  await ensureUsername(env, token, `id${local}`.slice(0, 20));
   const share = await json<{ slug: string }>(await request(env, '/v1/shares', { method: 'POST', token, body: { listed: true, ...body } }));
   return { token, slug: share.slug };
 }
@@ -175,6 +186,8 @@ describe('top ranking', () => {
 
     const top = await library(env, '?segment=top');
     expect(top.items.map((item) => item.stackName)).toEqual(['One copy', 'Many views', 'Older']);
+    expect(top.items.find((item) => item.stackName === 'Many views')?.viewCount).toBe(100);
+    expect(top.items.find((item) => item.stackName === 'One copy')?.viewCount).toBeNull();
   });
 
   it('does not move a stack up because it has a personal result', async () => {

@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
-import { ageAccount, createTestEnv, json, request, signIn, type TestEnv } from '../test/env';
+import { ageAccount, createTestEnv, ensureUsername, json, request, signIn, type TestEnv } from '../test/env';
 import { scheduled } from './app';
 import { ogImageVersion, storyImageVersion } from './og';
 
@@ -37,7 +37,8 @@ type View = {
   viewer: { copied: { current: boolean; outcomeConsent: boolean } | null; saved: boolean; own: boolean } | null;
 };
 
-async function publish(env: TestEnv, token: string, body: Record<string, unknown>) {
+async function publish(env: TestEnv, token: string, body: Record<string, unknown>, username?: string) {
+  await ensureUsername(env, token, username);
   return request(env, '/v1/shares', { method: 'POST', token, body });
 }
 
@@ -57,11 +58,13 @@ describe('publishing', () => {
   it('publishes a snapshot with a score and reasons, and a public page with no health claims', async () => {
     const { env } = createTestEnv({ APP_STORE_ID: '123456789' });
     const token = await signIn(env, 'maker@example.com');
-    const response = await publish(env, token, { products: [magnesium, vitaminD], displayName: 'Sam', goals: ['sleep'] });
+    const response = await publish(env, token, { products: [magnesium, vitaminD], displayName: 'Sam', goals: ['sleep'] }, 'sam_lifts');
     expect(response.status).toBe(200);
-    const share = await json<View>(response);
+    const share = await json<View & { username: string | null; displayName: string | null }>(response);
     expect(share.url).toBe(`http://localhost/s/${share.slug}`);
-    expect(share.stackName).toBe("Sam's stack");
+    expect(share.stackName).toBe('Magnesium glycinate');
+    expect(share.displayName).toBeNull();
+    expect(share.username).toBe('sam_lifts');
     expect(share.score.score).toBe(100);
     expect(share.copyCount).toBeNull();
 
@@ -75,12 +78,16 @@ describe('publishing', () => {
     expect(html).not.toMatch(/proven|clinically|cures?\b/i);
     expect(html).not.toMatch(/[\u2013\u2014]/);
     expect(html).not.toContain('Typical change');
+    expect(html).toContain('@sam_lifts');
+    expect(html).not.toContain('Sam');
     expect(html).not.toContain('Copied by');
     expect(html).not.toContain('Kept by');
 
     const svg = await request(env, `/s/${share.slug}/og.svg`);
     const text = await svg.text();
-    expect(text).toContain("Sam's stack");
+    expect(text).toContain('Magnesium glycinate');
+    expect(text).toContain('@sam_lifts');
+    expect(text).not.toContain('Sam');
     expect(text).toContain('>100<');
     expect(text).not.toContain('1 person');
     const story = await (await request(env, `/s/${share.slug}/story.svg`)).text();
@@ -185,7 +192,8 @@ describe('versions and copies', () => {
     expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(4);
 
     const page = await (await request(env, `/s/${share.slug}`)).text();
-    expect(page).toContain('Copied by 4 people');
+    expect(page).toContain('aria-label="4 copies"');
+    expect(page).not.toContain('Copied by');
     expect(page).not.toContain('Kept by');
     const svg = await (await request(env, `/s/${share.slug}/og.svg`)).text();
     expect(svg).toContain('Copied by 4 people');

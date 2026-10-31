@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { suggestGoals } from '../../shared/goalSuggestions';
 import { Platform, Share, StyleSheet, TextInput, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
-import { Chip, FadeIn, OutcomeHero, ScoreHero, ShareCardPreview, StoryCardPreview, Toggle, type CardResult } from '@/src/components/share';
+import { Chip, FadeIn, OutcomeHero, ScoreHero, ShareCardPreview, StoryCardPreview, type CardResult } from '@/src/components/share';
+import { UsernameField } from '@/src/components/UsernameField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { LIBRARY_GOALS, goalLabel, type LibraryGoalKey } from '@/src/copy/library';
@@ -14,6 +15,8 @@ import {
   copyCountLabel,
   shareMessage,
 } from '@/src/copy/sharing';
+import { groupedCount } from '../../shared/engagement';
+import { usernameHandle } from '../../shared/username';
 import { creatorResults, sharePayloadProducts, type OwnShare, type ShareView } from '@/src/data/sharing';
 import { scoreStack } from '@/src/domain/auditScore';
 import { earliestReady, heroParts, submittedFields, type OutcomeMetric, type OutcomeResult } from '@/src/domain/outcome';
@@ -37,26 +40,29 @@ export default function ShareScreen() {
   const [current, setCurrent] = useState<OwnShare | null>(null);
   const [fetched, setFetched] = useState(false);
   const [selected, setSelected] = useState<ResultChoice>('none');
-  const [showName, setShowName] = useState(false);
-  const [name, setName] = useState(app.displayName);
+  const [username, setUsername] = useState<string | null>(null);
+  const [afterUsername, setAfterUsername] = useState<'review' | 'list' | null>(null);
   const [listed, setListed] = useState(false);
   const [stackName, setStackName] = useState('');
   const [goals, setGoals] = useState<LibraryGoalKey[] | null>(null);
-  const [step, setStep] = useState<'edit' | 'review'>('edit');
+  const [step, setStep] = useState<'edit' | 'review' | 'username'>('edit');
   const [confirmUnshare, setConfirmUnshare] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!app.sessionToken) return;
-    void api<{ share: OwnShare | null }>('/v1/shares/current', { token: app.sessionToken })
+    const token = app.sessionToken;
+    void api<{ profile: { username: string | null } }>('/v1/me', { token })
+      .then((body) => setUsername(body.profile.username))
+      .catch(() => undefined);
+    void api<{ share: OwnShare | null }>('/v1/shares/current', { token })
       .then((body) => {
         const share = body.share;
         setCurrent(share);
+        if (share?.username) setUsername(share.username);
         if (!share) return;
         setSelected(share.result ? 'keep' : 'none');
-        setShowName(share.displayName != null);
-        if (share.displayName) setName(share.displayName);
         setListed(share.listed);
         setStackName(share.stackName);
         setGoals(share.goals.filter((goal): goal is LibraryGoalKey => LIBRARY_GOALS.some((item) => item.key === goal)));
@@ -79,8 +85,8 @@ export default function ShareScreen() {
   const chosenGoals = goals ?? (waitingForShare || current ? [] : suggestions);
   const showingSuggestions = !waitingForShare && goals == null && !current && suggestions.length > 0;
 
-  const shownName = showName ? name.trim() : '';
-  const previewName = stackName.trim() || (shownName ? `${shownName}'s stack` : (app.products[0]?.name ?? 'Shared stack'));
+  const handle = usernameHandle(username);
+  const previewName = stackName.trim() || app.products[0]?.name || 'Shared stack';
   const chosen: OutcomeResult | null = selected !== 'none' && selected !== 'keep' ? (eligible.find((item) => item.metric === selected) ?? null) : null;
   const resultToShow = selected === 'keep' ? current?.result : chosen;
   const previewResult: CardResult | null = resultToShow
@@ -89,7 +95,7 @@ export default function ShareScreen() {
         label: resultToShow.label,
         device: resultToShow.device,
         disclaimer: resultToShow.disclaimer ?? '1 person, not a trial',
-        kicker: shownName ? `What changed for ${shownName}` : (resultToShow.framing ?? 'What changed for me'),
+        kicker: handle ? `What changed for ${handle}` : (resultToShow.framing ?? 'What changed for me'),
       }
     : null;
   const blocked = app.usingSampleData;
@@ -100,12 +106,10 @@ export default function ShareScreen() {
     setBusy(true);
     setNotice(null);
     try {
-      if (showName && name.trim() !== app.displayName) await app.setName(name.trim());
       const saved = await api<ShareView>('/v1/shares', {
         method: 'POST',
         token: app.sessionToken,
         body: {
-          displayName: shownName || null,
           stackName: stackName.trim() || null,
           goals: chosenGoals,
           listed,
@@ -153,6 +157,39 @@ export default function ShareScreen() {
 
   const canPublish = !!app.sessionToken && app.products.length > 0 && !blocked && loaded;
 
+  if (step === 'username' && app.sessionToken) {
+    return (
+      <Screen>
+        <T weight="bold" size={30} style={styles.title}>
+          Choose a username
+        </T>
+        <T size={15} color={theme.muted}>
+          This is how you appear on a shared stack. It is not your real name.
+        </T>
+        <Card>
+          <UsernameField
+            token={app.sessionToken}
+            current={username}
+            onSaved={(next) => {
+              setUsername(next);
+              if (afterUsername === 'list') setListed(true);
+              setStep(afterUsername === 'review' ? 'review' : 'edit');
+              setAfterUsername(null);
+            }}
+          />
+        </Card>
+        <Button
+          label="Not now"
+          tone="ghost"
+          onPress={() => {
+            setAfterUsername(null);
+            setStep('edit');
+          }}
+        />
+      </Screen>
+    );
+  }
+
   if (step === 'review') {
     return (
       <Screen
@@ -171,7 +208,7 @@ export default function ShareScreen() {
         </T>
         <Card>
           <ReviewRow label="Stack name" value={previewName} />
-          <ReviewRow label="Your name" value={shownName ? `${shownName}, shown on the page` : 'Hidden. The page says A Stack user.'} />
+          <ReviewRow label="Username" value={handle ?? 'Not set. The page says A Stack user.'} />
           <ReviewRow label="Products" value={`${app.products.length}, with their doses and brands. Prices, notes, and start dates stay on your phone.`} />
           <ReviewRow label="Audit score" value={`${scored.score} out of 100, with the reasons`} />
           <ReviewRow
@@ -181,7 +218,7 @@ export default function ShareScreen() {
           <ReviewRow label="Goals" value={chosenGoals.length > 0 ? chosenGoals.map(goalLabel).join(', ') : 'None'} />
           <ReviewRow
             label="Who can find it"
-            value={listed ? 'Listed in Discover and searchable by stack name, ingredient, and your name if shown' : 'Only people you send the link to'}
+            value={listed ? 'Listed in Discover and searchable by stack name, ingredient, and username' : 'Only people you send the link to'}
           />
         </Card>
         <T size={13} color={theme.muted}>
@@ -200,7 +237,18 @@ export default function ShareScreen() {
     <Screen
       footer={
         canPublish ? (
-          <Button label={current ? 'Review update' : 'Review and publish'} disabled={busy} onPress={() => setStep('review')} />
+          <Button
+            label={current ? 'Review update' : 'Review and publish'}
+            disabled={busy}
+            onPress={() => {
+              if (!username) {
+                setAfterUsername('review');
+                setStep('username');
+                return;
+              }
+              setStep('review');
+            }}
+          />
         ) : null
       }
     >
@@ -247,6 +295,7 @@ export default function ShareScreen() {
               {[
                 current.listed ? 'Listed in Discover' : 'Link only',
                 copyCountLabel(current.copyCount),
+                current.viewCount != null ? `${groupedCount(current.viewCount)} views` : null,
                 current.updatedOn ? `Updated on ${formatUsDate(current.updatedOn)}` : `Shared on ${formatUsDate(current.createdOn)}`,
               ]
                 .filter(Boolean)
@@ -287,7 +336,7 @@ export default function ShareScreen() {
           <FadeIn delay={40}>
             <StoryCardPreview
               stackName={previewName}
-              creator={shownName || 'A Stack user'}
+              creator={handle || 'A Stack user'}
               productCount={app.products.length}
               score={scored.score}
               summary={scored.summary}
@@ -298,7 +347,7 @@ export default function ShareScreen() {
           <FadeIn delay={60}>
             <ShareCardPreview
               stackName={previewName}
-              creator={shownName || 'A Stack user'}
+              creator={handle || 'A Stack user'}
               productCount={app.products.length}
               score={scored.score}
               summary={scored.summary}
@@ -339,28 +388,11 @@ export default function ShareScreen() {
           </Card>
 
           <Card>
-            <T weight="semibold">Name</T>
-            <Toggle
-              label="Show my name on the page"
-              detail="Off by default. When listed, people can find the stack by this name."
-              value={showName}
-              onChange={setShowName}
-            />
-            {showName ? (
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="Your first name"
-                placeholderTextColor={theme.faint}
-                accessibilityLabel="Name to show"
-                style={styles.input}
-              />
-            ) : null}
             <T weight="semibold">Stack name</T>
             <TextInput
               value={stackName}
               onChangeText={setStackName}
-              placeholder={shownName ? `${shownName}'s stack` : 'Evening magnesium'}
+              placeholder={app.products[0]?.name ?? 'Evening magnesium'}
               placeholderTextColor={theme.faint}
               accessibilityLabel="Stack name"
               style={styles.input}
@@ -405,7 +437,18 @@ export default function ShareScreen() {
             <T size={13} color={theme.muted}>
               Only people with the link. The page stays out of search engines.
             </T>
-            <Choice label="List in Discover" selected={listed} onPress={() => setListed(true)} />
+            <Choice
+              label="List in Discover"
+              selected={listed}
+              onPress={() => {
+                if (!username) {
+                  setAfterUsername('list');
+                  setStep('username');
+                  return;
+                }
+                setListed(true);
+              }}
+            />
             <T size={13} color={theme.muted}>
               People in the app can find and copy it. The page can be indexed. Stacks with a dose above twice the upper limit are not listed.
             </T>

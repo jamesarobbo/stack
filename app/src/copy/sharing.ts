@@ -1,3 +1,4 @@
+import { usernameHandle } from '../../../shared/username';
 import { OUTCOME_LABELS, OUTCOME_METRICS as METRIC_KEYS, type OutcomeMetric } from '../domain/outcome';
 
 export const SHARE_STACK_LABEL = 'Share stack';
@@ -7,6 +8,7 @@ export const NOT_ENOUGH_OUTCOME =
 export const EXAMPLE_NOT_PERSONAL = 'Example data is not a personal result.';
 export const EXAMPLE_CANNOT_SHARE = 'The example stack cannot be shared. Add what you take first.';
 export const COPIED_CREDIT_FALLBACK = 'Copied from a Stack user';
+export const SHARER_FALLBACK = 'A Stack user';
 export const SCORE_EXPLAINER = 'Out of 100, from daily doses and overlaps only. It is not a judgement of what the stack does.';
 export const COHORT_EXPLAINER =
   'Each person compared 12 weeks before copying with 12 weeks after, on their own wearable. Groups under 10 people stay hidden.';
@@ -20,8 +22,14 @@ export function copyCountLabel(count: number | null | undefined): string | null 
   return `Copied by ${count} people`;
 }
 
-export function creditLine(displayName: string | null | undefined): string {
-  return displayName ? `Copied from ${displayName}` : COPIED_CREDIT_FALLBACK;
+/** @username, or a neutral line when the sharer has not chosen one. A real name is not shown. */
+export function sharerName(username: string | null | undefined): string {
+  return usernameHandle(username) ?? SHARER_FALLBACK;
+}
+
+export function creditLine(username: string | null | undefined): string {
+  const handle = usernameHandle(username);
+  return handle ? `Copied from ${handle}` : COPIED_CREDIT_FALLBACK;
 }
 
 export function shareMessage(input: { stackName: string; score: number; url: string }): string {

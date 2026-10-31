@@ -7,7 +7,9 @@ import { BrandMark, DoseMeters, FadeIn, IconAction, OutcomeHero, ScoreBadge, Sco
 import { BackButton, Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { REPORT_REASONS, goalLabel, type ReportReasonKey } from '@/src/copy/library';
-import { COHORT_EXPLAINER, DOCTOR_LINE, copyCountLabel, creditLine, shareMessage } from '@/src/copy/sharing';
+import { EngagementStats } from '@/src/components/EngagementStats';
+import { COHORT_EXPLAINER, DOCTOR_LINE, creditLine, shareMessage, sharerName } from '@/src/copy/sharing';
+import { usernameHandle } from '../../../shared/username';
 import { OFF_ATTRIBUTION } from '@/src/data/labels';
 import { recordCopy, type CohortReport, type PublicShare } from '@/src/data/sharing';
 import { formatUsDate, localToday } from '@/src/dates';
@@ -87,8 +89,7 @@ export default function SharedStackScreen() {
     );
   }
 
-  const who = stack.displayName || 'A Stack user';
-  const kept = copyCountLabel(stack.copyCount);
+  const who = sharerName(stack.username);
   const own = viewer?.own === true;
   const inStack = local.length > 0;
   const changedSince = viewer?.copied && !viewer.copied.current;
@@ -114,7 +115,7 @@ export default function SharedStackScreen() {
     setBusy(true);
     setNote(null);
     try {
-      const credit = creditLine(stack.displayName);
+      const credit = creditLine(stack.username);
       await app.addMany(
         plan.add.map((product) => ({
           name: product.name,
@@ -241,16 +242,16 @@ export default function SharedStackScreen() {
             {`${who}, ${stack.products.length} ${stack.products.length === 1 ? 'product' : 'products'}`}
           </T>
           <ProductChips names={stack.products.map((product) => product.name)} />
-          {stack.goals.length > 0 || kept ? (
+          {stack.goals.length > 0 ? (
             <View style={styles.pills}>
               {stack.goals.map((goal) => (
                 <Pill key={goal} tone="teal">
                   {goalLabel(goal)}
                 </Pill>
               ))}
-              {kept ? <Pill tone="grey">{kept}</Pill> : null}
             </View>
           ) : null}
+          <EngagementStats copies={stack.copyCount} views={stack.viewCount} />
         </View>
       </FadeIn>
 
@@ -260,7 +261,7 @@ export default function SharedStackScreen() {
 
       {stack.result ? (
         <FadeIn delay={100}>
-          <OutcomeHero result={stack.result} who={stack.displayName} />
+          <OutcomeHero result={stack.result} who={usernameHandle(stack.username)} />
         </FadeIn>
       ) : null}
 
