@@ -35,6 +35,7 @@ import { ensureCurrency, getCurrency } from './money';
 import { isCurrency } from '../../shared/money';
 import { getSetting, setSetting } from './settings';
 import { initTelemetry, track } from './telemetry';
+import { localToday } from './dates';
 
 type AppState = {
   ready: boolean;
@@ -82,8 +83,6 @@ type AppState = {
   setDailyReminder: (on: boolean, time?: string) => Promise<void>;
   setDailyReminderTime: (time: string) => Promise<void>;
   dismissReminderOffer: () => Promise<void>;
-  logTodayDismissed: boolean;
-  dismissLogToday: () => Promise<void>;
   toggleTaken: (productId: string, day: string, taken: boolean) => Promise<void>;
   markAllTaken: (day: string) => Promise<void>;
   setCurrency: (code: string) => Promise<void>;
@@ -126,7 +125,6 @@ function readFlags() {
     dailyReminderTime: getSetting('dailyReminderTime'),
     reminderOffer:
       getSetting('dailyReminderOffer') === '1' && getSetting('dailyReminderOfferSeen') !== '1' && getSetting('dailyReminder') !== '1',
-    logTodayDismissed: getSetting('logTodayDismissed') === '1',
   };
 }
 
@@ -324,11 +322,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await setSetting('dailyReminderOffer', '0');
         await applySnapshot();
       },
-      dismissLogToday: async () => {
-        await setSetting('logTodayDismissed', '1');
-        await applySnapshot();
-      },
-      toggleTaken: async (productId, day, taken) => {
+      toggleTaken: async (productId, _day, taken) => {
+        const day = localToday();
         if (taken) {
           await clearTaken(productId, day);
           await pushIntake({ removed: [{ productId, day }] });
@@ -338,7 +333,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         await applySnapshot();
       },
-      markAllTaken: async (day) => {
+      markAllTaken: async (_day) => {
+        const day = localToday();
         const already = new Set(logs.filter((log) => log.day === day).map((log) => log.productId));
         const created = [];
         for (const product of products) {

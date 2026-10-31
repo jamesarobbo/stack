@@ -87,7 +87,8 @@ export const lightTheme: Theme = {
   score: '#3A3A3C',
   scoreTrack: '#E5E5EA',
   neutralFill: '#3A3A3C',
-  segmentTrack: '#E5E5EA',
+  // systemGray6 track, white selected (Settings-like)
+  segmentTrack: '#F2F2F7',
   segmentOn: '#FFFFFF',
   mark: '#0E7A45',
   chips: {
@@ -132,8 +133,9 @@ export const darkTheme: Theme = {
   score: '#EBEBF5',
   scoreTrack: '#3A3A3C',
   neutralFill: '#3A3A3C',
-  segmentTrack: '#2C2C2E',
-  segmentOn: '#3A3A3C',
+  // Subtle track; selected = systemGray3 for clear contrast with white label
+  segmentTrack: '#1C1C1E',
+  segmentOn: '#48484A',
   mark: '#0E7A45',
   chips: {
     sleep: { bg: '#2A2848', fg: '#A29BFE' },

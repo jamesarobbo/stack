@@ -12,9 +12,10 @@ type SegmentedProps = {
   onChange: (event: ChangeEvent) => void;
   tintColor?: string;
   backgroundColor?: string;
-  fontStyle?: { color?: string };
-  activeFontStyle?: { color?: string };
+  fontStyle?: { color?: string; fontWeight?: string };
+  activeFontStyle?: { color?: string; fontWeight?: string };
   appearance?: 'light' | 'dark';
+  style?: object;
 };
 
 // Package types target older React; cast for React 19 JSX.
@@ -23,6 +24,7 @@ const SegmentedControl = RNSegmentedControl as unknown as ComponentType<Segmente
 /**
  * Short exclusive choice set.
  * Uses the system segmented control on iOS and Android (Expo Go).
+ * No outer grey container - only the native control's own track.
  * Web keeps a simple row of buttons with the same API.
  */
 export function NativeSegmented<K extends string>({
@@ -40,6 +42,7 @@ export function NativeSegmented<K extends string>({
     0,
     items.findIndex((item) => item.key === value),
   );
+  const dark = theme.bg === '#000000';
 
   if (Platform.OS === 'web') {
     return (
@@ -74,15 +77,20 @@ export function NativeSegmented<K extends string>({
       }}
       tintColor={theme.segmentOn}
       backgroundColor={theme.segmentTrack}
-      fontStyle={{ color: theme.muted }}
-      activeFontStyle={{ color: theme.text }}
-      appearance={theme.bg === '#000000' ? 'dark' : 'light'}
+      fontStyle={{ color: theme.muted, fontWeight: '500' }}
+      activeFontStyle={{ color: dark ? '#FFFFFF' : theme.text, fontWeight: '600' }}
+      appearance={dark ? 'dark' : 'light'}
+      style={styles.control}
     />
   );
 }
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
+    // No outer wrapper. Stretch only - track color comes from backgroundColor prop.
+    control: {
+      alignSelf: 'stretch',
+    },
     web: {
       flexDirection: 'row',
       backgroundColor: theme.segmentTrack,

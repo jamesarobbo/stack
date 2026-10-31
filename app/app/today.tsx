@@ -1,17 +1,22 @@
 import { useCallback, useMemo, useState } from 'react';
 import { MonthCalendar } from '@/src/components/MonthCalendar';
 import { TodayList } from '@/src/components/TodayList';
-import { BackButton, Card, Screen } from '@/src/components/ui';
+import { BackButton, Card, Screen, T } from '@/src/components/ui';
 import { localToday } from '@/src/dates';
 import { useApp } from '@/src/state';
+import { useTheme } from '@/src/theme';
 import { canAdvanceMonth, monthParts, shiftMonth } from '../../shared/reminders';
 
+/**
+ * Check-in always logs the device's local today.
+ * The calendar is a read-only history of past logged days.
+ */
 export default function TodayScreen() {
+  const theme = useTheme();
   const app = useApp();
   const today = localToday();
   const initial = monthParts(today);
   const [cursor, setCursor] = useState({ year: initial.year, month: initial.month });
-  const [selected, setSelected] = useState(today);
   const loggedDays = useMemo(() => new Set(app.logs.map((log) => log.day)), [app.logs]);
   const go = useCallback(
     (by: number) => {
@@ -29,22 +34,24 @@ export default function TodayScreen() {
     <Screen>
       <BackButton />
       <Card>
+        <T size={13} color={theme.muted}>
+          Logged days
+        </T>
         <MonthCalendar
           today={today}
           year={cursor.year}
           month={cursor.month}
-          selected={selected}
           loggedDays={loggedDays}
-          onSelect={setSelected}
           onPrevious={onPrevious}
           onNext={onNext}
         />
+      </Card>
+      <Card>
         <TodayList
           products={app.products}
           logs={app.logs}
-          day={selected}
-          onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
-          onAllTaken={(day) => void app.markAllTaken(day)}
+          onToggle={(productId, _day, taken) => void app.toggleTaken(productId, today, taken)}
+          onAllTaken={() => void app.markAllTaken(today)}
         />
       </Card>
     </Screen>

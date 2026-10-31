@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { applyScreenExit } from '../navigation/exit';
 import { DISCLAIMER } from '../config';
@@ -53,17 +53,23 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const styles = useThemedStyles(localStyles);
   const body = scroll ? (
-    <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
+    >
       {children}
     </ScrollView>
   ) : (
     <View style={[styles.scroll, { paddingTop: insets.top + 20, flex: 1 }]}>{children}</View>
   );
   return (
-    <View style={styles.screen}>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {body}
       {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>{footer}</View> : null}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -138,6 +144,9 @@ export function LabeledField({
   autoComplete,
   returnKeyType = 'done',
   secureTextEntry,
+  inputAccessoryViewID,
+  onSubmitEditing,
+  blurOnSubmit,
 }: {
   label: string;
   value: string;
@@ -149,9 +158,13 @@ export function LabeledField({
   autoComplete?: 'off' | 'email' | 'name' | 'username' | 'one-time-code';
   returnKeyType?: 'done' | 'next' | 'search' | 'go';
   secureTextEntry?: boolean;
+  inputAccessoryViewID?: string;
+  onSubmitEditing?: () => void;
+  blurOnSubmit?: boolean;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
+  const isPad = keyboardType === 'number-pad' || keyboardType === 'decimal-pad';
   return (
     <View style={{ gap: 6 }}>
       <T size={13} weight="semibold">
@@ -167,9 +180,12 @@ export function LabeledField({
         autoCapitalize={autoCapitalize}
         textContentType={textContentType}
         autoComplete={autoComplete}
-        returnKeyType={returnKeyType}
+        returnKeyType={isPad ? 'done' : returnKeyType}
         secureTextEntry={secureTextEntry}
         clearButtonMode="while-editing"
+        inputAccessoryViewID={inputAccessoryViewID}
+        onSubmitEditing={onSubmitEditing}
+        blurOnSubmit={blurOnSubmit}
         style={styles.field}
       />
     </View>

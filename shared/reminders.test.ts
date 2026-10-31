@@ -55,7 +55,8 @@ describe('month calendar', () => {
     expect(canAdvanceMonth(2026, 10, '2026-10-31')).toBe(false);
     expect(canAdvanceMonth(2026, 9, '2026-10-31')).toBe(true);
     expect(shiftMonth(2026, 1, -1)).toEqual({ year: 2025, month: 12 });
-    expect(dayIsEditable('2026-10-25', '2026-10-31')).toBe(true);
+    expect(dayIsEditable('2026-10-31', '2026-10-31')).toBe(true);
+    expect(dayIsEditable('2026-10-25', '2026-10-31')).toBe(false);
     expect(dayIsEditable('2026-10-24', '2026-10-31')).toBe(false);
     expect(dayIsEditable('2026-11-01', '2026-10-31')).toBe(false);
     expect(dayHeading('2026-10-31', '2026-10-31')).toBe('Today');

@@ -13,22 +13,22 @@ import {
 import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
+/**
+ * Read-only month history of logged days. Month browse only - days are not
+ * selectable for logging (logging is always the device's local today).
+ */
 export function MonthCalendar({
   today,
   year,
   month,
-  selected,
   loggedDays,
-  onSelect,
   onPrevious,
   onNext,
 }: {
   today: string;
   year: number;
   month: number;
-  selected: string;
   loggedDays: ReadonlySet<string>;
-  onSelect: (day: string) => void;
   onPrevious: () => void;
   onNext: () => void;
 }) {
@@ -93,38 +93,26 @@ export function MonthCalendar({
             if (!cell.day) return <View key={`blank-${weekIndex}-${dayIndex}`} style={styles.cell} />;
             const day = cell.day;
             const isToday = day === today;
-            const isSelected = day === selected;
             const isFuture = day > today;
             const logged = loggedDays.has(day);
             const date = monthParts(day).date;
-            const mark = (
-              <View style={styles.markWrap}>
-                <View
-                  style={[
-                    styles.mark,
-                    isToday ? styles.today : null,
-                    isSelected && !isToday ? styles.selected : null,
-                  ]}
-                >
-                  <T size={15} weight={isToday ? 'semibold' : 'regular'} color={isFuture ? theme.muted : theme.text}>
-                    {date}
-                  </T>
-                </View>
-                <View style={logged ? styles.dot : styles.dotSpacer} />
-              </View>
-            );
-            if (isFuture) return <View key={day} style={styles.cell}>{mark}</View>;
             return (
-              <Pressable
+              <View
                 key={day}
-                accessibilityRole="button"
+                accessible
+                accessibilityRole="text"
                 accessibilityLabel={dayAccessibilityLabel(day, today, logged)}
-                accessibilityState={{ selected: isSelected }}
-                onPress={() => onSelect(day)}
-                style={({ pressed }) => [styles.cell, pressed ? { opacity: 0.88 } : null]}
+                style={styles.cell}
               >
-                {mark}
-              </Pressable>
+                <View style={styles.markWrap}>
+                  <View style={[styles.mark, isToday ? styles.today : null]}>
+                    <T size={15} weight={isToday ? 'semibold' : 'regular'} color={isFuture ? theme.muted : theme.text}>
+                      {date}
+                    </T>
+                  </View>
+                  <View style={logged ? styles.dot : styles.dotSpacer} />
+                </View>
+              </View>
             );
           })}
         </View>
@@ -150,7 +138,6 @@ function localStyles(theme: Theme) {
       justifyContent: 'center',
     },
     today: { borderWidth: 1.5, borderColor: theme.text },
-    selected: { backgroundColor: theme.bg === '#000000' ? theme.scoreTrack : theme.greyPill },
     dot: { width: 7, height: 7, borderRadius: 4, marginTop: 2, backgroundColor: theme.action },
     dotSpacer: { width: 7, height: 7, marginTop: 2 },
   });

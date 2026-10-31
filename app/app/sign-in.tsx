@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
+import { NUMBER_PAD_ACCESSORY_ID } from '@/src/components/NumberPadAccessory';
 import { BackButton, Button, Card, LabeledField, Screen, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
 import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
@@ -75,7 +76,7 @@ export default function SignInScreen() {
       />
       {sent ? (
         <>
-          <LabeledField label="Code" value={code} onChangeText={setCode} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" returnKeyType="done" placeholder="6-digit code" />
+          <LabeledField label="Code" value={code} onChangeText={setCode} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" returnKeyType="done" placeholder="6-digit code" inputAccessoryViewID={NUMBER_PAD_ACCESSORY_ID} />
           {devCode ? (
             <T size={13} color={theme.muted}>
               {`Development code: ${devCode}. Production does not return this.`}

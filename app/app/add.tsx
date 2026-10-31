@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { DateField } from '@/src/components/DateField';
 import { NativeSegmented } from '@/src/components/NativeSegmented';
 import { UnitField } from '@/src/components/UnitField';
@@ -23,7 +24,7 @@ import { clampStartDate, localToday } from '@/src/dates';
 import { humanProductNote } from '@/src/productSubtitle';
 import type { IngredientInput } from '@/src/domain/types';
 import { ApiError } from '@/src/api';
-import { currencyName } from '../../shared/money';
+import { priceFieldLabel } from '../../shared/money';
 import { useApp } from '@/src/state';
 import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
@@ -312,9 +313,9 @@ function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }
           DSLD did not list a serving count, so 30 is a placeholder. Check the bottle.
         </T>
       ) : null}
-      <Field label={`Price, ${currencyName(app.currency)}`} value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
-      <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
-      <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" />
+      <Field label={priceFieldLabel(app.currency)} value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" padId="prefill-price" />
+      <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" padId="prefill-servings" />
+      <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" padId="prefill-per-day" />
       <DateField label="Start date" value={startDate} onChange={setStartDate} />
       {owned ? (
         <T size={13} color={theme.flagText}>
@@ -429,10 +430,10 @@ function ManualAdd({
       ) : null}
       <Field label="Product" value={name} onChangeText={setName} placeholder="What the bottle says" />
       {off ? <Field label="Brand" value={brand} onChangeText={setBrand} placeholder="Brand on the bottle" /> : null}
-      <Field label="Barcode (optional)" value={barcode} onChangeText={onBarcode} placeholder="088395056116" keyboard="number-pad" />
-      <Field label={`Price, ${currencyName(app.currency)}`} value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
-      <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
-      <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" />
+      <Field label="Barcode (optional)" value={barcode} onChangeText={onBarcode} placeholder="088395056116" keyboard="number-pad" padId="manual-barcode" />
+      <Field label={priceFieldLabel(app.currency)} value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" padId="manual-price" />
+      <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" padId="manual-servings" />
+      <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" padId="manual-per-day" />
       <DateField label="Start date" value={startDate} onChange={setStartDate} />
       <T weight="semibold">Ingredients on the label</T>
       <View style={styles.chips}>
@@ -444,16 +445,10 @@ function ManualAdd({
         <Card key={`${ingredient.key}-${index}`}>
           <Field label="Name" value={ingredient.name} onChangeText={(value) => update(index, { name: value, key: slug(value) })} placeholder="Magnesium" />
           <View style={styles.doseRow}>
-            <TextInput
+            <DoseAmountField
+              id={`dose-${index}-${ingredient.key || ingredient.name || 'row'}`}
               value={ingredient.amount ? String(ingredient.amount) : ''}
               onChangeText={(value) => update(index, { amount: Number(value) || 0 })}
-              placeholder="Amount"
-              placeholderTextColor={theme.faint}
-              keyboardType="decimal-pad"
-              inputMode="decimal"
-              returnKeyType="done"
-              clearButtonMode="while-editing"
-              accessibilityLabel="Amount"
               style={styles.doseAmount}
             />
             <UnitField compact value={ingredient.unit} onChange={(unit) => update(index, { unit })} />
@@ -569,35 +564,76 @@ function productNote(_digits: string, off: RemoteLabel | null): string | null {
   return humanProductNote({ brand: off?.brand, servingSize: off?.servingSize });
 }
 
+
+function DoseAmountField({
+  id,
+  value,
+  onChangeText,
+  style,
+}: {
+  id: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  style: object;
+}) {
+  const theme = useTheme();
+  const [padRef, pad] = useNumberPadField(id, true);
+  return (
+    <TextInput
+      ref={padRef}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder="Amount"
+      placeholderTextColor={theme.faint}
+      keyboardType="decimal-pad"
+      inputMode="decimal"
+      returnKeyType="done"
+      clearButtonMode="while-editing"
+      accessibilityLabel="Amount"
+      {...pad}
+      style={style}
+    />
+  );
+}
+
 function Field({
   label,
   value,
   onChangeText,
   placeholder,
   keyboard,
+  padId,
+  returnKeyType = 'done',
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder?: string;
   keyboard?: 'decimal-pad' | 'number-pad';
+  /** Stable id when this field uses a number pad (prev/next + Done accessory). */
+  padId?: string;
+  returnKeyType?: 'done' | 'next';
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
+  const usePad = Boolean(keyboard);
+  const [padRef, pad] = useNumberPadField(padId ?? `field-${label}`, usePad);
   return (
     <View style={{ gap: 4 }}>
       <T size={12} weight="semibold" color={theme.muted}>
         {label}
       </T>
       <TextInput
+        ref={usePad ? padRef : undefined}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={theme.faint}
         keyboardType={keyboard}
         inputMode={keyboard === 'decimal-pad' ? 'decimal' : keyboard === 'number-pad' ? 'numeric' : undefined}
-        returnKeyType="done"
+        returnKeyType={keyboard ? 'done' : returnKeyType}
         clearButtonMode="while-editing"
+        {...(usePad ? pad : null)}
         style={styles.input}
       />
     </View>
