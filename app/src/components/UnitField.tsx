@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useCallback } from 'react';
-import { ActionSheetIOS, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { coerceUnit, UNIT_OPTIONS, type UnitOption } from '../data/units';
 import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { CompactMenuPickerShell, NativeMenuPicker } from './NativeMenuPicker';
 import { T } from './ui';
 
 /**
- * Ingredient unit. Opens a system menu.
- * compact: a short button for amount+unit rows (no Unit label).
- * Full: labeled field for rare standalone use.
+ * Ingredient unit. iOS: SwiftUI menu picker anchored to the control (checkmark on current).
+ * Android: system dropdown. compact: short control for amount+unit rows.
  */
 export function UnitField({
   label = 'Unit',
@@ -25,22 +24,6 @@ export function UnitField({
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   const selected = coerceUnit(value);
-
-  const openIos = useCallback(() => {
-    const options = ['Cancel', ...UNIT_OPTIONS];
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options,
-        cancelButtonIndex: 0,
-        userInterfaceStyle: theme.bg === '#000000' ? 'dark' : 'light',
-      },
-      (index) => {
-        if (index == null || index <= 0) return;
-        const next = UNIT_OPTIONS[index - 1];
-        if (next) onChange(next);
-      },
-    );
-  }, [onChange, theme.bg]);
 
   if (Platform.OS === 'android') {
     if (compact) {
@@ -84,36 +67,40 @@ export function UnitField({
     );
   }
 
-  if (compact) {
+  if (Platform.OS === 'ios') {
+    const menu = (
+      <NativeMenuPicker
+        options={UNIT_OPTIONS}
+        value={selected}
+        onChange={onChange}
+        accessibilityLabel={compact ? `Unit, ${selected}` : `${label}, ${selected}`}
+      />
+    );
+    if (compact) {
+      return <CompactMenuPickerShell>{menu}</CompactMenuPickerShell>;
+    }
     return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Unit, ${selected}`}
-        accessibilityHint="Opens a menu of units"
-        onPress={openIos}
-        style={({ pressed }) => [styles.compact, pressed ? { opacity: 0.88 } : null]}
-      >
-        <T weight="semibold">{selected}</T>
-        <Ionicons name="chevron-down" size={16} color={theme.muted} />
-      </Pressable>
+      <View style={styles.wrap}>
+        <T size={12} weight="semibold" color={theme.muted}>
+          {label}
+        </T>
+        <View style={styles.iosField}>{menu}</View>
+      </View>
     );
   }
 
+  // Fallback (should use UnitField.web on web)
   return (
-    <View style={styles.wrap}>
-      <T size={12} weight="semibold" color={theme.muted}>
-        {label}
-      </T>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${label}, ${selected}`}
-        accessibilityHint="Opens a menu of units"
-        onPress={openIos}
-        style={({ pressed }) => [styles.field, pressed ? { opacity: 0.88 } : null]}
-      >
+    <View style={compact ? undefined : styles.wrap}>
+      {compact ? null : (
+        <T size={12} weight="semibold" color={theme.muted}>
+          {label}
+        </T>
+      )}
+      <View style={compact ? styles.compact : styles.field}>
         <T weight="semibold">{selected}</T>
         <Ionicons name="chevron-down" size={16} color={theme.muted} />
-      </Pressable>
+      </View>
     </View>
   );
 }
@@ -132,6 +119,15 @@ function localStyles(theme: Theme) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 12,
+    },
+    iosField: {
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.line,
+      paddingHorizontal: 12,
+      minHeight: 44,
+      justifyContent: 'center',
     },
     compact: {
       backgroundColor: theme.greyPill,

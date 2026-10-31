@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppState, Platform, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import { NumberPadAccessory } from '@/src/components/NumberPadAccessory';
 import { Boot } from '@/src/components/ui';
 import { claimDeferredLink, takePendingSlug } from '@/src/data/sharing';
 import { getSetting } from '@/src/settings';
@@ -30,6 +31,7 @@ export default function RootLayout() {
         <View style={{ flex: 1, width: '100%', maxWidth: 480, alignSelf: 'center', backgroundColor: theme.bg }}>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
           <DatabaseGate />
+          <NumberPadAccessory />
         </View>
       </View>
     </SafeAreaProvider>

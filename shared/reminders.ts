@@ -113,9 +113,9 @@ export function monthGrid(year: number, month: number): MonthCell[] {
   return cells;
 }
 
-/** Today and the six days before it can be changed. Older days are only a record. */
+/** Only the device's local today can be logged. Past days are a read-only history. */
 export function dayIsEditable(day: string, today: string): boolean {
-  return day <= today && day >= shiftDay(today, -6);
+  return day === today;
 }
 
 export function dayHeading(day: string, today: string): string {

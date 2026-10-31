@@ -74,6 +74,19 @@ export function currencyName(code: string): string {
   return CURRENCIES.find((item) => item.code === code)?.name ?? 'US dollar';
 }
 
+
+/** Natural field label, e.g. "Price in US dollars". */
+export function priceFieldLabel(code: string): string {
+  const name = currencyName(code);
+  const plural =
+    name === 'Euro'
+      ? 'euros'
+      : name.endsWith('s')
+        ? name
+        : `${name}s`;
+  return `Price in ${plural}`;
+}
+
 export function currencyOf(product: { priceCurrency?: string | null }): CurrencyCode {
   return isCurrency(product.priceCurrency) ? product.priceCurrency : 'USD';
 }

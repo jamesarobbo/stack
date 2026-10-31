@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currencyFromLocale, currencyOf, formatMoney, isCurrency, spendSentence } from './money';
+import { currencyFromLocale, currencyOf, formatMoney, isCurrency, priceFieldLabel, spendSentence } from './money';
 
 describe('money', () => {
   it('formats hundredths in the given currency and does not convert', () => {
@@ -39,5 +39,11 @@ describe('money', () => {
       ]),
     ).toBe('£40 a month and $12 a month');
     expect(spendSentence([{ currency: 'USD', monthlyCents: 0 }])).toBeNull();
+  });
+
+  it('names the price field in natural language', () => {
+    expect(priceFieldLabel('USD')).toBe('Price in US dollars');
+    expect(priceFieldLabel('GBP')).toBe('Price in British pounds');
+    expect(priceFieldLabel('EUR')).toBe('Price in euros');
   });
 });

@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
+import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { DoseMeters } from '@/src/components/share';
 import { UnitField } from '@/src/components/UnitField';
 import type { UnitOption } from '@/src/data/units';
@@ -20,6 +21,7 @@ export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const app = useApp();
   const [priceText, setPriceText] = useState('');
+  const [pricePadRef, pricePad] = useNumberPadField(`product-price-${id ?? 'x'}`);
   const product = app.products.find((item) => item.id === id);
   if (!product) {
     return (
@@ -71,6 +73,7 @@ export default function ProductScreen() {
               Add the price you paid.
             </T>
             <TextInput
+              ref={pricePadRef}
               value={priceText}
               onChangeText={setPriceText}
               keyboardType="decimal-pad"
@@ -80,6 +83,7 @@ export default function ProductScreen() {
               accessibilityLabel="Price you paid"
               returnKeyType="done"
               clearButtonMode="while-editing"
+              {...pricePad}
               style={styles.input}
             />
             <Button
@@ -150,6 +154,7 @@ function IngredientDose({
   theme: Theme;
 }) {
   const [text, setText] = useState(amount ? String(amount) : '');
+  const [padRef, pad] = useNumberPadField(`ingredient-amount-${name}`);
   return (
     <View style={{ gap: 6 }}>
       <T size={14} weight="semibold">
@@ -157,9 +162,12 @@ function IngredientDose({
       </T>
       <View style={styles.doseRow}>
         <TextInput
+          ref={padRef}
           value={text}
           onChangeText={setText}
+          onFocus={pad.onFocus}
           onBlur={() => {
+            pad.onBlur();
             const next = Number(text);
             if (!Number.isFinite(next) || next <= 0) {
               setText(amount ? String(amount) : '');
@@ -174,6 +182,7 @@ function IngredientDose({
           accessibilityLabel={`${name} amount`}
           placeholder="0"
           placeholderTextColor={theme.muted}
+          inputAccessoryViewID={pad.inputAccessoryViewID}
           style={styles.doseAmount}
         />
         <UnitField compact value={unit} onChange={onUnit} />

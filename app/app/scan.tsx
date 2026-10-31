@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { ScanCamera } from '@/src/components/ScanCamera';
 import { BackButton, Button, Screen, T } from '@/src/components/ui';
 import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
@@ -12,6 +13,7 @@ export default function ScanScreen() {
   const [torch, setTorch] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [padRef, pad] = useNumberPadField('scan-barcode');
 
   function lookup(raw: string) {
     const digits = raw.replace(/\D/g, '');
@@ -51,6 +53,7 @@ export default function ScanScreen() {
           Barcode
         </T>
         <TextInput
+          ref={padRef}
           value={code}
           onChangeText={setCode}
           placeholder="088395056116"
@@ -60,6 +63,7 @@ export default function ScanScreen() {
           returnKeyType="done"
           clearButtonMode="while-editing"
           textContentType="none"
+          {...pad}
           style={styles.input}
         />
       </View>

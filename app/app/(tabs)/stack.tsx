@@ -35,7 +35,7 @@ export default function StackScreen() {
   const openAdd = () => router.push(ADD_SUPPLEMENT_ROUTE);
   const showOffer = app.reminderOffer && app.products.length > 0 && !app.usingSampleData;
   const showCheckIn = app.products.length > 0 && (app.dailyReminder || app.logs.length > 0);
-  const showLogToday = app.products.length > 0 && !showCheckIn && !showOffer && !app.logTodayDismissed;
+  const showLogToday = app.products.length > 0 && !showCheckIn && !showOffer;
   const todayKey = localToday();
   const takenToday = new Set(app.logs.filter((log) => log.day === todayKey).map((log) => log.productId));
   const takenCount = app.products.reduce((count, product) => count + (takenToday.has(product.id) ? 1 : 0), 0);
@@ -72,34 +72,24 @@ export default function StackScreen() {
           </Card>
         ) : null}
         {showLogToday ? (
-          <Card>
-            <View style={styles.logRow}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Log today. ${logStatus}`}
-                onPress={() => router.push('/today')}
-                style={({ pressed }) => [styles.logMain, pressed ? { opacity: 0.88 } : null]}
-              >
-                <View style={{ flex: 1, gap: 2 }}>
-                  <T weight="semibold" size={17}>
-                    Log today
-                  </T>
-                  <T size={14} color={theme.muted}>
-                    {logStatus}
-                  </T>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={theme.muted} />
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Dismiss log today"
-                onPress={() => void app.dismissLogToday()}
-                style={({ pressed }) => [styles.logDismiss, pressed ? { opacity: 0.88 } : null]}
-              >
-                <Ionicons name="close" size={18} color={theme.muted} />
-              </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Log today. ${logStatus}`}
+            onPress={() => router.push('/today')}
+            style={({ pressed }) => [styles.logCard, pressed ? { opacity: 0.92 } : null]}
+          >
+            <View style={styles.logAccent} />
+            <Ionicons name="checkmark-circle" size={28} color={theme.action} />
+            <View style={styles.logCopy}>
+              <T weight="semibold" size={17}>
+                Log today
+              </T>
+              <T size={14} color={theme.muted}>
+                {logStatus}
+              </T>
             </View>
-          </Card>
+            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
+          </Pressable>
         ) : null}
         {showOffer ? (
           <ReminderOffer
@@ -202,9 +192,29 @@ function localStyles(theme: Theme) {
   links: { flexDirection: 'row', gap: 16 },
   link: { minHeight: 44, justifyContent: 'center' },
   scroll: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, gap: 14 },
-  logRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
-  logMain: { flex: 1, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 4 },
-  logDismiss: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  logCard: {
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingLeft: 12,
+    borderRadius: theme.radius,
+    borderWidth: 1,
+    borderColor: theme.bg === '#000000' ? '#2A3A4A' : '#C5D8EF',
+    backgroundColor: theme.tealSoft,
+    overflow: 'hidden',
+  },
+  logAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: theme.action,
+  },
+  logCopy: { flex: 1, gap: 2 },
   spend: { letterSpacing: -1.5, lineHeight: 50 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   scoreRow: {
