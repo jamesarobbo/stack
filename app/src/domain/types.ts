@@ -17,6 +17,8 @@ export type ProductInput = {
   brand: string | null;
   note: string | null;
   priceCents: number;
+  /** Currency the price was entered in. Missing values are USD. Not converted. */
+  priceCurrency?: string;
   servingsPerContainer: number;
   servingsPerDay: number;
   startDate: string;

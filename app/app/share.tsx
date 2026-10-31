@@ -18,7 +18,9 @@ import {
 import { groupedCount } from '../../shared/engagement';
 import { usernameHandle } from '../../shared/username';
 import { creatorResults, sharePayloadProducts, type OwnShare, type ShareView } from '@/src/data/sharing';
+import { auditStack } from '@/src/domain/audit';
 import { scoreStack } from '@/src/domain/auditScore';
+import { spendSentence } from '../../shared/money';
 import { earliestReady, heroParts, submittedFields, type OutcomeMetric, type OutcomeResult } from '@/src/domain/outcome';
 import { formatUsDate } from '@/src/dates';
 import { track } from '@/src/telemetry';
@@ -32,6 +34,14 @@ export default function ShareScreen() {
   const styles = useThemedStyles(localStyles);
   const app = useApp();
   const scored = useMemo(() => scoreStack(app.products), [app.products]);
+  const spend = useMemo(
+    () =>
+      auditStack(app.products)
+        .money.filter((line) => line.monthlyCents > 0)
+        .map((line) => ({ currency: line.currency, monthlyCents: line.monthlyCents })),
+    [app.products],
+  );
+  const spendLabel = spendSentence(spend);
   const realHealth = app.healthSource === 'healthkit' && !app.usingSampleData && app.samples.length > 0;
   const results = useMemo(() => (realHealth ? creatorResults(app.products, app.samples) : []), [app.products, app.samples, realHealth]);
   const eligible = results.filter((item): item is OutcomeResult => item.eligible);
@@ -114,6 +124,7 @@ export default function ShareScreen() {
           goals: chosenGoals,
           listed,
           products: sharePayloadProducts(app.products),
+          spend,
           result: selected === 'keep' ? 'keep' : chosen ? submittedFields(chosen) : null,
         },
       });
@@ -209,7 +220,14 @@ export default function ShareScreen() {
         <Card>
           <ReviewRow label="Stack name" value={previewName} />
           <ReviewRow label="Username" value={handle ?? 'Not set. The page says A Stack user.'} />
-          <ReviewRow label="Products" value={`${app.products.length}, with their doses and brands. Prices, notes, and start dates stay on your phone.`} />
+          <ReviewRow
+            label="Products"
+            value={
+              spendLabel
+                ? `${app.products.length}, with their doses and brands. The monthly total (${spendLabel}) is on the page. Individual prices, notes, and start dates stay on your phone.`
+                : `${app.products.length}, with their doses and brands. Individual prices, notes, and start dates stay on your phone.`
+            }
+          />
           <ReviewRow label="Audit score" value={`${scored.score} out of 100, with the reasons`} />
           <ReviewRow
             label="Personal result"
@@ -342,6 +360,7 @@ export default function ShareScreen() {
               summary={scored.summary}
               composition={scored.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit }))}
               result={previewResult}
+              spend={spendLabel}
             />
           </FadeIn>
           <FadeIn delay={60}>
@@ -353,6 +372,7 @@ export default function ShareScreen() {
               summary={scored.summary}
               composition={scored.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit }))}
               result={previewResult}
+              spend={spendLabel}
             />
           </FadeIn>
           <FadeIn delay={80}>

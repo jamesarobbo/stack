@@ -8,7 +8,8 @@ import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
 import { auditStack } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
-import { formatUsd } from '@/src/format';
+import { formatMoney } from '@/src/format';
+import { joinMoney } from '../../../shared/money';
 import { useApp } from '@/src/state';
 import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
@@ -41,7 +42,7 @@ export default function StackScreen() {
             Estimated monthly spend
           </T>
           <T weight="bold" size={44} style={styles.spend}>
-            {formatUsd(audit.monthlySpendCents)}
+            {joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.monthlyCents }))) ?? formatMoney(0, app.currency)}
           </T>
           {audit.duplicates.length > 0 ? (
             <View style={styles.overlapRow}>

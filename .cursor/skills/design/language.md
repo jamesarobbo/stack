@@ -69,6 +69,12 @@ No bounce, no loop, no pulsing dot. Pressed buttons drop to opacity 0.88. Disabl
 
 Name, then up to four short product chips and "+N more" if needed, then the dose score ring, then a published result with the real 12 week window, then a copy icon from 3 copies and an eye icon from 10 views. The number is short (25, 1.2k). The accessibility label is the full count ("25 copies", "1,200 views"). The sharer is `@username`. With no username yet, the line is "A Stack user". A flat result says it showed no clear change. A personal or group result line ends with a star. The star is plain text, about 70% of the line, raised a little, and the same colour as the line. About results, in More, explains it. The accessibility label speaks the caveat. The personal caveat stays "One person's wearable. Not proof it caused the change." The group caveat stays "Real-world data from people who copied this stack, not a trial." The public page and the share images keep a short footnote, because a viewer outside the app has no About results screen. Do not paint a small change green.
 
+## Start date and currency
+
+A product shows one row for the start date: the label on the left, the date on the right. The picker opens only when that row is tapped. iOS uses the compact control. Android uses the system dialog. There is no wheel left on the screen.
+
+Currency is chosen in More, then Settings. It starts from the device locale and falls back to US dollars. Prices and savings stay gold. A public page shows the monthly total in the currency it was entered in. Discover cards do not show a price. Nothing is converted.
+
 ## Native config
 
 `userInterfaceStyle: 'automatic'`, the splash background `#F2F2F7`, and the Android adaptive icon background `#F2F2F7` are native. A shipped binary keeps the old values until a new build. Over the air, dark mode follows the system only where the binary already reports it (web, Expo Go, or a build that includes this config).

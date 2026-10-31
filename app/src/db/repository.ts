@@ -1,8 +1,10 @@
 import { and, eq } from 'drizzle-orm';
+import { isCurrency, type CurrencyCode } from '../../../shared/money';
 import { buildExample } from '../data/example';
 import { coerceUnit } from '../data/units';
 import { clampStartDate, localToday } from '../dates';
 import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from '../domain/types';
+import { getCurrency } from '../money';
 import { connectAppleHealth, refreshAppleHealth } from '../health/connect';
 import type { HealthConnection } from '../health/types';
 import { randomId } from '../id';
@@ -54,6 +56,7 @@ function mapProduct(
     brand: row.brand,
     note: row.note,
     priceCents: row.priceCents,
+    priceCurrency: row.priceCurrency,
     servingsPerContainer: row.servingsPerContainer,
     servingsPerDay: row.servingsPerDay,
     startDate: row.startDate,
@@ -89,7 +92,11 @@ export async function loadSnapshot(): Promise<Snapshot> {
   };
 }
 
-async function insertProduct(product: ProductInput, createdAt: string) {
+function priceCode(product: { priceCurrency?: string | null }, whenMissing: CurrencyCode): CurrencyCode {
+  return isCurrency(product.priceCurrency) ? product.priceCurrency : whenMissing;
+}
+
+async function insertProduct(product: ProductInput, createdAt: string, whenMissing: CurrencyCode = getCurrency()) {
   await db.insert(products).values({
     id: product.id,
     catalogueId: product.catalogueId ?? null,
@@ -97,6 +104,7 @@ async function insertProduct(product: ProductInput, createdAt: string) {
     brand: product.brand,
     note: product.note,
     priceCents: product.priceCents,
+    priceCurrency: priceCode(product, whenMissing),
     servingsPerContainer: product.servingsPerContainer,
     servingsPerDay: product.servingsPerDay,
     startDate: product.startDate,
@@ -201,9 +209,10 @@ export async function addProduct(input: {
   await setSetting('usingSampleData', '0');
 }
 
-export async function updateProductPrice(id: string, priceCents: number) {
+export async function updateProductPrice(id: string, priceCents: number, currency: string) {
   const cents = Math.max(0, Math.round(priceCents));
-  await db.update(products).set({ priceCents: cents }).where(eq(products.id, id));
+  const priceCurrency = isCurrency(currency) ? currency : getCurrency();
+  await db.update(products).set({ priceCents: cents, priceCurrency }).where(eq(products.id, id));
   await setSetting('usingSampleData', '0');
 }
 
@@ -267,6 +276,7 @@ export type NewProduct = {
   brand?: string | null;
   note?: string | null;
   priceCents: number;
+  priceCurrency?: string | null;
   servingsPerContainer: number;
   servingsPerDay: number;
   startDate: string;
@@ -292,6 +302,7 @@ export async function addProducts(list: NewProduct[], options: { replaceIds?: st
           brand: input.brand ?? null,
           note: input.note ?? null,
           priceCents: Math.max(0, Math.round(input.priceCents)),
+          priceCurrency: priceCode(input, getCurrency()),
           servingsPerContainer: input.servingsPerContainer,
           servingsPerDay: input.servingsPerDay,
           startDate: clampStartDate(input.startDate),
@@ -350,6 +361,7 @@ export async function replaceProductsFromSync(incoming: ProductInput[]) {
     await insertProduct(
       { ...product, id: product.id || randomId() },
       `${localToday()}T00:00:${String(index).padStart(2, '0')}.000Z`,
+      'USD',
     );
   }
   await setSetting('usingSampleData', '0');

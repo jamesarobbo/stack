@@ -22,6 +22,8 @@ export type ShareView = {
   result: SharedResultView | null;
   copyCount: number | null;
   viewCount: number | null;
+  /** Monthly totals in the currencies they were entered in. Not converted. */
+  spend?: { currency: string; monthlyCents: number }[];
   listed: boolean;
   version: number;
   createdOn: string;
@@ -68,7 +70,7 @@ export type LibraryItem = {
 };
 export type LibraryPage = { items: LibraryItem[]; nextOffset: number | null; note: string | null };
 
-/** What the Worker publishes. Prices, notes, start dates, and catalogue ids stay on the phone. */
+/** What the Worker publishes. Individual prices, notes, start dates, and catalogue ids stay on the phone. The monthly total is sent separately. */
 export function sharePayloadProducts(products: ProductInput[]) {
   return products.map((product) => ({
     id: product.id,

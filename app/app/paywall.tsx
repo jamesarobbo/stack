@@ -8,6 +8,7 @@ import { PRO_ANNUAL_CENTS, PRO_ANNUAL_SAVINGS_CENTS, PRO_MONTHLY_CENTS } from '@
 import { BROWSE_LISTED, DISCOVER_TAB_HREF } from '@/src/copy/library';
 import { auditStack } from '@/src/domain/audit';
 import { formatUsd } from '@/src/format';
+import { joinMoney } from '../../shared/money';
 import { EXPECTATION, goalEcho, wearableLine } from '@/src/onboarding/answers';
 import { readGoals, readWearable } from '@/src/onboarding/storage';
 import { purchasesAvailable } from '@/src/purchases';
@@ -29,6 +30,7 @@ export default function PaywallScreen() {
   const params = useLocalSearchParams<{ onboarding?: string }>();
   const fromOnboarding = (Array.isArray(params.onboarding) ? params.onboarding[0] : params.onboarding) === '1';
   const audit = useMemo(() => auditStack(app.products), [app.products]);
+  const overlap = joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.wastedCents })));
   const [plan, setPlan] = useState<'annual' | 'monthly'>('annual');
   const price = plan === 'annual' ? `${formatUsd(PRO_ANNUAL_CENTS)}/year` : `${formatUsd(PRO_MONTHLY_CENTS)}/month`;
 
@@ -89,13 +91,13 @@ export default function PaywallScreen() {
           ? `${wearableLine(readWearable())} ${EXPECTATION}`
           : 'Free covers the basics. Pro adds multi-supplement impact, confounder notes, and a monthly report.'}
       </T>
-      {fromOnboarding && audit.wastedCents > 0 ? (
+      {fromOnboarding && overlap ? (
         <Card style={{ backgroundColor: theme.amberBg, borderColor: theme.amberBorder }}>
           <T size={13} color={theme.amber}>
             Estimated overlap from your labels
           </T>
           <T weight="bold" size={28} color={theme.amber}>
-            {`${formatUsd(audit.wastedCents)} a month`}
+            {`${overlap} a month`}
           </T>
         </Card>
       ) : null}

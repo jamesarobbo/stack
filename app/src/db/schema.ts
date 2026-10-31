@@ -7,6 +7,7 @@ export const products = sqliteTable('products', {
   brand: text('brand'),
   note: text('note'),
   priceCents: integer('price_cents').notNull(),
+  priceCurrency: text('price_currency').notNull().default('USD'),
   servingsPerContainer: integer('servings_per_container').notNull(),
   servingsPerDay: real('servings_per_day').notNull(),
   startDate: text('start_date').notNull(),

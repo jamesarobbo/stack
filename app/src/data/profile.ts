@@ -1,5 +1,6 @@
 import { api } from '../api';
 import { isAgeRange, isSex } from '../health/demographics';
+import { getCurrency } from '../money';
 import { getSetting } from '../settings';
 
 export async function syncProfile(token: string | null) {
@@ -14,6 +15,7 @@ export async function syncProfile(token: string | null) {
       ageRange: isAgeRange(ageRange) ? ageRange : undefined,
       sex: isSex(sex) ? sex : undefined,
       displayName: displayName || null,
+      currency: getCurrency(),
     },
   });
 }

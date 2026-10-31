@@ -7,7 +7,8 @@ import { applyScreenExit } from '../navigation/exit';
 import { DISCLAIMER } from '../config';
 import { monthlyCostCents } from '../domain/audit';
 import type { ProductInput } from '../domain/types';
-import { formatUsd } from '../format';
+import { formatMoney } from '../format';
+import { currencyOf } from '../../../shared/money';
 import { font, useTheme, useThemedStyles, type Theme } from '../theme';
 
 type Weight = keyof typeof font;
@@ -298,7 +299,7 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
         </T>
       ) : (
         <T weight="bold" size={16} color={theme.amber}>
-          {formatUsd(monthly)}
+          {formatMoney(monthly, currencyOf(product))}
         </T>
       )}
     </Pressable>

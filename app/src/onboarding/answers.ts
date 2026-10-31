@@ -1,4 +1,4 @@
-import { formatUsd } from '../format';
+import { formatMoney } from '../format';
 
 export const EXPECTATION = 'Give each change a few weeks. Stack compares your before and after.';
 
@@ -14,13 +14,17 @@ export const GOALS = [
 
 export type GoalKey = (typeof GOALS)[number]['key'];
 
-export const SPEND_OPTIONS = [
-  { key: 'under50', label: 'Under $50' },
-  { key: '50to100', label: '$50 to $100' },
-  { key: '100to200', label: '$100 to $200' },
-  { key: 'over200', label: 'Over $200' },
-  { key: 'unsure', label: 'Not sure' },
-] as const;
+export function spendChoices(currency = 'USD') {
+  return [
+    { key: 'under50' as const, label: `Under ${formatMoney(5000, currency)}` },
+    { key: '50to100' as const, label: `${formatMoney(5000, currency)} to ${formatMoney(10000, currency)}` },
+    { key: '100to200' as const, label: `${formatMoney(10000, currency)} to ${formatMoney(20000, currency)}` },
+    { key: 'over200' as const, label: `Over ${formatMoney(20000, currency)}` },
+    { key: 'unsure' as const, label: 'Not sure' },
+  ];
+}
+
+export const SPEND_OPTIONS = spendChoices('USD');
 
 export type SpendKey = (typeof SPEND_OPTIONS)[number]['key'];
 
@@ -57,15 +61,15 @@ export function becauseLine(keys: readonly string[]): string {
   return `Because you said you want to ${bits.slice(0, -1).join(', ')}, and ${bits[bits.length - 1]}.`;
 }
 
-export function spendLine(key: string | null, monthlyCents: number): string | null {
+export function spendLine(key: string | null, monthlyCents: number, currency = 'USD'): string | null {
   if (!key) return null;
-  const option = SPEND_OPTIONS.find((item) => item.key === key);
+  const option = spendChoices(currency).find((item) => item.key === key);
   if (!option) return null;
   if (monthlyCents <= 0) {
     if (key === 'unsure') return 'You were not sure of the monthly spend. No prices are entered yet.';
     return `You put the monthly spend at ${option.label.toLowerCase()}. No prices are entered yet, so there is no total to compare.`;
   }
-  const total = `${formatUsd(monthlyCents)} a month`;
+  const total = `${formatMoney(monthlyCents, currency)} a month`;
   if (key === 'unsure') return `You were not sure of the monthly spend. The labels you entered add up to ${total}.`;
   return `You put the monthly spend at ${option.label.toLowerCase()}. The labels you entered add up to ${total}.`;
 }

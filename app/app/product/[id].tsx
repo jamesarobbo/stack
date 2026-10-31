@@ -8,7 +8,8 @@ import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/component
 import { applyScreenExit } from '@/src/navigation/exit';
 import { monthlyCostCents } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
-import { formatNumber, formatUsd } from '@/src/format';
+import { formatMoney, formatNumber } from '@/src/format';
+import { currencyOf } from '../../../shared/money';
 import { useApp } from '@/src/state';
 import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
@@ -30,6 +31,7 @@ export default function ProductScreen() {
       </Screen>
     );
   }
+  const priceCurrency = currencyOf(product);
   const monthly = monthlyCostCents(product.priceCents, product.servingsPerContainer, product.servingsPerDay);
   const totals = scoreProducts([product]).totals;
   return (
@@ -46,7 +48,7 @@ export default function ProductScreen() {
       {product.priceCents > 0 ? (
         <View style={{ gap: 2 }}>
           <T weight="bold" size={36} color={theme.amber} style={styles.price}>
-            {formatUsd(monthly)}
+            {formatMoney(monthly, priceCurrency)}
           </T>
           <T size={14} color={theme.muted}>
             a month, from the price and servings you entered
@@ -86,7 +88,7 @@ export default function ProductScreen() {
           </View>
         ) : (
           <T size={14} color={theme.muted}>
-            {`${formatUsd(product.priceCents)} for ${product.servingsPerContainer} servings, ${product.servingsPerDay} a day.`}
+            {`${formatMoney(product.priceCents, priceCurrency)} for ${product.servingsPerContainer} servings, ${product.servingsPerDay} a day.`}
           </T>
         )}
         <DateField

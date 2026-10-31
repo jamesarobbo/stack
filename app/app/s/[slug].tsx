@@ -9,6 +9,7 @@ import { api, ApiError } from '@/src/api';
 import { REPORT_REASONS, goalLabel, type ReportReasonKey } from '@/src/copy/library';
 import { EngagementStats } from '@/src/components/EngagementStats';
 import { COHORT_EXPLAINER, DOCTOR_LINE, creditLine, shareMessage, sharerName } from '@/src/copy/sharing';
+import { spendSentence } from '../../../shared/money';
 import { usernameHandle } from '../../../shared/username';
 import { OFF_ATTRIBUTION } from '@/src/data/labels';
 import { recordCopy, type CohortReport, type PublicShare } from '@/src/data/sharing';
@@ -241,6 +242,11 @@ export default function SharedStackScreen() {
           <T size={15} color={theme.muted}>
             {`${who}, ${stack.products.length} ${stack.products.length === 1 ? 'product' : 'products'}`}
           </T>
+          {spendSentence(stack.spend ?? []) ? (
+            <T size={17} weight="bold" color={theme.amber}>
+              {spendSentence(stack.spend ?? [])}
+            </T>
+          ) : null}
           <ProductChips names={stack.products.map((product) => product.name)} />
           {stack.goals.length > 0 ? (
             <View style={styles.pills}>

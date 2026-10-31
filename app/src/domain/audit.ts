@@ -2,7 +2,8 @@ import { DOSE_CONVERSIONS } from '../../../shared/doses';
 import { INTERACTION_RULES } from '../data/interactions';
 import { normalizeUnit } from '../data/units';
 import { UPPER_LIMITS } from '../data/upperLimits';
-import { formatNumber, formatUsd } from '../format';
+import { currencyOf, formatMoney, type MoneyLine } from '../../../shared/money';
+import { formatNumber } from '../format';
 import type { IngredientInput, ProductInput } from './types';
 
 /** Unit conversions shared with the score and the Worker. Vitamin A in IU is not checked. */
@@ -24,6 +25,8 @@ export type DuplicateFinding = {
   label: string;
   detail: string;
   wastedCents: number;
+  /** Currency of the prices in this finding. Savings are not added across currencies. */
+  currency: string;
   sources: CostShare[];
 };
 
@@ -53,6 +56,8 @@ export type AuditResult = {
   limits: LimitFinding[];
   interactions: InteractionFinding[];
   subtitle: string;
+  /** One line per currency. Amounts are not converted. */
+  money: MoneyLine[];
 };
 
 export function monthlyCostCents(
@@ -106,12 +111,36 @@ export function costShares(product: ProductInput): CostShare[] {
 }
 
 export function auditStack(products: ProductInput[]): AuditResult {
+  const groups = new Map<string, ProductInput[]>();
+  for (const product of products) {
+    const currency = currencyOf(product);
+    const list = groups.get(currency) ?? [];
+    list.push(product);
+    groups.set(currency, list);
+  }
+  const parts = (groups.size === 0 ? [['USD', [] as ProductInput[]] as const] : [...groups.entries()]).map(([currency, group]) =>
+    auditCurrency(group, currency),
+  );
+  if (parts.length === 1) return parts[0]!;
+  const duplicates = parts.flatMap((part) => part.duplicates);
+  return {
+    monthlySpendCents: parts.reduce((sum, part) => sum + part.monthlySpendCents, 0),
+    wastedCents: parts.reduce((sum, part) => sum + part.wastedCents, 0),
+    duplicates,
+    limits: limitFindings(products),
+    interactions: interactionFindings(products),
+    subtitle: savingsSubtitle(duplicates),
+    money: parts.flatMap((part) => part.money),
+  };
+}
+
+function auditCurrency(products: ProductInput[], currency: string): AuditResult {
   const monthlySpendCents = products.reduce(
     (sum, product) => sum + monthlyCostCents(product.priceCents, product.servingsPerContainer, product.servingsPerDay),
     0,
   );
   const shares = products.flatMap(costShares);
-  const duplicates = duplicateFindings(shares);
+  const duplicates = duplicateFindings(shares).map((finding) => ({ ...finding, currency }));
   const wastedCents = duplicates.reduce((sum, finding) => sum + finding.wastedCents, 0);
   return {
     monthlySpendCents,
@@ -120,6 +149,7 @@ export function auditStack(products: ProductInput[]): AuditResult {
     limits: limitFindings(products),
     interactions: interactionFindings(products),
     subtitle: savingsSubtitle(duplicates),
+    money: [{ currency: currencyOf({ priceCurrency: currency }), monthlyCents: monthlySpendCents, wastedCents }],
   };
 }
 
@@ -145,6 +175,7 @@ function duplicateFindings(shares: CostShare[]): DuplicateFinding[] {
       label: ordered[0]?.label ?? family,
       detail: ordered.map((share) => share.summary).join(' + '),
       wastedCents,
+      currency: 'USD',
       sources: ordered,
     });
   }
@@ -230,6 +261,6 @@ export function savingsScore(monthlySpendCents: number, wastedCents: number): nu
   return Math.round(100 - ratio * 100);
 }
 
-export function formatWasted(cents: number): string {
-  return `~${formatUsd(cents)}/mo`;
+export function formatWasted(cents: number, currency = 'USD'): string {
+  return `~${formatMoney(cents, currency)}/mo`;
 }

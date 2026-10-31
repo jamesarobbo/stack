@@ -21,6 +21,7 @@ import { DEFAULT_UNIT } from '@/src/data/units';
 import { clampStartDate, localToday } from '@/src/dates';
 import type { IngredientInput } from '@/src/domain/types';
 import { ApiError } from '@/src/api';
+import { currencyName } from '../../shared/money';
 import { useApp } from '@/src/state';
 import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
@@ -309,7 +310,7 @@ function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }
           DSLD did not list a serving count, so 30 is a placeholder. Check the bottle.
         </T>
       ) : null}
-      <Field label="Price (USD)" value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
+      <Field label={`Price, ${currencyName(app.currency)}`} value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
       <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
       <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" />
       <DateField label="Start date" value={startDate} onChange={setStartDate} />
@@ -431,7 +432,7 @@ function ManualAdd({
       <Field label="Product" value={name} onChangeText={setName} placeholder="What the bottle says" />
       {off ? <Field label="Brand" value={brand} onChangeText={setBrand} placeholder="Brand on the bottle" /> : null}
       <Field label="Barcode (optional)" value={barcode} onChangeText={onBarcode} placeholder="088395056116" keyboard="number-pad" />
-      <Field label="Price (USD)" value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
+      <Field label={`Price, ${currencyName(app.currency)}`} value={price} onChangeText={setPrice} placeholder="29.00" keyboard="decimal-pad" />
       <Field label="Servings per container" value={servings} onChangeText={setServings} keyboard="number-pad" />
       <Field label="Servings per day" value={perDay} onChangeText={setPerDay} keyboard="decimal-pad" />
       <DateField label="Start date" value={startDate} onChange={setStartDate} />

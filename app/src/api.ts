@@ -1,3 +1,4 @@
+import { currencyOf } from '../../shared/money';
 import { API_URL } from './config';
 import type { ProductInput } from './domain/types';
 
@@ -38,6 +39,7 @@ export function stackSyncBody(products: ProductInput[]) {
       brand: product.brand,
       note: product.note,
       priceCents: product.priceCents,
+      priceCurrency: currencyOf(product),
       servingsPerContainer: product.servingsPerContainer,
       servingsPerDay: product.servingsPerDay,
       startDate: product.startDate,

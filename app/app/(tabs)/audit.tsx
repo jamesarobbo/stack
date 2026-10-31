@@ -8,7 +8,7 @@ import { BROWSE_LISTED, DISCOVER_TAB_HREF } from '@/src/copy/library';
 import { auditStack, formatWasted } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
-import { formatUsd } from '@/src/format';
+import { joinMoney } from '../../../shared/money';
 import { useApp } from '@/src/state';
 import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
@@ -18,6 +18,7 @@ export default function AuditScreen() {
   const app = useApp();
   const audit = useMemo(() => auditStack(app.products), [app.products]);
   const scored = useMemo(() => scoreProducts(app.products), [app.products]);
+  const savings = joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.wastedCents })));
   const flagCount = audit.limits.length;
   const hasGaps = audit.duplicates.length > 0 || audit.limits.length > 0 || scored.score < 80;
 
@@ -50,7 +51,7 @@ export default function AuditScreen() {
       <View style={styles.savings}>
         <Pill tone="amber">Possible savings</Pill>
         <T weight="bold" size={32} color={theme.amber} style={styles.savingsTitle}>
-          {audit.wastedCents > 0 ? `You could save ${formatUsd(audit.wastedCents)} a month` : 'No duplicate spend found'}
+          {savings ? `You could save ${savings} a month` : 'No duplicate spend found'}
         </T>
         <T size={14} color={theme.muted}>
           {audit.subtitle}
@@ -90,7 +91,7 @@ export default function AuditScreen() {
               </View>
               <View style={styles.moneyPill}>
                 <T size={13} weight="semibold" color={theme.amber}>
-                  {formatWasted(finding.wastedCents)}
+                  {formatWasted(finding.wastedCents, finding.currency)}
                 </T>
               </View>
             </View>

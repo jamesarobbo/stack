@@ -2,7 +2,7 @@ import { router, Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, useColorScheme, View } from 'react-native';
+import { AppState, Platform, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Boot } from '@/src/components/ui';
@@ -78,6 +78,10 @@ function RootNav() {
 
   useEffect(() => {
     hideFloatingDevTools();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') hideFloatingDevTools();
+    });
+    return () => sub.remove();
   }, []);
 
   useEffect(() => {
@@ -115,6 +119,7 @@ function RootNav() {
       <Stack.Screen name="paywall" />
       <Stack.Screen name="report" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="currency" />
       <Stack.Screen name="sign-in" />
       <Stack.Screen name="privacy" />
       <Stack.Screen name="results" />

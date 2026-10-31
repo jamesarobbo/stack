@@ -431,6 +431,7 @@ export function ShareCardPreview({
   summary,
   composition,
   result,
+  spend,
 }: {
   stackName: string;
   creator: string;
@@ -439,6 +440,7 @@ export function ShareCardPreview({
   summary: string;
   composition: { name: string; ofLimit: number | null }[];
   result?: CardResult | null;
+  spend?: string | null;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
@@ -452,6 +454,11 @@ export function ShareCardPreview({
       <T size={13} color={theme.muted}>
         {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
       </T>
+      {spend ? (
+        <T size={13} weight="bold" color={theme.amber}>
+          {spend}
+        </T>
+      ) : null}
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
         <View style={{ flex: 1.15, gap: 8, justifyContent: 'center' }}>
           {result ? (
@@ -503,6 +510,7 @@ export function StoryCardPreview({
   summary,
   composition,
   result,
+  spend,
 }: {
   stackName: string;
   creator: string;
@@ -511,6 +519,7 @@ export function StoryCardPreview({
   summary: string;
   composition: { name: string; ofLimit: number | null }[];
   result?: CardResult | null;
+  spend?: string | null;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
@@ -524,6 +533,11 @@ export function StoryCardPreview({
       <T size={14} color={theme.muted}>
         {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
       </T>
+      {spend ? (
+        <T size={15} weight="bold" color={theme.amber}>
+          {spend}
+        </T>
+      ) : null}
       <View style={styles.storyPanel}>
         <ScoreRing score={score} size={120} stroke={11} color={tone === 'good' ? theme.good : theme.score} track={theme.scoreTrack} textColor={theme.text} subColor={theme.muted} />
         <T size={13} weight="semibold" color={theme.muted}>

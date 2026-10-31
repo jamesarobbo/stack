@@ -24,6 +24,8 @@ import {
 import { configurePurchases, purchasePlan, restorePurchases, revenueCatIsPro, type PurchaseResult } from './purchases';
 import { syncProfile } from './data/profile';
 import { flushPendingCopies, submitCopierResults } from './data/sharing';
+import { ensureCurrency, getCurrency } from './money';
+import { isCurrency } from '../../shared/money';
 import { getSetting, setSetting } from './settings';
 import { initTelemetry, track } from './telemetry';
 
@@ -41,6 +43,7 @@ type AppState = {
   previewPro: boolean;
   sessionToken: string | null;
   email: string | null;
+  currency: string;
   syncNote: string | null;
   refresh: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
@@ -64,6 +67,7 @@ type AppState = {
   setStartDate: (id: string, startDate: string) => Promise<void>;
   setIngredientUnit: (productId: string, key: string, name: string, unit: string) => Promise<void>;
   setPrice: (id: string, priceCents: number) => Promise<void>;
+  setCurrency: (code: string) => Promise<void>;
   logTag: (kind: TagKind) => Promise<void>;
   setPreviewPro: (on: boolean) => Promise<void>;
   setName: (name: string) => Promise<void>;
@@ -92,6 +96,7 @@ function readFlags() {
     previewPro: getSetting('previewPro') === '1',
     sessionToken: getSetting('sessionToken'),
     email: getSetting('email'),
+    currency: getCurrency(),
   };
 }
 
@@ -135,6 +140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         await prepareSettings();
+        await ensureCurrency();
         await clearUntouchedSampleOnce();
         if (cancelled) return;
         await applySnapshot();
@@ -207,8 +213,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await afterWrite();
       },
       setPrice: async (id, priceCents) => {
-        await updateProductPrice(id, priceCents);
+        await updateProductPrice(id, priceCents, getCurrency());
         await afterWrite();
+      },
+      setCurrency: async (code) => {
+        if (!isCurrency(code) || code === getCurrency()) return;
+        await setSetting('currency', code);
+        await applySnapshot();
+        await syncProfile(getSetting('sessionToken')).catch(() => undefined);
       },
       logTag: async (kind) => {
         await addTag(kind);
@@ -226,6 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       exportData: async () => JSON.stringify(await exportPayload(), null, 2),
       deleteLocal: async () => {
         await deleteLocalData();
+        await ensureCurrency();
         setRcPro(false);
         await applySnapshot();
       },

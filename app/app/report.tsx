@@ -8,7 +8,9 @@ import { localToday } from '@/src/dates';
 import { REPORT_EMPTY, freshStartGaps } from '@/src/domain/emptyStates';
 import { buildMonthlyReport, travelLabel } from '@/src/domain/report';
 import type { Verdict } from '@/src/domain/types';
-import { formatUsd, signed } from '@/src/format';
+import { formatMoney, signed } from '@/src/format';
+import { joinMoney } from '../../shared/money';
+import { auditStack } from '@/src/domain/audit';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
 import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
@@ -20,6 +22,9 @@ export default function ReportScreen() {
     () => buildMonthlyReport({ today: localToday(), products: app.products, samples: app.samples, tags: app.tags }),
     [app.products, app.samples, app.tags],
   );
+  const overlap =
+    joinMoney(auditStack(app.products).money.map((line) => ({ currency: line.currency, cents: line.wastedCents }))) ??
+    formatMoney(0, app.currency);
 
   if (!app.isPro) {
     return (
@@ -42,7 +47,7 @@ export default function ReportScreen() {
       {freshStartGaps({ products: app.products.length, wearableSamples: app.samples.length }).length > 0 ? (
         <ReportEmpty products={app.products.length} />
       ) : (
-        <ReportBody report={report} />
+        <ReportBody report={report} overlap={overlap} />
       )}
       <Disclaimer text="Wearable associations only. Not medical advice." />
     </Screen>
@@ -72,7 +77,7 @@ function ReportEmpty({ products }: { products: number }) {
   );
 }
 
-function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> }) {
+function ReportBody({ report, overlap }: { report: ReturnType<typeof buildMonthlyReport>; overlap: string }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   return (
@@ -124,7 +129,7 @@ function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> 
           Potential overlap spend
         </T>
         <T weight="bold" size={40} color={theme.amber} style={styles.savingsValue}>
-          {formatUsd(report.wastedCents)}
+          {overlap}
         </T>
         <T size={14} color={theme.muted}>
           {`${report.dropCount} product${report.dropCount === 1 ? '' : 's'} labeled drop, ${report.nearLimitCount + report.overLimitCount} upper-limit flag${report.nearLimitCount + report.overLimitCount === 1 ? '' : 's'}`}

@@ -1,7 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { File, Paths } from 'expo-file-system';
+import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { currencyName } from '../../shared/money';
 import { Chip } from '@/src/components/share';
 import { UsernameField } from '@/src/components/UsernameField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
@@ -80,6 +83,20 @@ export default function SettingsScreen() {
       <T weight="bold" size={32} style={styles.title}>
         Settings
       </T>
+      <Card>
+        <Pressable accessibilityRole="button" accessibilityLabel="Currency" onPress={() => router.push('/currency')} style={styles.currencyRow}>
+          <View style={{ flex: 1 }}>
+            <T weight="semibold">Currency</T>
+            <T size={13} color={theme.muted}>
+              {currencyName(app.currency)}
+            </T>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={theme.muted} />
+        </Pressable>
+        <T size={13} color={theme.muted}>
+          New prices use this currency. Saved prices stay in the currency they were entered in.
+        </T>
+      </Card>
       <Card>
         <T weight="semibold">Username</T>
         <T size={13} color={theme.muted}>
@@ -246,6 +263,7 @@ export default function SettingsScreen() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.6 },
+  currencyRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   input: {
     backgroundColor: theme.bg,

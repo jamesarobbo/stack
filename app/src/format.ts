@@ -1,11 +1,10 @@
+import { formatMoney } from '../../shared/money';
+
+export { formatMoney };
+
+/** Stack Pro prices are charged in US dollars. Supplement prices use formatMoney. */
 export function formatUsd(cents: number): string {
-  const sign = cents < 0 ? '-' : '';
-  const abs = Math.abs(Math.round(cents));
-  const dollars = Math.floor(abs / 100);
-  const rem = abs % 100;
-  const withCommas = String(dollars).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  if (rem === 0) return `${sign}$${withCommas}`;
-  return `${sign}$${withCommas}.${String(rem).padStart(2, '0')}`;
+  return formatMoney(cents, 'USD');
 }
 
 export function formatNumber(value: number, digits = 0): string {
