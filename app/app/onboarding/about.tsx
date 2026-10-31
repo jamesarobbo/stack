@@ -9,7 +9,7 @@ import { localToday } from '@/src/dates';
 import { AGE_RANGES, SEXES, ageRangeFromBirthDate, isAgeRange, isSex, prefillSex, type AgeRange, type Sex } from '@/src/health/demographics';
 import { getSetting, setSetting } from '@/src/settings';
 import { track } from '@/src/telemetry';
-import { useTheme } from '@/src/theme';
+import { space, useTheme } from '@/src/theme';
 
 export default function AboutStep() {
   const theme = useTheme();
@@ -31,7 +31,7 @@ export default function AboutStep() {
       <T weight="semibold" size={17} style={{ marginTop: 8 }}>
         Age range
       </T>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
         {AGE_RANGES.map((option) => (
           <Chip key={option.key} label={option.label} selected={age === option.key} onPress={() => setAge(option.key)} />
         ))}
@@ -39,7 +39,7 @@ export default function AboutStep() {
       <T weight="semibold" size={17} style={{ marginTop: 8 }}>
         Sex
       </T>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
         {SEXES.map((option) => (
           <Chip key={option.key} label={option.label} selected={sex === option.key} onPress={() => setSex(option.key)} />
         ))}

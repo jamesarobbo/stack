@@ -5,7 +5,7 @@ import type { DailyTotal, ScoreReason } from '../domain/auditScore';
 import { heroParts, type OutcomeFields } from '../domain/outcome';
 import { formatDose } from '../../../shared/doses';
 import { PERSONAL_RESULT_NOTE } from '../../../shared/outcome';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { useTheme, useThemedStyles, type Theme} from '../theme';
 import { NativeSegmented } from './NativeSegmented';
 import { T } from './ui';
 

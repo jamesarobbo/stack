@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition, ReduceMotion } from 'react-native-reanimated';
 import type { IntakeLog } from '../../../shared/reminders';
 import { localToday } from '../dates';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { TodayList } from './TodayList';
 import { Card, T } from './ui';
 
@@ -114,12 +114,12 @@ export function LogTodayCard({
 function localStyles(theme: Theme) {
   return StyleSheet.create({
     promoCard: {
-      minHeight: 64,
+      minHeight: control.listRow,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
-      paddingVertical: 14,
-      paddingHorizontal: 14,
+      gap: space.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.md,
       paddingLeft: 12,
       borderRadius: theme.radius,
       borderWidth: 1,
@@ -135,14 +135,14 @@ function localStyles(theme: Theme) {
       width: 4,
       backgroundColor: theme.action,
     },
-    promoCopy: { flex: 1, gap: 2 },
+    promoCopy: { flex: 1, gap: space.xxs },
     doneRow: {
-      minHeight: 44,
+      minHeight: control.height,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
-      paddingVertical: 10,
-      paddingHorizontal: 14,
+      gap: space.md,
+      paddingVertical: space.md,
+      paddingHorizontal: space.md,
       borderRadius: theme.radius,
       borderWidth: 1,
       borderColor: theme.line,

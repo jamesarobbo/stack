@@ -10,7 +10,8 @@ import type { ProductInput } from '../domain/types';
 import { formatMoney } from '../format';
 import { productSubtitle } from '../productSubtitle';
 import { currencyOf } from '../../../shared/money';
-import { font, space, useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
+export { DoseRow, Field as PrimField, SectionHeader, Group, Row } from '../primitives';
 
 type Weight = keyof typeof font;
 
@@ -54,7 +55,7 @@ export function Screen({
   const styles = useThemedStyles(localStyles);
   const body = scroll ? (
     <ScrollView
-      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]}
+      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + space.lg }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
@@ -63,7 +64,7 @@ export function Screen({
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.scroll, { paddingTop: insets.top + 20, flex: 1 }]}>{children}</View>
+    <View style={[styles.scroll, { paddingTop: insets.top + space.lg, flex: 1 }]}>{children}</View>
   );
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -166,7 +167,7 @@ export function LabeledField({
   const styles = useThemedStyles(localStyles);
   const isPad = keyboardType === 'number-pad' || keyboardType === 'decimal-pad';
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{ gap: space.sm }}>
       <T size={13} weight="semibold">
         {label}
       </T>
@@ -195,7 +196,7 @@ export function LabeledField({
 export function EmptyLead({ title, body }: { title: string; body: string }) {
   const theme = useTheme();
   return (
-    <View style={{ gap: 10 }}>
+    <View style={{ gap: space.md }}>
       <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
         {title}
       </T>
@@ -247,7 +248,7 @@ export function ShareButton({ onPress }: { onPress: () => void }) {
       accessibilityLabel="Share stack"
       onPress={onPress}
       hitSlop={8}
-      style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+      style={{ width: 44, height: control.height, alignItems: 'center', justifyContent: 'center' }}
     >
       <Ionicons name={name} size={22} color={theme.teal} />
     </Pressable>
@@ -290,14 +291,14 @@ function Capsule({ color }: { color: string }) {
       style={{
         width: 18,
         height: 26,
-        borderRadius: 9,
+        borderRadius: radius.sm,
         borderWidth: 1.7,
         borderColor: color,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <View style={{ width: 8, height: 1.7, borderRadius: 1, backgroundColor: color }} />
+      <View style={{ width: 8, height: 1.7, borderRadius: radius.xs, backgroundColor: color }} />
     </View>
   );
 }
@@ -313,7 +314,7 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
       style={({ pressed }) => [styles.product, last ? styles.productLast : null, pressed ? { opacity: 0.85 } : null]}
     >
       <Capsule color={theme.muted} />
-      <View style={{ flex: 1, gap: 2 }}>
+      <View style={{ flex: 1, gap: space.xxs }}>
         <T weight="semibold" size={16}>
           {product.name}
         </T>
@@ -352,50 +353,50 @@ export function Boot({ message }: { message: string }) {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: theme.bg },
-    scroll: { paddingHorizontal: space.xl, paddingBottom: 28, gap: 14 },
+    scroll: { paddingHorizontal: space.xl, paddingBottom: space.xxl, gap: space.md },
     footer: { paddingHorizontal: space.xl, paddingTop: space.sm, backgroundColor: theme.bg, gap: space.sm },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     card: {
       backgroundColor: theme.card,
-      borderRadius: theme.radius,
+      borderRadius: radius.lg,
       padding: space.lg,
       borderWidth: 1,
       borderColor: theme.line,
-      gap: 10,
+      gap: space.md,
     },
-    pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: space.xs, alignSelf: 'flex-start' },
-    button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: space.lg, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    pill: { borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.xs, alignSelf: 'flex-start' },
+    button: { height: control.button, paddingHorizontal: space.lg, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
     field: {
-      minHeight: 48,
-      backgroundColor: theme.card,
-      borderRadius: theme.radius,
+      height: control.height,
+      minHeight: control.height,
+      backgroundColor: theme.bg,
+      borderRadius: radius.sm,
       borderWidth: 1,
       borderColor: theme.line,
-      paddingHorizontal: 14,
-      paddingVertical: space.md,
-      fontSize: 16,
+      paddingHorizontal: space.md,
+      fontSize: typeSize.body,
       color: theme.text,
     },
     buttonTeal: { backgroundColor: theme.action },
     buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
     disclaimer: {
-      borderRadius: theme.radius,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: theme.line,
       backgroundColor: theme.card,
-      padding: 14,
+      padding: space.md,
     },
-    back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', minHeight: 44 },
+    back: { flexDirection: 'row', alignItems: 'center', gap: space.xxs, alignSelf: 'flex-start', minHeight: control.height },
     product: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.md,
       paddingVertical: space.md,
-      paddingHorizontal: 14,
+      paddingHorizontal: space.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.line,
-      minHeight: 56,
+      minHeight: control.listRow,
     },
     productLast: { borderBottomWidth: 0 },
     boot: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: space.xxl, gap: space.sm },

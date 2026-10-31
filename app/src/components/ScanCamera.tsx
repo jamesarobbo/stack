@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { ScanFrame } from './ScanFrame';
 import { T } from './ui';
 
@@ -13,7 +13,7 @@ export function ScanCamera({ torch, onScan }: { torch: boolean; onScan: (code: s
 
   if (!permission || !permission.granted) {
     return (
-      <View style={{ gap: 10 }}>
+      <View style={{ gap: space.md }}>
         <ScanFrame />
         <T size={14} color={theme.muted}>
           Stack needs the camera to read a barcode. Photos are not saved.
@@ -56,7 +56,7 @@ function localStyles(theme: Theme) {
   return StyleSheet.create({
   allow: {
     backgroundColor: theme.teal,
-    borderRadius: 14,
+    borderRadius: radius.md,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',

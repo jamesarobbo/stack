@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useThemedStyles, type Theme } from '../theme';
+import { radius, useThemedStyles, type Theme } from '../theme';
 
 /** Corner brackets for the barcode preview. The camera, when present, sits behind them. */
 export function ScanFrame({ children }: { children?: ReactNode }) {
@@ -22,7 +22,7 @@ function localStyles(theme: Theme) {
   return StyleSheet.create({
   frame: {
     height: 240,
-    borderRadius: 20,
+    borderRadius: radius.lg,
     overflow: 'hidden',
     backgroundColor: theme.line,
     borderWidth: 1,

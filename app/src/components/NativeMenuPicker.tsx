@@ -1,13 +1,12 @@
 import type { ReactNode } from 'react';
-import { Host, Picker, Text } from '@expo/ui/swift-ui';
-import { accessibilityLabel as a11yLabel, labelsHidden, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+import { Host, Picker, Text, VStack } from '@expo/ui/swift-ui';
+import { accessibilityLabel as a11yLabel, frame, labelsHidden, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { useTheme } from '../theme';
+import { control, radius, space, useTheme } from '../theme';
 
 /**
  * Native iOS pull-down menu picker (UIMenu / SwiftUI menu Picker).
- * Shows a checkmark on the current value. Android and web callers should
- * keep their own dropdown or select; this component is iOS-only.
+ * Fixed height Host so the label centres with the amount field beside it.
  */
 export function NativeMenuPicker<T extends string>({
   options,
@@ -25,46 +24,77 @@ export function NativeMenuPicker<T extends string>({
   const theme = useTheme();
   if (Platform.OS !== 'ios') return null;
 
-  const modifiers = [pickerStyle('menu'), labelsHidden()];
+  const modifiers = [
+    pickerStyle('menu'),
+    labelsHidden(),
+    frame({ height: control.height, alignment: 'center' }),
+  ];
   if (accessibilityLabel) modifiers.push(a11yLabel(accessibilityLabel));
 
   return (
-    <Host matchContents colorScheme={theme.bg === '#000000' ? 'dark' : 'light'} style={[styles.host, style]}>
-      <Picker
-        selection={value}
-        onSelectionChange={(selection) => {
-          if (selection == null) return;
-          const next = String(selection) as T;
-          if (options.includes(next)) onChange(next);
-        }}
-        modifiers={modifiers}
+    <Host
+      matchContents={false}
+      colorScheme={theme.bg === '#000000' ? 'dark' : 'light'}
+      style={[styles.host, style]}
+    >
+      <VStack
+        alignment="center"
+        spacing={0}
+        modifiers={[frame({ maxWidth: 9999, minHeight: control.height, maxHeight: control.height, alignment: 'center' })]}
       >
-        {options.map((option) => (
-          <Text key={option} modifiers={[tag(option)]}>
-            {option}
-          </Text>
-        ))}
-      </Picker>
+        <Picker
+          selection={value}
+          onSelectionChange={(selection) => {
+            if (selection == null) return;
+            const next = String(selection) as T;
+            if (options.includes(next)) onChange(next);
+          }}
+          modifiers={modifiers}
+        >
+          {options.map((option) => (
+            <Text key={option} modifiers={[tag(option)]}>
+              {option}
+            </Text>
+          ))}
+        </Picker>
+      </VStack>
     </Host>
   );
 }
 
-/** Compact chrome around NativeMenuPicker for amount+unit rows. */
+/** Compact chrome around NativeMenuPicker for amount+unit rows. Fills parent width and height. */
 export function CompactMenuPickerShell({ children }: { children: ReactNode }) {
   const theme = useTheme();
-  return <View style={[styles.shell, { backgroundColor: theme.greyPill }]}>{children}</View>;
+  return (
+    <View
+      style={[
+        styles.shell,
+        {
+          backgroundColor: theme.greyPill,
+          height: control.height,
+          minHeight: control.height,
+        },
+      ]}
+    >
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   host: {
-    minHeight: 44,
+    flex: 1,
+    alignSelf: 'stretch',
+    height: control.height,
+    minHeight: control.height,
+    width: '100%',
     justifyContent: 'center',
   },
   shell: {
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    minHeight: 44,
+    flex: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.md,
     justifyContent: 'center',
-    alignSelf: 'stretch',
+    overflow: 'hidden',
   },
 });

@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /** Shared nativeID for number and decimal pads. Replaces RN's lone Done pill. */
@@ -151,18 +151,18 @@ export function useNumberPadField(id: string, enabled = true): [RefObject<TextIn
 function localStyles(_theme: Theme) {
   return StyleSheet.create({
     bar: {
-      minHeight: 44,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      minHeight: control.height,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       borderTopWidth: StyleSheet.hairlineWidth,
       width: '100%',
     },
-    nav: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-    navBtn: { minHeight: 44, justifyContent: 'center' },
+    nav: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+    navBtn: { minHeight: control.height, justifyContent: 'center' },
     navDisabled: { opacity: 0.45 },
-    done: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
+    done: { minHeight: control.height, justifyContent: 'center', paddingHorizontal: 4 },
   });
 }

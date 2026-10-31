@@ -10,7 +10,7 @@ import { scoreProducts } from '@/src/domain/auditScore';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
 import { joinMoney } from '../../../shared/money';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function AuditScreen() {
   const theme = useTheme();
@@ -112,7 +112,7 @@ export default function AuditScreen() {
           </T>
         ) : (
           audit.limits.map((finding) => (
-            <View key={finding.key} style={{ gap: 4 }}>
+            <View key={finding.key} style={{ gap: space.xs }}>
               <T size={14}>{finding.message}</T>
               <T size={13} color={theme.muted}>
                 {finding.citation}
@@ -160,19 +160,19 @@ export default function AuditScreen() {
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  link: { minHeight: 44, justifyContent: 'center' },
+  link: { minHeight: control.height, justifyContent: 'center' },
   savings: {
     backgroundColor: theme.amberBg,
     borderColor: theme.amberBorder,
     borderWidth: 1,
-    borderRadius: 20,
-    padding: 18,
-    gap: 8,
+    borderRadius: radius.lg,
+    padding: space.lg,
+    gap: space.sm,
   },
   savingsTitle: { letterSpacing: -0.6 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
-  lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  moneyPill: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm },
+  lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm },
+  moneyPill: { backgroundColor: theme.amberPill, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.sm },
 });
 }
 

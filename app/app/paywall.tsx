@@ -13,7 +13,7 @@ import { EXPECTATION, goalEcho, wearableLine } from '@/src/onboarding/answers';
 import { readGoals, readWearable } from '@/src/onboarding/storage';
 import { purchasesAvailable } from '@/src/purchases';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const ROWS: { label: string; free: boolean; pro: boolean }[] = [
   { label: 'Stack log + duplicates', free: true, pro: true },
@@ -109,7 +109,7 @@ export default function PaywallScreen() {
             Billed once a year
           </T>
         </View>
-        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+        <View style={{ alignItems: 'flex-end', gap: space.xs }}>
           <View style={styles.best}>
             <T size={11} weight="semibold" color={theme.teal}>
               Best value
@@ -208,22 +208,22 @@ function localStyles(theme: Theme) {
   title: { letterSpacing: -0.8 },
   plan: {
     backgroundColor: theme.card,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: theme.line,
-    padding: 16,
+    padding: space.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
   },
   planOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
-  best: { backgroundColor: theme.tealSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  save: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  table: { backgroundColor: theme.card, borderRadius: 18, borderWidth: 1, borderColor: theme.line, padding: 14, gap: 10 },
+  best: { backgroundColor: theme.tealSoft, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 },
+  save: { backgroundColor: theme.amberPill, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 },
+  table: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: 1, borderColor: theme.line, padding: space.md, gap: space.md },
   tableHead: { flexDirection: 'row', alignItems: 'center' },
-  tableRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tableRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   col: { width: 44, textAlign: 'center', alignItems: 'center' },
-  link: { minHeight: 44, justifyContent: 'center' },
+  link: { minHeight: control.height, justifyContent: 'center' },
 });
 }
 

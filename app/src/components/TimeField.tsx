@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Modal, Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatClock, isValidTime } from '../../../shared/reminders';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 function dateFromTime(time: string): Date {
@@ -109,24 +109,24 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-    row: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    row: { minHeight: control.height, flexDirection: 'row', alignItems: 'center', gap: space.md },
     value: {
-      minHeight: 36,
+      minHeight: control.compact,
       justifyContent: 'center',
       backgroundColor: theme.greyPill,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
     },
     sheet: { flex: 1 },
     sheetBar: {
-      minHeight: 52,
+      minHeight: control.button,
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 8,
+      paddingHorizontal: space.sm,
       borderBottomWidth: StyleSheet.hairlineWidth,
     },
-    sheetAction: { minWidth: 72, minHeight: 44, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+    sheetAction: { minWidth: 72, minHeight: control.height, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.sm },
     spinner: { alignSelf: 'center', width: '100%' },
   });
 }

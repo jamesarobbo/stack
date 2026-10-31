@@ -7,7 +7,7 @@ import { goalEcho } from '@/src/onboarding/answers';
 import { readGoals } from '@/src/onboarding/storage';
 import { SUPPLEMENT_ENTRY } from '@/src/onboarding/steps';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const ICONS = {
   search: 'search-outline',
@@ -92,27 +92,27 @@ export default function SupplementStep() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8 },
-  list: { gap: 10 },
+  list: { gap: space.md },
   row: {
-    minHeight: 72,
+    minHeight: control.listRow + space.md,
     backgroundColor: theme.card,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: theme.line,
-    padding: 14,
+    padding: space.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
   },
   icon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     backgroundColor: theme.tealSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
 });
 }
 

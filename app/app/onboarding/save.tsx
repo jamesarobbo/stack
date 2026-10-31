@@ -5,7 +5,7 @@ import { OnboardingFrame } from '@/src/components/OnboardingProgress';
 import { NUMBER_PAD_ACCESSORY_ID } from '@/src/components/NumberPadAccessory';
 import { Button, LabeledField, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function SaveStep() {
   const theme = useTheme();
@@ -121,7 +121,7 @@ export default function SaveStep() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8 },
-  skip: { minHeight: 44, justifyContent: 'center' },
+  skip: { minHeight: control.height, justifyContent: 'center' },
 });
 }
 

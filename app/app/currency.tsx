@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { CURRENCIES } from '../../shared/money';
 import { BackButton, Screen, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function CurrencyScreen() {
   const theme = useTheme();
@@ -46,14 +46,14 @@ export default function CurrencyScreen() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
     title: { letterSpacing: -0.8 },
-    menu: { backgroundColor: theme.card, borderRadius: 16, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
+    menu: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
     row: {
-      minHeight: 44,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      minHeight: control.height,
+      paddingHorizontal: space.lg,
+      paddingVertical: space.md,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: space.sm,
       borderBottomWidth: 1,
       borderBottomColor: theme.line,
     },

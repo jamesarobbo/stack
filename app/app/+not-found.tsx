@@ -1,7 +1,7 @@
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { T } from '@/src/components/ui';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function NotFoundScreen() {
   const theme = useTheme();
@@ -25,8 +25,8 @@ export default function NotFoundScreen() {
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: theme.bg, gap: 12 },
-  link: { paddingVertical: 8 },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl, backgroundColor: theme.bg, gap: space.md },
+  link: { paddingVertical: space.sm },
 });
 }
 

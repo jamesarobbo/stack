@@ -17,7 +17,7 @@ import {
 import { signed } from '@/src/format';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ImpactScreen() {
   const theme = useTheme();
@@ -151,7 +151,7 @@ export default function ImpactScreen() {
       </Card>
 
       {app.products.length > 1 ? (
-        <View style={{ gap: 8 }}>
+        <View style={{ gap: space.sm }}>
           <T size={13} weight="semibold" color={theme.muted}>
             Other supplements
           </T>
@@ -242,33 +242,33 @@ function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8, marginTop: 4 },
-  link: { minHeight: 44, justifyContent: 'center' },
+  link: { minHeight: control.height, justifyContent: 'center' },
   heroStat: {
     backgroundColor: theme.card,
     borderRadius: theme.radius,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: theme.line,
-    padding: 18,
-    gap: 4,
+    padding: space.lg,
+    gap: space.xs,
   },
   heroValue: { letterSpacing: -1.2, lineHeight: 46 },
-  stats: { flexDirection: 'row', gap: 8 },
+  stats: { flexDirection: 'row', gap: space.sm },
   stat: {
     flex: 1,
     backgroundColor: theme.card,
-    borderRadius: 14,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: theme.line,
-    padding: 10,
-    gap: 4,
+    padding: space.md,
+    gap: space.xs,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderRadius: 999, borderWidth: 1, borderColor: theme.line, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: theme.card },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  chip: { borderRadius: radius.pill, borderWidth: 1, borderColor: theme.line, paddingHorizontal: space.md, paddingVertical: space.sm, backgroundColor: theme.card },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   tagButton: {
-    minHeight: 44,
-    paddingHorizontal: 14,
-    borderRadius: 999,
+    minHeight: control.height,
+    paddingHorizontal: space.md,
+    borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: theme.line,
     backgroundColor: theme.card,

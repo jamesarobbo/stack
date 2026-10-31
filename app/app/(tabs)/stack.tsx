@@ -16,7 +16,7 @@ import { joinMoney } from '../../../shared/money';
 import { isValidTime } from '../../../shared/reminders';
 import { requestReminderAccess } from '@/src/reminders/notify';
 import { useApp } from '@/src/state';
-import { space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 function nowTime(): string {
   const now = new Date();
@@ -37,7 +37,7 @@ export default function StackScreen() {
   const showLogToday = app.products.length > 0 && !showCheckIn && !showOffer;
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + space.sm }]}>
         <View style={styles.titleRow}>
           <T weight="bold" size={34} style={styles.title}>
             {title}
@@ -92,7 +92,7 @@ export default function StackScreen() {
           {app.products.length > 0 ? (
             <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/audit')} style={styles.scoreRow}>
               <ScoreBadge score={scored.score} size={52} />
-              <View style={{ flex: 1, gap: 2 }}>
+              <View style={{ flex: 1, gap: space.xxs }}>
                 <T weight="semibold">Dose audit</T>
                 <T size={13} color={theme.muted}>
                   {scored.summary}
@@ -153,19 +153,19 @@ export default function StackScreen() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
-  header: { paddingHorizontal: 20, paddingBottom: 8, gap: 4 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  header: { paddingHorizontal: space.xl, paddingBottom: 8, gap: space.xs },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   title: { letterSpacing: -0.8, flex: 1 },
-  group: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
-  links: { flexDirection: 'row', gap: 16 },
-  link: { minHeight: 44, justifyContent: 'center' },
-  scroll: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, gap: 14 },
+  group: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
+  links: { flexDirection: 'row', gap: space.lg },
+  link: { minHeight: control.height, justifyContent: 'center' },
+  scroll: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, gap: space.md },
   spend: { letterSpacing: -1.5, lineHeight: 50 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
     borderTopWidth: 1,
     borderTopColor: theme.line,
     paddingTop: 12,
@@ -180,14 +180,14 @@ function localStyles(theme: Theme) {
     borderTopColor: theme.line,
   },
   addBar: {
-    minHeight: 52,
-    borderRadius: 14,
+    minHeight: control.button,
+    borderRadius: radius.md,
     backgroundColor: theme.action,
     flexDirection: 'row',
     alignItems: 'stretch',
     overflow: 'hidden',
   },
-  addMain: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, paddingHorizontal: 16 },
+  addMain: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: space.md, paddingHorizontal: space.lg },
   addSplit: { width: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.35)', marginVertical: 12 },
   addScan: { width: 52, alignItems: 'center', justifyContent: 'center' },
 });

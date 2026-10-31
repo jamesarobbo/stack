@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { coerceUnit, UNIT_OPTIONS, type UnitOption } from '../data/units';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /** Web uses a native select. compact hides the Unit label for amount rows. */
@@ -38,9 +38,9 @@ export function UnitField({
             color: theme.text,
             border: compact ? 'none' : `1px solid ${theme.line}`,
             borderRadius: compact ? 10 : 12,
-            minHeight: 44,
+            minHeight: control.height,
             padding: compact ? '10px 12px' : '10px 12px',
-            fontSize: 16,
+            fontSize: typeSize.body,
             fontWeight: 600,
             width: compact ? 'auto' : '100%',
           },
@@ -53,7 +53,7 @@ export function UnitField({
 
 function localStyles(_theme: Theme) {
   return StyleSheet.create({
-    wrap: { gap: 4 },
+    wrap: { gap: space.xs },
     compactWrap: { alignSelf: 'stretch' },
   });
 }

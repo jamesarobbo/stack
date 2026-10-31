@@ -13,7 +13,7 @@ import { joinMoney } from '../../shared/money';
 import { auditStack } from '@/src/domain/audit';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ReportScreen() {
   const theme = useTheme();
@@ -174,18 +174,18 @@ function VerdictPill({ verdict }: { verdict: Verdict }) {
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
   title: { letterSpacing: -0.8, flex: 1 },
   savings: {
     backgroundColor: theme.amberBg,
     borderColor: theme.amberBorder,
     borderWidth: 1,
-    borderRadius: 20,
-    padding: 18,
-    gap: 8,
+    borderRadius: radius.lg,
+    padding: space.lg,
+    gap: space.sm,
   },
   savingsValue: { letterSpacing: -1.2, lineHeight: 46 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 36 },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: control.compact },
 });
 }
 

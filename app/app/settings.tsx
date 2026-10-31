@@ -16,7 +16,7 @@ import { AGE_RANGES, SEXES, isAgeRange, isSex } from '@/src/health/demographics'
 import { DSLD_ATTRIBUTION, DSLD_URL, OFF_ATTRIBUTION, OFF_URL } from '@/src/data/labels';
 import { useApp } from '@/src/state';
 import { getSetting, setSetting, settingsDriverKind } from '@/src/settings';
-import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -275,15 +275,15 @@ export default function SettingsScreen() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.6 },
-  currencyRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  currencyRow: { minHeight: control.height, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   input: {
     backgroundColor: theme.bg,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.md,
     fontWeight: font.regular,
-    fontSize: 16,
+    fontSize: typeSize.body,
     color: theme.text,
   },
 });

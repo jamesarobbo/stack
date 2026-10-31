@@ -8,7 +8,7 @@ import { EXPECTATION, type WearableChoice } from '@/src/onboarding/answers';
 import { writeWearable } from '@/src/onboarding/storage';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const COMING = [
   { name: 'Oura', icon: 'ellipse-outline' as const },
@@ -35,7 +35,7 @@ export default function WearableStep() {
     <OnboardingFrame
       step="wearable"
       footer={
-        <View style={{ gap: 8 }}>
+        <View style={{ gap: space.sm }}>
           <Button label="Continue" onPress={() => void go(linked ? 'healthkit' : tried ? 'sample' : 'skipped')} />
           <Button label="Skip for now" tone="ghost" onPress={() => void go('skipped')} />
         </View>
@@ -94,16 +94,16 @@ export default function WearableStep() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   wearable: {
     width: '48%',
-    minHeight: 96,
+    minHeight: control.listRow + control.height,
     backgroundColor: theme.card,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: theme.line,
-    padding: 14,
-    gap: 4,
+    padding: space.md,
+    gap: space.xs,
   },
   wearableOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
 });

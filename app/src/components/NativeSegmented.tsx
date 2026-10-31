@@ -1,7 +1,7 @@
 import RNSegmentedControl from '@react-native-segmented-control/segmented-control';
 import type { ComponentType } from 'react';
 import { Platform, Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-native';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 type ChangeEvent = NativeSyntheticEvent<{ selectedSegmentIndex: number }>;
@@ -94,11 +94,11 @@ function localStyles(theme: Theme) {
     web: {
       flexDirection: 'row',
       backgroundColor: theme.segmentTrack,
-      borderRadius: 10,
+      borderRadius: radius.sm,
       padding: 3,
-      gap: 3,
+      gap: space.xxs,
     },
-    webItem: { flex: 1, minHeight: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+    webItem: { flex: 1, minHeight: control.compact, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', paddingVertical: space.sm },
     webItemOn: { backgroundColor: theme.segmentOn },
   });
 }

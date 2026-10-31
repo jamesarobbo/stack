@@ -4,7 +4,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
 import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { DoseMeters } from '@/src/components/share';
-import { UnitField } from '@/src/components/UnitField';
+import { DoseRow } from '@/src/primitives';
 import type { UnitOption } from '@/src/data/units';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { applyScreenExit } from '@/src/navigation/exit';
@@ -13,7 +13,7 @@ import { scoreProducts } from '@/src/domain/auditScore';
 import { formatMoney } from '@/src/format';
 import { currencyOf } from '../../../shared/money';
 import { useApp } from '@/src/state';
-import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ProductScreen() {
   const theme = useTheme();
@@ -49,7 +49,7 @@ export default function ProductScreen() {
         </T>
       ) : null}
       {product.priceCents > 0 ? (
-        <View style={{ gap: 2 }}>
+        <View style={{ gap: space.xxs }}>
           <T weight="bold" size={36} color={theme.amber} style={styles.price}>
             {formatMoney(monthly, priceCurrency)}
           </T>
@@ -68,7 +68,7 @@ export default function ProductScreen() {
       ) : null}
       <Card>
         {product.priceCents <= 0 ? (
-          <View style={{ gap: 8 }}>
+          <View style={{ gap: space.sm }}>
             <T size={14} color={theme.muted}>
               Add the price you paid.
             </T>
@@ -118,8 +118,6 @@ export default function ProductScreen() {
             onUnit={(unit) => {
               if (unit !== ingredient.unit) void app.setIngredientUnit(product.id, ingredient.key, ingredient.name, unit);
             }}
-            styles={styles}
-            theme={theme}
           />
         ))}
       </Card>
@@ -142,51 +140,39 @@ function IngredientDose({
   unit,
   onAmount,
   onUnit,
-  styles,
-  theme,
 }: {
   name: string;
   amount: number;
   unit: string;
   onAmount: (amount: number) => void;
   onUnit: (unit: UnitOption) => void;
-  styles: ReturnType<typeof localStyles>;
-  theme: Theme;
 }) {
   const [text, setText] = useState(amount ? String(amount) : '');
   const [padRef, pad] = useNumberPadField(`ingredient-amount-${name}`);
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{ gap: space.sm }}>
       <T size={14} weight="semibold">
         {name}
       </T>
-      <View style={styles.doseRow}>
-        <TextInput
-          ref={padRef}
-          value={text}
-          onChangeText={setText}
-          onFocus={pad.onFocus}
-          onBlur={() => {
-            pad.onBlur();
-            const next = Number(text);
-            if (!Number.isFinite(next) || next <= 0) {
-              setText(amount ? String(amount) : '');
-              return;
-            }
-            onAmount(next);
-          }}
-          keyboardType="decimal-pad"
-          inputMode="decimal"
-          returnKeyType="done"
-          clearButtonMode="while-editing"
-          accessibilityLabel={`${name} amount`}
-          placeholder="0"
-          placeholderTextColor={theme.muted}
-          inputAccessoryViewID={pad.inputAccessoryViewID}
-          style={styles.doseAmount}
-        />
-        <UnitField compact value={unit} onChange={onUnit} />
-      </View>
+      <DoseRow
+        amount={text}
+        onChangeAmount={setText}
+        unit={unit}
+        onChangeUnit={onUnit}
+        accessibilityLabel={`${name} amount`}
+        inputAccessoryViewID={pad.inputAccessoryViewID}
+        onFocus={pad.onFocus}
+        inputRef={padRef}
+        onBlur={() => {
+          pad.onBlur();
+          const next = Number(text);
+          if (!Number.isFinite(next) || next <= 0) {
+            setText(amount ? String(amount) : '');
+            return;
+          }
+          onAmount(next);
+        }}
+      />
     </View>
   );
 }
@@ -196,29 +182,17 @@ function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8 },
   price: { letterSpacing: -1.2, lineHeight: 42 },
-  doseRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  doseAmount: {
-    flex: 1,
-    minHeight: 44,
-    backgroundColor: theme.bg,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: theme.line,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    fontWeight: font.semibold,
-    color: theme.text,
-  },
   input: {
-    minHeight: 48,
+    height: control.height,
+    minHeight: control.height,
     backgroundColor: theme.bg,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.md,
+    fontSize: typeSize.body,
     fontWeight: font.regular,
     color: theme.text,
+    borderWidth: 1,
+    borderColor: theme.line,
   },
 });
 }

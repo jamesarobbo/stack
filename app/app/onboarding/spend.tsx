@@ -7,7 +7,7 @@ import { getCurrency } from '@/src/money';
 import { spendChoices, type SpendKey } from '@/src/onboarding/answers';
 import { readSpend, writeSpend } from '@/src/onboarding/storage';
 import { track } from '@/src/telemetry';
-import { useTheme } from '@/src/theme';
+import { space, useTheme } from '@/src/theme';
 
 export default function SpendStep() {
   const theme = useTheme();
@@ -24,7 +24,7 @@ export default function SpendStep() {
       <T size={15} color={theme.muted}>
         Most people underestimate this, and that is fine.
       </T>
-      <View style={{ gap: 10 }}>
+      <View style={{ gap: space.md }}>
         {spendChoices(getCurrency()).map((option) => (
           <Choice key={option.key} label={option.label} selected={selected === option.key} onPress={() => setSelected(option.key)} />
         ))}

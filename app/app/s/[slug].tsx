@@ -18,7 +18,7 @@ import { applyPlan, choicesFor, copiedProducts, planMerge, scoreAfter, shareCata
 import { formatDose } from '../../../shared/doses';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme, space } from '@/src/theme';
 
 const CHOICE_LABEL: Record<MergeChoice, string> = { add: 'Add', skip: 'Skip', replace: 'Replace mine' };
 
@@ -502,10 +502,10 @@ function localStyles(theme: Theme) {
   choiceRow: { flexDirection: 'row', gap: 6 },
   choice: { borderRadius: 999, paddingHorizontal: 14, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg },
   choiceOn: { backgroundColor: theme.teal },
-  product: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 2 },
+  product: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: space.xxs },
   changes: { backgroundColor: theme.bg, borderRadius: 12, padding: 12, gap: 4, marginTop: 4 },
-  metric: { gap: 2, borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 10 },
-  slice: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 10 },
+  metric: { gap: space.xxs, borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 10 },
+  slice: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: space.sm, paddingHorizontal: 8, borderRadius: 10 },
   sliceYou: { backgroundColor: theme.tealSoft },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

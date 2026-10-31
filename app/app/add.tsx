@@ -5,8 +5,8 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { DateField } from '@/src/components/DateField';
 import { NativeSegmented } from '@/src/components/NativeSegmented';
-import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
+import { DoseRow } from '@/src/primitives';
 import { COMMON_INGREDIENTS, type CommonIngredient } from '@/src/data/commonIngredients';
 import {
   BARCODE_NOT_FOUND,
@@ -19,14 +19,14 @@ import {
   type LabelHit,
   type RemoteLabel,
 } from '@/src/data/labels';
-import { DEFAULT_UNIT } from '@/src/data/units';
+import { DEFAULT_UNIT, type UnitOption } from '@/src/data/units';
 import { clampStartDate, localToday } from '@/src/dates';
 import { humanProductNote } from '@/src/productSubtitle';
 import type { IngredientInput } from '@/src/domain/types';
 import { ApiError } from '@/src/api';
 import { priceFieldLabel } from '../../shared/money';
 import { useApp } from '@/src/state';
-import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 function one(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? '';
@@ -195,7 +195,7 @@ function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void;
   }, [query]);
 
   return (
-    <View style={{ gap: 12 }}>
+    <View style={{ gap: space.md }}>
       <TextInput
         value={query}
         onChangeText={(value) => {
@@ -287,7 +287,7 @@ function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }
   const owned = catalogueId ? app.products.some((product) => product.catalogueId === catalogueId) : false;
 
   return (
-    <View style={{ gap: 10 }}>
+    <View style={{ gap: space.md }}>
       <Card>
         <T weight="semibold">{label.name}</T>
         <T size={13} color={theme.muted}>
@@ -407,7 +407,7 @@ function ManualAdd({
   const servingNote = off && off.servingSize && off.servingSize !== '1 serving' ? off.servingSize : '';
 
   return (
-    <View style={{ gap: 10 }}>
+    <View style={{ gap: space.md }}>
       {off ? (
         <View style={styles.notice}>
           <T weight="semibold">{OFF_DOSE_PROMPT}</T>
@@ -444,15 +444,13 @@ function ManualAdd({
       {ingredients.map((ingredient, index) => (
         <Card key={`${ingredient.key}-${index}`}>
           <Field label="Name" value={ingredient.name} onChangeText={(value) => update(index, { name: value, key: slug(value) })} placeholder="Magnesium" />
-          <View style={styles.doseRow}>
-            <DoseAmountField
-              id={`dose-${index}-${ingredient.key || ingredient.name || 'row'}`}
-              value={ingredient.amount ? String(ingredient.amount) : ''}
-              onChangeText={(value) => update(index, { amount: Number(value) || 0 })}
-              style={styles.doseAmount}
-            />
-            <UnitField compact value={ingredient.unit} onChange={(unit) => update(index, { unit })} />
-          </View>
+          <DoseAmountRow
+            id={`dose-${index}-${ingredient.key || ingredient.name || 'row'}`}
+            amount={ingredient.amount ? String(ingredient.amount) : ''}
+            onAmountText={(value) => update(index, { amount: Number(value) || 0 })}
+            unit={ingredient.unit}
+            onUnit={(unit) => update(index, { unit })}
+          />
         </Card>
       ))}
       <Pressable
@@ -565,33 +563,32 @@ function productNote(_digits: string, off: RemoteLabel | null): string | null {
 }
 
 
-function DoseAmountField({
+function DoseAmountRow({
   id,
-  value,
-  onChangeText,
-  style,
+  amount,
+  onAmountText,
+  unit,
+  onUnit,
 }: {
   id: string;
-  value: string;
-  onChangeText: (value: string) => void;
-  style: object;
+  amount: string;
+  onAmountText: (value: string) => void;
+  unit: string;
+  onUnit: (unit: UnitOption) => void;
 }) {
-  const theme = useTheme();
   const [padRef, pad] = useNumberPadField(id, true);
   return (
-    <TextInput
-      ref={padRef}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder="Amount"
-      placeholderTextColor={theme.faint}
-      keyboardType="decimal-pad"
-      inputMode="decimal"
-      returnKeyType="done"
-      clearButtonMode="while-editing"
+    <DoseRow
+      amount={amount}
+      onChangeAmount={onAmountText}
+      unit={unit}
+      onChangeUnit={onUnit}
       accessibilityLabel="Amount"
-      {...pad}
-      style={style}
+      inputRef={padRef}
+      inputAccessoryViewID={pad.inputAccessoryViewID}
+      onFocus={pad.onFocus}
+      onBlur={pad.onBlur}
+      placeholder="Amount"
     />
   );
 }
@@ -619,7 +616,7 @@ function Field({
   const usePad = Boolean(keyboard);
   const [padRef, pad] = useNumberPadField(padId ?? `field-${label}`, usePad);
   return (
-    <View style={{ gap: 4 }}>
+    <View style={{ gap: space.sm }}>
       <T size={12} weight="semibold" color={theme.muted}>
         {label}
       </T>
@@ -666,57 +663,43 @@ function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.6 },
   scan: {
-    minHeight: 52,
-    borderRadius: 14,
+    height: control.button,
+    borderRadius: radius.pill,
     backgroundColor: theme.action,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  doseRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  doseAmount: {
-    flex: 1,
-    minHeight: 44,
-    backgroundColor: theme.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.line,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontWeight: font.semibold,
-    fontSize: 16,
-    color: theme.text,
+    gap: space.sm,
+    paddingHorizontal: space.lg,
   },
   input: {
-    backgroundColor: theme.card,
-    borderRadius: 12,
+    height: control.height,
+    minHeight: control.height,
+    backgroundColor: theme.bg,
+    borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: theme.line,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: space.md,
+    fontSize: typeSize.body,
     fontWeight: font.regular,
-    fontSize: 16,
     color: theme.text,
   },
   notice: {
     backgroundColor: theme.amberBg,
     borderColor: theme.amberBorder,
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: radius.md,
+    padding: space.md,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    minHeight: 44,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
+    gap: space.xs,
+    minHeight: control.height,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderRadius: radius.pill,
     backgroundColor: theme.tealSoft,
     borderWidth: 1,
     borderColor: theme.teal,

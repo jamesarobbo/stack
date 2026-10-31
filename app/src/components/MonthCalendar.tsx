@@ -10,7 +10,7 @@ import {
   monthTitle,
   type MonthCell,
 } from '../../../shared/reminders';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /**
@@ -54,7 +54,7 @@ export function MonthCalendar({
   );
 
   return (
-    <View {...pan.panHandlers} style={{ gap: 4 }}>
+    <View {...pan.panHandlers} style={{ gap: space.xs }}>
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
@@ -123,22 +123,22 @@ export function MonthCalendar({
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-    header: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
+    header: { minHeight: control.height, flexDirection: 'row', alignItems: 'center' },
     title: { flex: 1, textAlign: 'center' },
-    arrow: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+    arrow: { minWidth: 44, minHeight: control.height, alignItems: 'center', justifyContent: 'center' },
     week: { flexDirection: 'row' },
-    cell: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+    cell: { flex: 1, minHeight: control.height, alignItems: 'center', justifyContent: 'center' },
     markWrap: { alignItems: 'center' },
     mark: {
       minWidth: 32,
-      minHeight: 32,
+      minHeight: control.compact,
       paddingHorizontal: 4,
-      borderRadius: 16,
+      borderRadius: radius.lg,
       alignItems: 'center',
       justifyContent: 'center',
     },
     today: { borderWidth: 1.5, borderColor: theme.text },
-    dot: { width: 7, height: 7, borderRadius: 4, marginTop: 2, backgroundColor: theme.action },
+    dot: { width: 7, height: 7, borderRadius: radius.xs, marginTop: 2, backgroundColor: theme.action },
     dotSpacer: { width: 7, height: 7, marginTop: 2 },
   });
 }

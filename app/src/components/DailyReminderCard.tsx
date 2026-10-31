@@ -4,7 +4,7 @@ import { isValidTime } from '../../../shared/reminders';
 import { requestReminderAccess, readReminderAccess, type ReminderAccess } from '../reminders/notify';
 import { getSetting, setSetting } from '../settings';
 import { useApp } from '../state';
-import { useTheme } from '../theme';
+import { control, space, useTheme } from '../theme';
 import { TimeField } from './TimeField';
 import { Button, Card, T } from './ui';
 
@@ -58,8 +58,8 @@ export function DailyReminderCard() {
 
   return (
     <Card>
-      <View style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View style={{ flex: 1, gap: 2 }}>
+      <View style={{ minHeight: control.height, flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+        <View style={{ flex: 1, gap: space.xxs }}>
           <T weight="semibold">Daily reminder</T>
           {app.dailyReminder || asking ? null : (
             <T size={13} color={theme.muted}>
@@ -77,7 +77,7 @@ export function DailyReminderCard() {
         />
       </View>
       {asking ? (
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: space.md }}>
           <T size={15}>{EXPLANATION}</T>
           <Button label="Continue" onPress={() => void enable()} />
           <Button label="Not now" tone="ghost" onPress={() => setAsking(false)} />
@@ -103,12 +103,12 @@ export function ReminderOffer({ onContinue, onDismiss }: { onContinue: () => voi
         Daily reminder
       </T>
       <T size={15}>{EXPLANATION}</T>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Continue"
           onPress={onContinue}
-          style={({ pressed }) => [{ minHeight: 44, justifyContent: 'center', paddingRight: 12 }, pressed ? { opacity: 0.88 } : null]}
+          style={({ pressed }) => [{ minHeight: control.height, justifyContent: 'center', paddingRight: 12 }, pressed ? { opacity: 0.88 } : null]}
         >
           <T weight="semibold" color={theme.teal}>
             Continue
@@ -118,7 +118,7 @@ export function ReminderOffer({ onContinue, onDismiss }: { onContinue: () => voi
           accessibilityRole="button"
           accessibilityLabel="Not now"
           onPress={onDismiss}
-          style={({ pressed }) => [{ minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 }, pressed ? { opacity: 0.88 } : null]}
+          style={({ pressed }) => [{ minHeight: control.height, justifyContent: 'center', paddingHorizontal: 4 }, pressed ? { opacity: 0.88 } : null]}
         >
           <T weight="semibold" color={theme.muted}>
             Not now

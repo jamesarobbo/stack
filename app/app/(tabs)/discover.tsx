@@ -21,7 +21,7 @@ import { GROUP_RESULT_NOTE, PERSONAL_RESULT_NOTE } from '../../../shared/outcome
 import type { LibraryItem, LibraryPage } from '@/src/data/sharing';
 import { formatUsDate } from '@/src/dates';
 import { useApp } from '@/src/state';
-import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const PAGE = 20;
 
@@ -181,15 +181,15 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
   return (
     <View style={styles.card}>
       <View style={[styles.cardTop, styles.pad]}>
-        <View style={{ flex: 1, gap: 10 }}>
+        <View style={{ flex: 1, gap: space.md }}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={[`${item.stackName}, dose score ${item.auditScore}`, phrase].filter(Boolean).join(', ')}
             onPress={open}
             style={({ pressed }) => [pressed ? { opacity: 0.92 } : null]}
           >
-            <View style={{ gap: 10 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={{ gap: space.md }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
                 <ScoreRing
                   score={item.auditScore}
                   size={72}
@@ -199,7 +199,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
                   textColor={theme.text}
                   subColor={theme.muted}
                 />
-                <View style={{ flex: 1, gap: 4 }}>
+                <View style={{ flex: 1, gap: space.xs }}>
                   <T weight="bold" size={18} style={{ letterSpacing: -0.3 }}>
                     {item.stackName}
                   </T>
@@ -229,7 +229,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
         </Pressable>
       </View>
       {item.likeYou || item.goals.length > 0 || item.updatedOn ? (
-        <View style={[styles.padBottom, { gap: 8 }]}>
+        <View style={[styles.padBottom, { gap: space.sm }]}>
           {item.likeYou ? (
             <View style={styles.likeYou}>
               <T size={13} weight="semibold" color={theme.teal}>
@@ -254,23 +254,23 @@ function localStyles(theme: Theme) {
   search: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    minHeight: 48,
+    gap: space.sm,
+    minHeight: control.height,
     backgroundColor: theme.card,
-    borderRadius: 14,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: theme.line,
-    paddingHorizontal: 12,
+    paddingHorizontal: space.md,
   },
-  searchInput: { flex: 1, minHeight: 44, paddingVertical: 12, fontWeight: font.regular, fontSize: 16, color: theme.text },
-  clear: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  chips: { gap: 8, paddingRight: 8 },
-  card: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, gap: 12, overflow: 'hidden', paddingTop: 16 },
-  pad: { paddingHorizontal: 16 },
-  padBottom: { paddingHorizontal: 16, paddingBottom: 16 },
-  cardTop: { flexDirection: 'row', gap: 4, alignItems: 'flex-start' },
-  save: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  likeYou: { backgroundColor: theme.tealSoft, borderRadius: 12, padding: 10, gap: 2 },
+  searchInput: { flex: 1, minHeight: control.height, paddingVertical: space.md, fontWeight: font.regular, fontSize: typeSize.body, color: theme.text },
+  clear: { minWidth: 44, minHeight: control.height, alignItems: 'center', justifyContent: 'center' },
+  chips: { gap: space.sm, paddingRight: 8 },
+  card: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, gap: space.md, overflow: 'hidden', paddingTop: 16 },
+  pad: { paddingHorizontal: space.lg },
+  padBottom: { paddingHorizontal: space.lg, paddingBottom: 16 },
+  cardTop: { flexDirection: 'row', gap: space.xs, alignItems: 'flex-start' },
+  save: { minWidth: 44, minHeight: control.height, alignItems: 'center', justifyContent: 'center' },
+  likeYou: { backgroundColor: theme.tealSoft, borderRadius: radius.md, padding: space.md, gap: space.xxs },
 });
 }
 

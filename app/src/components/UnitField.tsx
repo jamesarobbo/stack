@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { Platform, StyleSheet, View } from 'react-native';
 import { coerceUnit, UNIT_OPTIONS, type UnitOption } from '../data/units';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { CompactMenuPickerShell, NativeMenuPicker } from './NativeMenuPicker';
 import { T } from './ui';
 
@@ -77,7 +77,11 @@ export function UnitField({
       />
     );
     if (compact) {
-      return <CompactMenuPickerShell>{menu}</CompactMenuPickerShell>;
+      return (
+        <View style={{ flex: 1, height: control.height }}>
+          <CompactMenuPickerShell>{menu}</CompactMenuPickerShell>
+        </View>
+      );
     }
     return (
       <View style={styles.wrap}>
@@ -107,58 +111,60 @@ export function UnitField({
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-    wrap: { gap: 4 },
+    wrap: { gap: space.xs },
     field: {
       backgroundColor: theme.card,
-      borderRadius: 12,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: theme.line,
-      paddingHorizontal: 12,
-      minHeight: 44,
+      paddingHorizontal: space.md,
+      minHeight: control.height,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
+      gap: space.md,
     },
     iosField: {
       backgroundColor: theme.card,
-      borderRadius: 12,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: theme.line,
-      paddingHorizontal: 12,
-      minHeight: 44,
+      paddingHorizontal: space.md,
+      minHeight: control.height,
       justifyContent: 'center',
     },
     compact: {
       backgroundColor: theme.greyPill,
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      minHeight: 44,
+      borderRadius: radius.sm,
+      paddingHorizontal: space.md,
+      minHeight: control.height,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: space.xs,
       alignSelf: 'stretch',
     },
     compactAndroid: {
+      flex: 1,
       backgroundColor: theme.greyPill,
-      borderRadius: 10,
+      borderRadius: radius.sm,
       overflow: 'hidden',
       justifyContent: 'center',
-      minHeight: 44,
-      minWidth: 88,
+      height: control.height,
+      minHeight: control.height,
     },
     compactAndroidPicker: {
-      width: 110,
+      width: '100%',
+      height: control.height,
       color: theme.text,
     },
     androidField: {
       backgroundColor: theme.card,
-      borderRadius: 12,
+      borderRadius: radius.md,
       borderWidth: 1,
       borderColor: theme.line,
       overflow: 'hidden',
       justifyContent: 'center',
-      minHeight: 44,
+      minHeight: control.height,
     },
     androidPicker: {
       width: '100%',

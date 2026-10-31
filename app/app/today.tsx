@@ -5,7 +5,7 @@ import { TodayList } from '@/src/components/TodayList';
 import { BackButton, Card, Screen, T } from '@/src/components/ui';
 import { localToday } from '@/src/dates';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 /** Check-in for the device's local today only. History lives on its own screen. */
 export default function TodayScreen() {
@@ -47,10 +47,10 @@ function localStyles(_theme: Theme) {
   return StyleSheet.create({
     title: { letterSpacing: -0.6 },
     historyRow: {
-      minHeight: 44,
+      minHeight: control.height,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: space.sm,
       paddingVertical: 4,
     },
   });

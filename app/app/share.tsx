@@ -25,7 +25,7 @@ import { earliestReady, heroParts, submittedFields, type OutcomeMetric, type Out
 import { formatUsDate } from '@/src/dates';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
-import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 type ResultChoice = 'none' | 'keep' | OutcomeMetric;
 
@@ -205,7 +205,7 @@ export default function ShareScreen() {
     return (
       <Screen
         footer={
-          <View style={{ gap: 8 }}>
+          <View style={{ gap: space.sm }}>
             <Button label={busy ? 'Publishing' : current ? 'Publish update and share' : 'Publish and share'} disabled={busy} onPress={() => void publish()} />
             <Button label="Go back and edit" tone="ghost" onPress={() => setStep('edit')} />
           </View>
@@ -324,7 +324,7 @@ export default function ShareScreen() {
                 Several people reported this stack, so it is off the page and Discover until it is reviewed.
               </T>
             ) : null}
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flexDirection: 'row', gap: space.sm }}>
               <View style={{ flex: 1 }}>
                 <Button label="Send link" onPress={() => void openShareSheet(current)} />
               </View>
@@ -335,7 +335,7 @@ export default function ShareScreen() {
             {confirmUnshare ? (
               <View style={styles.confirm}>
                 <T size={14}>Turn the link off? It stops working for everyone, leaves Discover, and the copy count starts again if you share later.</T>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flexDirection: 'row', gap: space.sm }}>
                   <View style={{ flex: 1 }}>
                     <Button label="Keep sharing" tone="ghost" onPress={() => setConfirmUnshare(false)} />
                   </View>
@@ -497,7 +497,7 @@ function shortLink(url: string): string {
 function ReviewRow({ label, value }: { label: string; value: string }) {
   const theme = useTheme();
   return (
-    <View style={{ gap: 2, paddingVertical: 4 }}>
+    <View style={{ gap: space.xxs, paddingVertical: 4 }}>
       <T size={13} weight="semibold" color={theme.muted}>
         {label}
       </T>
@@ -511,14 +511,14 @@ function localStyles(theme: Theme) {
   title: { letterSpacing: -0.6 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   linkCard: { borderColor: theme.tealSoft, borderWidth: 2 },
-  confirm: { backgroundColor: theme.bg, borderRadius: 12, padding: 12, gap: 10 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  confirm: { backgroundColor: theme.bg, borderRadius: radius.md, padding: space.md, gap: space.md },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   input: {
     backgroundColor: theme.bg,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.md,
+    fontSize: typeSize.body,
     fontWeight: font.regular,
     color: theme.text,
   },

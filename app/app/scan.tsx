@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { ScanCamera } from '@/src/components/ScanCamera';
 import { BackButton, Button, Screen, T } from '@/src/components/ui';
-import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ScanScreen() {
   const theme = useTheme();
@@ -48,7 +48,7 @@ export default function ScanScreen() {
       <T size={12} color={theme.muted}>
         Torch lights the camera on a phone.
       </T>
-      <View style={{ gap: 4 }}>
+      <View style={{ gap: space.xs }}>
         <T size={12} weight="semibold" color={theme.muted}>
           Barcode
         </T>
@@ -84,24 +84,24 @@ function localStyles(theme: Theme) {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: space.sm,
     backgroundColor: theme.card,
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: theme.line,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: space.md,
+    paddingVertical: space.md,
   },
   torchOn: { backgroundColor: theme.tealSoft, borderColor: theme.teal },
   input: {
     backgroundColor: theme.card,
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: theme.line,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: space.md,
+    paddingVertical: space.md,
     fontWeight: font.regular,
-    fontSize: 16,
+    fontSize: typeSize.body,
     color: theme.text,
   },
 });

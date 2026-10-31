@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { dayHeading, dayIsEditable, type IntakeLog } from '../../../shared/reminders';
 import { localToday } from '../dates';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 export function TodayList({
@@ -39,7 +39,7 @@ export function TodayList({
   );
 
   return (
-    <View style={{ gap: 10 }}>
+    <View style={{ gap: space.md }}>
       {onOpen ? (
         <Pressable
           accessibilityRole="button"
@@ -115,17 +115,17 @@ export function TodayList({
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-    heading: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-    all: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
+    heading: { minHeight: control.height, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
+    all: { minHeight: control.height, alignSelf: 'flex-start', justifyContent: 'center' },
     row: {
-      minHeight: 44,
+      minHeight: control.height,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
+      gap: space.md,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.line,
       paddingTop: 10,
     },
-    taken: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 },
+    taken: { minHeight: control.height, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: 4 },
   });
 }

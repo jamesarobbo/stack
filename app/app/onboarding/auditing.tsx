@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
 import { T } from '@/src/components/ui';
 import { AUDIT_CHECKS } from '@/src/onboarding/preview';
-import { useTheme } from '@/src/theme';
+import { space, useTheme } from '@/src/theme';
 
 export default function AuditingStep() {
   const theme = useTheme();
@@ -30,9 +30,9 @@ export default function AuditingStep() {
       <T size={16} color={theme.muted}>
         Checking what you entered.
       </T>
-      <View style={{ gap: 14 }}>
+      <View style={{ gap: space.md }}>
         {AUDIT_CHECKS.slice(0, shown).map((check) => (
-          <View key={check} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View key={check} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
             <Ionicons name="checkmark-circle" size={22} color={theme.teal} />
             <T weight="semibold" size={16}>
               {check}
