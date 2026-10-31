@@ -23,3 +23,7 @@ Bends: dark hero surfaces. A glow behind the ring. Extra chart colours (gold for
 A warmer, more human front door. Illustrated still lifes, a cream ground, sage for the action, and a clay accent in the drawings. This is the direction the live app now uses.
 
 At the time of the pick it bent the old rules: a cream canvas, clay in the drawings, Nunito instead of Inter, and warm charcoal for a score under 80. Money stayed gold.
+
+## Kitchen, clearer
+
+`kitchen-v2/` holds three static palette trials (Daylight, Orchard, Linen). They are not wired to the app. The live tokens stay on the shipped Kitchen cream until a later pass.
