@@ -55,6 +55,9 @@ export default function SignInScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        textContentType="emailAddress"
+        autoComplete="email"
+        returnKeyType="next"
         placeholder="you@example.com"
       />
       <Button
@@ -72,7 +75,7 @@ export default function SignInScreen() {
       />
       {sent ? (
         <>
-          <LabeledField label="Code" value={code} onChangeText={setCode} keyboardType="number-pad" placeholder="6-digit code" />
+          <LabeledField label="Code" value={code} onChangeText={setCode} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" returnKeyType="done" placeholder="6-digit code" />
           {devCode ? (
             <T size={13} color={theme.muted}>
               {`Development code: ${devCode}. Production does not return this.`}

@@ -415,6 +415,9 @@ export default function ShareScreen() {
               placeholder={app.products[0]?.name ?? 'Evening magnesium'}
               placeholderTextColor={theme.faint}
               accessibilityLabel="Stack name"
+              autoCapitalize="sentences"
+              returnKeyType="done"
+              clearButtonMode="while-editing"
               style={styles.input}
             />
             <T size={13} color={theme.muted}>

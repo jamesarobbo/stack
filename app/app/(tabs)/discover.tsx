@@ -120,6 +120,8 @@ export default function DiscoverScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="search"
+          textContentType="none"
+          clearButtonMode="while-editing"
           accessibilityLabel="Search stacks"
           style={styles.searchInput}
         />

@@ -56,6 +56,10 @@ export default function ScanScreen() {
           placeholder="088395056116"
           placeholderTextColor={theme.faint}
           keyboardType="number-pad"
+          inputMode="numeric"
+          returnKeyType="done"
+          clearButtonMode="while-editing"
+          textContentType="none"
           style={styles.input}
         />
       </View>

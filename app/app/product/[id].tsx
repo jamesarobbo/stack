@@ -73,9 +73,12 @@ export default function ProductScreen() {
               value={priceText}
               onChangeText={setPriceText}
               keyboardType="decimal-pad"
+              inputMode="decimal"
               placeholder="0.00"
               placeholderTextColor={theme.muted}
               accessibilityLabel="Price you paid"
+              returnKeyType="done"
+              clearButtonMode="while-editing"
               style={styles.input}
             />
             <Button

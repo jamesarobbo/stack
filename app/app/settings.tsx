@@ -110,7 +110,17 @@ export default function SettingsScreen() {
       </Card>
       <Card>
         <T weight="semibold">Name on this device</T>
-        <TextInput value={name} onChangeText={setName} style={styles.input} accessibilityLabel="Name on this device" />
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+          accessibilityLabel="Name on this device"
+          autoCapitalize="words"
+          textContentType="name"
+          autoComplete="name"
+          returnKeyType="done"
+          clearButtonMode="while-editing"
+        />
         <T size={13} color={theme.muted}>
           Used as the heading of My Stack on this device. It is not shown when you share.
         </T>

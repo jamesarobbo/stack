@@ -91,7 +91,10 @@ export function UsernameField({
         placeholderTextColor={theme.muted}
         autoCapitalize="none"
         autoCorrect={false}
-        autoComplete="off"
+        autoComplete="username"
+        textContentType="username"
+        returnKeyType="done"
+        clearButtonMode="while-editing"
         accessibilityLabel="Username"
         style={styles.input}
       />
