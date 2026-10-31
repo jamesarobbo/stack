@@ -1,0 +1,68 @@
+{
+  "id": 306412,
+  "fullName": "Vitamin E 400 IU",
+  "brandName": "Nutricost",
+  "upcSku": "7 02669 93321 6",
+  "servingsPerContainer": "240",
+  "servingSizes": [
+    {
+      "order": 1,
+      "minQuantity": 1,
+      "maxQuantity": 1,
+      "minDailyServings": 1,
+      "maxDailyServings": 1,
+      "unit": "Softgel(s)",
+      "notes": "",
+      "inSFB": true
+    }
+  ],
+  "netContents": [
+    {
+      "order": 1,
+      "quantity": 240,
+      "unit": "Softgel(s)",
+      "display": "240 Softgel(s)"
+    }
+  ],
+  "offMarket": 0,
+  "ingredientRows": [
+    {
+      "order": 1,
+      "ingredientId": 281760,
+      "notes": "400 IU",
+      "quantity": [
+        {
+          "servingSizeOrder": 1,
+          "servingSizeQuantity": 1,
+          "operator": "=",
+          "quantity": 268,
+          "unit": "mg",
+          "dailyValueTargetGroup": [
+            {
+              "name": "Adults and children 4 or more years of age",
+              "operator": "=",
+              "percent": 1790,
+              "footnote": null
+            }
+          ],
+          "servingSizeUnit": "Softgel(s)"
+        }
+      ],
+      "nestedRows": [],
+      "name": "Vitamin E",
+      "category": "vitamin",
+      "ingredientGroup": "Vitamin E",
+      "forms": [
+        {
+          "order": 1,
+          "ingredientId": 280484,
+          "prefix": null,
+          "percent": null,
+          "name": "DL-Alpha-Tocopheryl Acetate",
+          "category": "vitamin",
+          "ingredientGroup": "Vitamin E"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "hits": [
+    {
+      "_id": "337582",
+      "_source": {
+        "fullName": "Chelated Magnesium Glycinate 200 mg",
+        "brandName": "Carlson",
+        "offMarket": 0,
+        "allIngredients": []
+      }
+    },
+    {
+      "_id": "265148",
+      "_source": {
+        "fullName": "Chelated Magnesium Glycinate 200 mg",
+        "brandName": "Carlson",
+        "offMarket": 1,
+        "allIngredients": []
+      }
+    },
+    {
+      "_id": "241855",
+      "_source": {
+        "fullName": "Chelated Magnesium 200 mg",
+        "brandName": "Carlson",
+        "offMarket": 1,
+        "allIngredients": []
+      }
+    }
+  ],
+  "stats": {
+    "count": 6,
+    "pct": 2.7935561970388304e-05
+  }
+}

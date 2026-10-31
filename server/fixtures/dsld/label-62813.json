@@ -1,0 +1,77 @@
+{
+  "id": 62813,
+  "fullName": "Vitamin D3 2,000 IU",
+  "brandName": "Vitamin World",
+  "upcSku": "7 66443 17622 0",
+  "servingsPerContainer": null,
+  "servingSizes": [
+    {
+      "order": 1,
+      "minQuantity": 1,
+      "maxQuantity": 1,
+      "minDailyServings": null,
+      "maxDailyServings": null,
+      "unit": "Softgel(s)",
+      "notes": "",
+      "inSFB": true
+    }
+  ],
+  "netContents": [
+    {
+      "order": 1,
+      "quantity": 250,
+      "unit": "Rapid Release Softgel(s)",
+      "display": "250 Rapid Release Softgel(s)"
+    }
+  ],
+  "offMarket": 0,
+  "ingredientRows": [
+    {
+      "order": 1,
+      "ingredientId": 280180,
+      "notes": "Vitamin D (Form: as D3 (Alt. Name: Cholecalciferol)) ",
+      "quantity": [
+        {
+          "servingSizeOrder": 1,
+          "servingSizeQuantity": null,
+          "operator": "=",
+          "quantity": 2000,
+          "unit": "IU",
+          "dailyValueTargetGroup": [
+            {
+              "name": "Adults and children 4 or more years of age",
+              "operator": "=",
+              "percent": 500,
+              "footnote": null
+            }
+          ],
+          "servingSizeUnit": "Softgel(s)"
+        }
+      ],
+      "nestedRows": [],
+      "name": "Vitamin D",
+      "category": "vitamin",
+      "ingredientGroup": "Vitamin D",
+      "forms": [
+        {
+          "order": 1,
+          "ingredientId": 280176,
+          "prefix": null,
+          "percent": null,
+          "name": "Cholecalciferol",
+          "category": "vitamin",
+          "ingredientGroup": "Vitamin D"
+        },
+        {
+          "order": 2,
+          "ingredientId": 279014,
+          "prefix": null,
+          "percent": null,
+          "name": "Vitamin D3",
+          "category": "vitamin",
+          "ingredientGroup": "Vitamin D"
+        }
+      ]
+    }
+  ]
+}

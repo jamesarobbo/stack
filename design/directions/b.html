@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Direction B, Instrument</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #e7eaee;
+      --ink: #14181d;
+      --muted: #5c6570;
+      --dark: #101216;
+      --dark-2: #1a1e24;
+      --mint: #1f8f72;
+      --mint-bright: #5ee0b5;
+      --gold: #e2a63a;
+      --gold-ink: #8a5a10;
+      --rose: #d45364;
+      --slate: #9aa3b2;
+      --card: #ffffff;
+      --line: #e1e5ea;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: #c5cad1;
+      display: flex;
+      gap: 28px;
+      padding: 36px;
+      font-family: "Schibsted Grotesk", sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    .device { border-radius: 40px; overflow: hidden; box-shadow: 0 24px 60px rgba(16, 18, 22, 0.28); flex: none; }
+    .screen {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .status {
+      height: 54px;
+      flex: none;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 26px 6px;
+      font-weight: 600;
+      font-size: 15px;
+      position: relative;
+      z-index: 2;
+    }
+    .status.light { color: white; }
+    .island {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      width: 98px;
+      height: 28px;
+      margin-left: -49px;
+      background: #000;
+      border-radius: 16px;
+    }
+    .stage {
+      background: var(--dark);
+      color: white;
+      padding: 0 26px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .glow {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(94, 224, 181, 0.22), transparent 68%);
+      top: 40px;
+      left: 50%;
+      margin-left: -140px;
+      pointer-events: none;
+    }
+    .stage h1 {
+      position: relative;
+      font-weight: 700;
+      font-size: 40px;
+      letter-spacing: -1.2px;
+      line-height: 0.98;
+      margin: 18px 0 0;
+    }
+    .stage .sub { position: relative; margin: 12px 0 0; color: #c5ccd6; font-size: 15px; line-height: 1.4; max-width: 30ch; }
+    .dial {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 22px;
+    }
+    .dial strong {
+      font-weight: 900;
+      font-size: 92px;
+      letter-spacing: -4px;
+      line-height: 0.8;
+      font-variant-numeric: tabular-nums;
+    }
+    .dial p { margin: 6px 0 0; color: #c5ccd6; font-size: 14px; line-height: 1.35; }
+    .kicker { color: var(--mint-bright); font-weight: 600; font-size: 13px; }
+    .sheet {
+      background: var(--card);
+      border-radius: 28px 28px 0 0;
+      margin-top: -22px;
+      padding: 22px 22px 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    label { font-size: 13px; font-weight: 600; }
+    input, .field {
+      margin-top: 6px;
+      width: 100%;
+      height: 52px;
+      border-radius: 14px;
+      border: 1px solid #d5dbe2;
+      background: #f7f8fa;
+      padding: 0 14px;
+      font: inherit;
+      font-size: 16px;
+    }
+    .btn {
+      margin-top: 12px;
+      height: 54px;
+      width: 100%;
+      border: 0;
+      border-radius: 16px;
+      background: var(--mint);
+      color: white;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .quiet {
+      display: block;
+      text-align: center;
+      margin-top: 8px;
+      color: var(--mint);
+      font-weight: 700;
+      text-decoration: none;
+      line-height: 44px;
+    }
+    .slab {
+      background: var(--dark);
+      color: white;
+      margin: -8px -22px 0;
+      padding: 8px 22px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .slab h2 { margin: 0; font-size: 15px; font-weight: 600; color: #c5ccd6; }
+    .slab .money {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .slab .money strong {
+      font-weight: 900;
+      font-size: 76px;
+      letter-spacing: -3px;
+      line-height: 0.85;
+      font-variant-numeric: tabular-nums;
+    }
+    .slab .money span { color: #c5ccd6; font-size: 18px; }
+    .slab .gold { margin: 10px 0 0; color: var(--gold); font-weight: 700; font-size: 16px; }
+    .rows { margin-top: 8px; }
+    .row { padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .row .top { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 600; }
+    .row .top span { color: var(--gold-ink); font-variant-numeric: tabular-nums; }
+    .row .note { color: var(--muted); font-size: 12px; font-weight: 500; margin-top: 2px; }
+    .track { margin-top: 6px; height: 6px; background: #e6eaee; border-radius: 99px; overflow: hidden; }
+    .fill { height: 100%; background: var(--mint); border-radius: 99px; transform-origin: left center; animation: grow 0.9s cubic-bezier(.2,.7,.2,1) both; }
+    .fill.gold { background: var(--gold); }
+    .fill.rose { background: var(--rose); }
+    .caption { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+    .share { color: var(--mint); font-weight: 700; text-decoration: none; line-height: 36px; font-size: 15px; }
+    .grow { flex: 1; }
+    .tabbar {
+      height: 78px;
+      flex: none;
+      display: flex;
+      background: white;
+      border-top: 1px solid var(--line);
+      padding: 8px 4px 16px;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      text-decoration: none;
+      color: #98a2b0;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .tab.on { color: var(--mint); }
+    #stack > .status { background: var(--dark); color: #fff; }
+    #welcome .sheet { flex: none; }
+    #welcome .dial { margin-top: auto; }
+    .hero-num {
+      font-weight: 900;
+      font-size: 104px;
+      letter-spacing: -5px;
+      line-height: 0.8;
+      font-variant-numeric: tabular-nums;
+    }
+    .out { font-size: 18px; font-weight: 600; color: #c5ccd6; }
+    .legend { display: flex; gap: 14px; margin-top: 16px; position: relative; font-size: 12px; font-weight: 600; color: #d5dbe3; }
+    .sw { width: 8px; height: 8px; border-radius: 99px; display: inline-block; margin-right: 5px; }
+    .stackbar {
+      margin-top: 14px;
+      display: flex;
+      height: 18px;
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+    .stackbar i { display: block; height: 100%; }
+    .chart { display: flex; align-items: flex-end; gap: 18px; height: 150px; margin-top: 8px; padding: 0 6px; }
+    .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+    .col .vbar {
+      width: 100%;
+      border-radius: 10px 10px 4px 4px;
+      transform-origin: center bottom;
+      animation: rise 0.9s cubic-bezier(.2,.7,.2,1) both;
+    }
+    .col span { margin-top: 8px; font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; }
+    .loss { margin-top: 14px; }
+    .loss .line { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 7px 0; font-size: 14px; border-top: 1px solid var(--line); }
+    .loss b { font-weight: 600; }
+    .panel {
+      margin: 12px 0 0;
+      background: #fff8ea;
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+    .panel span { color: var(--gold-ink); font-size: 12px; font-weight: 700; }
+    .panel strong { display: block; margin-top: 2px; font-size: 22px; letter-spacing: -0.4px; }
+    .dlead { font-weight: 700; font-size: 22px; letter-spacing: -0.5px; margin: 2px 0 0; }
+    .segs { display: flex; background: white; border-radius: 14px; padding: 4px; margin-top: 12px; }
+    .segs a {
+      flex: 1;
+      text-align: center;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 36px;
+      border-radius: 11px;
+    }
+    .segs a.on { background: var(--dark); color: white; }
+    .dcard {
+      margin-top: 12px;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      min-height: 168px;
+    }
+    .dscore {
+      background: var(--dark);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px 12px;
+    }
+    .dscore b {
+      font-weight: 900;
+      font-size: 48px;
+      letter-spacing: -2px;
+      line-height: 0.85;
+      color: #d5dbe3;
+    }
+    .dscore.good b { color: var(--mint-bright); }
+    .dscore small { font-size: 11px; color: #9aa3b2; font-weight: 600; }
+    .dbody { padding: 14px 14px 12px; }
+    .dbody h3 { margin: 0; font-size: 18px; letter-spacing: -0.3px; }
+    .dbody .who { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .dbody .sum { margin: 8px 0 0; font-size: 13px; font-weight: 600; line-height: 1.3; }
+    .mini { margin-top: 8px; }
+    .mini .top { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--muted); }
+    @keyframes grow { from { transform: scaleX(0); } }
+    @keyframes rise { from { transform: scaleY(0); } }
+    @media (prefers-reduced-motion: reduce) {
+      .fill, .col .vbar { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="device">
+    <section class="screen" id="welcome">
+      <div class="stage" style="flex:1; display:flex; flex-direction:column;">
+        <div class="status light"><div class="island"></div><span>9:41</span><span>100%</span></div>
+        <div class="glow"></div>
+        <div class="dial">
+          <svg width="132" height="132" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#2a3038" stroke-width="8"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#c5ccd6" stroke-width="8" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="66" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div>
+            <div class="kicker">Example stack</div>
+            <strong>79</strong>
+            <p>Out of 100. Doses and overlaps only.</p>
+          </div>
+        </div>
+        <h1>Your doses, in one dial.</h1>
+        <p class="sub">Overlaps, upper limits, and what the bottles cost. The score never includes the price.</p>
+      </div>
+      <div class="sheet">
+        <label for="email-b">Email</label>
+        <input id="email-b" type="email" placeholder="you@email.com" />
+        <button class="btn" type="button">Continue</button>
+        <a class="quiet" href="#welcome">I already have an account</a>
+      </div>
+    </section>
+  </div>
+
+  <div class="device">
+    <section class="screen" id="stack">
+      <div class="status light"><div class="island"></div><span>9:41</span><span>100%</span></div>
+      <div class="content" style="display:flex; flex-direction:column; flex:1; min-height:0; padding:0 0 0;">
+        <div class="slab">
+          <div class="glow" style="top:-80px; opacity:0.7"></div>
+          <h2>Alex's stack</h2>
+          <div class="money"><strong>$175</strong><span>a month</span></div>
+          <p class="gold">You could save $27 a month</p>
+        </div>
+        <div style="padding:4px 22px 8px; display:flex; flex-direction:column; flex:1; background:#fff;">
+          <p class="caption">Each bar is that bottle's share of the $175.</p>
+          <div class="rows">
+            <div class="row"><div class="top"><b>NMN 1,000 mg</b><span>$46</span></div><div class="note">Daily</div><div class="track"><div class="fill" style="width:26%"></div></div></div>
+            <div class="row"><div class="top"><b>TMG 500 mg</b><span>$32</span></div><div class="note">Overlaps with NMN</div><div class="track"><div class="fill" style="width:18%"></div></div></div>
+            <div class="row"><div class="top"><b>Resveratrol 500 mg</b><span>$36</span></div><div class="note">Evening</div><div class="track"><div class="fill" style="width:21%"></div></div></div>
+            <div class="row"><div class="top"><b>Magnesium glycinate</b><span>$18</span></div><div class="note">200 mg, bedtime</div><div class="track"><div class="fill" style="width:10%"></div></div></div>
+            <div class="row"><div class="top"><b>Multivitamin</b><span>$29</span></div><div class="note">Daily, includes magnesium</div><div class="track"><div class="fill" style="width:17%"></div></div></div>
+            <div class="row"><div class="top"><b>Vitamin D3 4,000 IU</b><span>$14</span></div><div class="note">Morning with food</div><div class="track"><div class="fill" style="width:8%"></div></div></div>
+          </div>
+          <a class="share" href="#audit">Share stack</a>
+          <div class="grow"></div>
+          <button class="btn" type="button" style="margin-bottom:8px">Add supplement</button>
+        </div>
+      </div>
+      <nav class="tabbar" aria-label="Tabs">
+        <a class="tab on" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg>Stack</a>
+        <a class="tab" href="#discover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 6-6 2 2-6 6-2Z"/></svg>Discover</a>
+        <a class="tab" href="#audit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>Audit</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>Impact</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>More</a>
+      </nav>
+    </section>
+  </div>
+
+  <div class="device">
+    <section class="screen" id="audit" style="background:#fff">
+      <div class="stage">
+        <div class="status light"><div class="island"></div><span>9:41</span><span>100%</span></div>
+        <div class="glow"></div>
+        <div class="kicker" style="position:relative; margin-top:8px">Dose audit</div>
+        <div class="hero-num">79</div>
+        <div class="out">out of 100</div>
+        <div class="stackbar" aria-hidden="true">
+          <i style="width:79%; background:#c5ccd6"></i>
+          <i style="width:5%; background:#e2a63a"></i>
+          <i style="width:8%; background:#d45364"></i>
+          <i style="width:8%; background:#e07a86"></i>
+        </div>
+        <div class="legend">
+          <span><i class="sw" style="background:#c5ccd6"></i>Kept</span>
+          <span><i class="sw" style="background:#e2a63a"></i>Near limit</span>
+          <span><i class="sw" style="background:#d45364"></i>Doubled</span>
+        </div>
+      </div>
+      <div class="content" style="padding:8px 22px 10px; display:flex; flex-direction:column; flex:1;">
+        <div class="chart" aria-hidden="true">
+          <div class="col"><div class="vbar" style="height:100%; background:#e2a63a"></div><span>Vitamin D<br>100%</span></div>
+          <div class="col"><div class="vbar" style="height:71%; background:#1f8f72"></div><span>Magnesium<br>71%</span></div>
+          <div class="col"><div class="vbar" style="height:15%; background:#1f8f72"></div><span>Vitamin B6<br>15%</span></div>
+        </div>
+        <p class="caption">Share of the published upper limit. Price is not in the score.</p>
+        <div class="loss">
+          <div class="line"><b>Vitamin D, close to the limit</b><span>-5</span></div>
+          <div class="line"><b>B-complex in 2 products</b><span>-8</span></div>
+          <div class="line"><b>Vitamin B12 in 2 products</b><span>-8</span></div>
+        </div>
+        <div class="panel">
+          <span>Possible savings</span>
+          <strong>You could save $27 a month</strong>
+        </div>
+      </div>
+      <nav class="tabbar" aria-label="Tabs">
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg>Stack</a>
+        <a class="tab" href="#discover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 6-6 2 2-6 6-2Z"/></svg>Discover</a>
+        <a class="tab on" href="#audit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>Audit</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>Impact</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>More</a>
+      </nav>
+    </section>
+  </div>
+
+  <div class="device">
+    <section class="screen" id="discover">
+      <div class="status"><div class="island"></div><span>9:41</span><span>100%</span></div>
+      <div style="padding:4px 20px 0; display:flex; flex-direction:column; flex:1; min-height:0;">
+        <p class="dlead">Listed stacks, scored on doses.</p>
+        <input class="field" aria-label="Search stacks" placeholder="Search stacks, ingredients, or people" />
+        <div class="segs">
+          <a class="on" href="#discover">New</a>
+          <a href="#discover">Most kept</a>
+          <a href="#discover">Like you</a>
+          <a href="#discover">Saved</a>
+        </div>
+        <article class="dcard">
+          <div class="dscore"><b>44</b><small>out of 100</small></div>
+          <div class="dbody">
+            <h3>Calm evenings</h3>
+            <p class="who">Alex, 11 products</p>
+            <p class="sum">2 above the upper limit, 2 doubled up.</p>
+            <div class="mini"><div class="top"><span>Vitamin D</span><span style="color:#d45364">150%</span></div><div class="track"><div class="fill rose" style="width:100%"></div></div></div>
+            <div class="mini"><div class="top"><span>Magnesium</span><span style="color:#d45364">129%</span></div><div class="track"><div class="fill rose" style="width:100%"></div></div></div>
+            <div class="mini"><div class="top"><span>Zinc</span><span>38%</span></div><div class="track"><div class="fill" style="width:38%"></div></div></div>
+          </div>
+        </article>
+        <article class="dcard">
+          <div class="dscore good"><b>95</b><small>out of 100</small></div>
+          <div class="dbody">
+            <h3>Recovery basics</h3>
+            <p class="who">A Stack user, 3 products</p>
+            <p class="sum">1 close to the upper limit.</p>
+            <div class="mini"><div class="top"><span>Magnesium</span><span>91%</span></div><div class="track"><div class="fill gold" style="width:91%"></div></div></div>
+            <p class="who">Recovery</p>
+          </div>
+        </article>
+      </div>
+      <nav class="tabbar" aria-label="Tabs">
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg>Stack</a>
+        <a class="tab on" href="#discover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 6-6 2 2-6 6-2Z"/></svg>Discover</a>
+        <a class="tab" href="#audit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>Audit</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>Impact</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>More</a>
+      </nav>
+    </section>
+  </div>
+</body>
+</html>

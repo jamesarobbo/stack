@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Direction C, Kitchen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #f6f0e6;
+      --ink: #2c261f;
+      --muted: #5e5348;
+      --sage: #2f5d4c;
+      --sage-soft: #e5f0ea;
+      --clay: #c46a45;
+      --clay-soft: #f8e4d8;
+      --gold: #8a5a12;
+      --gold-wash: #f8efd8;
+      --char: #4a433c;
+      --card: #fffdf9;
+      --line: #eadfD0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: #e4d5c4;
+      display: flex;
+      gap: 28px;
+      padding: 36px;
+      font-family: Nunito, sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    .device { border-radius: 40px; overflow: hidden; box-shadow: 0 24px 50px rgba(80, 50, 30, 0.18); flex: none; }
+    .screen {
+      width: 390px;
+      height: 844px;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .status {
+      height: 54px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 24px 6px;
+      font-weight: 800;
+      font-size: 15px;
+      position: relative;
+      z-index: 3;
+    }
+    .status.on-art { color: #2c261f; position: absolute; left: 0; right: 0; top: 0; }
+    .island {
+      position: absolute; top: 11px; left: 50%; width: 98px; height: 28px; margin-left: -49px;
+      background: #1c1612; border-radius: 16px;
+    }
+    .art { height: 392px; flex: none; }
+    .art svg { display: block; width: 100%; height: 100%; }
+    .sheet {
+      margin-top: -36px;
+      background: var(--cream);
+      border-radius: 32px 32px 0 0;
+      padding: 22px 24px 8px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    h1 { font-weight: 800; font-size: 34px; letter-spacing: -0.7px; line-height: 1.05; margin: 0; }
+    .deck { margin: 8px 0 0; color: var(--muted); font-size: 16px; line-height: 1.35; font-weight: 600; }
+    label { margin-top: 16px; font-size: 13px; font-weight: 800; }
+    input {
+      margin-top: 6px;
+      height: 52px;
+      border-radius: 16px;
+      border: 0;
+      background: white;
+      box-shadow: 0 1px 0 rgba(80, 50, 30, 0.06);
+      padding: 0 14px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .btn {
+      margin-top: 12px;
+      height: 54px;
+      border: 0;
+      border-radius: 18px;
+      background: var(--sage);
+      color: white;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .quiet { text-align: center; color: var(--sage); font-weight: 800; text-decoration: none; line-height: 44px; }
+    .shelf { height: 132px; flex: none; }
+    .shelf svg { width: 100%; height: 100%; display: block; }
+    h2 { margin: 8px 0 0; font-size: 32px; font-weight: 800; letter-spacing: -0.6px; }
+    .money { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
+    .money strong { font-size: 56px; font-weight: 800; letter-spacing: -1.6px; line-height: 1; }
+    .money span { color: var(--muted); font-weight: 700; font-size: 16px; }
+    .goldnote { margin: 4px 0 0; color: var(--gold); font-weight: 800; font-size: 15px; }
+    .plist { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .prow {
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 8px 12px;
+    }
+    .prow b { font-size: 14px; }
+    .prow i { display: block; font-style: normal; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .prow .price { color: var(--gold); font-weight: 800; }
+    .body { padding: 0 20px 8px; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .share { color: var(--sage); font-weight: 800; text-decoration: none; line-height: 36px; }
+    .tabbar {
+      height: 76px; flex: none; display: flex; background: #fffdf9;
+      border-top: 1px solid #efe4d4; padding: 8px 4px 16px;
+    }
+    .tab {
+      flex: 1; text-decoration: none; color: #b3a79a; font-size: 11px; font-weight: 800;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .tab.on { color: var(--sage); }
+    .scorehead { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .scorehead strong { font-size: 76px; font-weight: 800; letter-spacing: -3px; line-height: 0.85; color: var(--char); }
+    .scorehead p { margin: 4px 0 0; color: var(--muted); font-weight: 700; font-size: 14px; line-height: 1.3; }
+    .paper {
+      margin-top: 12px;
+      background: var(--card);
+      border-radius: 22px;
+      padding: 12px 14px;
+    }
+    .reason { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; font-size: 14px; font-weight: 700; border-top: 1px solid #f0e6d8; }
+    .reason:first-child { border-top: 0; }
+    .note {
+      margin-top: 10px;
+      background: var(--gold-wash);
+      border-radius: 18px;
+      padding: 12px 14px;
+    }
+    .note span { color: var(--gold); font-size: 12px; font-weight: 800; }
+    .note strong { display: block; margin-top: 2px; font-size: 20px; }
+    .scene-card { margin-top: 12px; background: var(--card); border-radius: 22px; overflow: hidden; }
+    .banner { height: 74px; }
+    .banner svg { width: 100%; height: 100%; display: block; }
+    .pad { padding: 12px 14px 14px; }
+    .pad h3 { margin: 0; font-size: 20px; }
+    .pad .who { margin: 2px 0 0; color: var(--muted); font-weight: 700; font-size: 13px; }
+    .badge {
+      float: right;
+      min-width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      background: var(--char);
+      color: white;
+      font-weight: 800;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .badge.good { background: var(--sage); }
+    .sum { margin: 8px 0 0; font-weight: 800; font-size: 14px; }
+    .chips { margin-top: 8px; color: var(--muted); font-weight: 700; font-size: 12px; }
+    .lead { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin: 4px 0 0; line-height: 1.1; }
+    .search {
+      margin-top: 10px; height: 46px; border-radius: 16px; border: 0; background: white;
+      padding: 0 14px; font: inherit; font-weight: 700; font-size: 15px;
+    }
+    .segs { display: flex; gap: 8px; margin-top: 10px; }
+    .segs a {
+      text-decoration: none; color: var(--muted); background: transparent;
+      font-weight: 800; font-size: 13px; line-height: 34px; padding: 0 8px; border-radius: 12px;
+    }
+    .segs a.on { background: var(--sage-soft); color: var(--sage); }
+    .float { animation: float 3.2s ease-in-out infinite alternate; }
+    @keyframes float { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+    @media (prefers-reduced-motion: reduce) {
+      .float { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="device">
+    <section class="screen" id="welcome">
+      <div class="art">
+        <svg viewBox="0 0 390 392" aria-hidden="true">
+          <rect width="390" height="392" fill="#f3ddc6"/>
+          <rect x="48" y="48" width="294" height="188" rx="18" fill="#f7e7cf" stroke="#2f5d4c" stroke-width="8"/>
+          <rect x="64" y="64" width="262" height="156" rx="8" fill="#f6c98a"/>
+          <circle class="float" cx="250" cy="118" r="28" fill="#f0a35a"/>
+          <path d="M70 250h250" stroke="#c46a45" stroke-width="10" stroke-linecap="round"/>
+          <rect x="78" y="214" width="234" height="18" rx="6" fill="#e7c4a4"/>
+          <g>
+            <rect x="108" y="168" width="36" height="78" rx="12" fill="#d5ebe1" stroke="#2f5d4c" stroke-width="3"/>
+            <rect x="114" y="156" width="24" height="16" rx="6" fill="#2f5d4c"/>
+            <rect x="162" y="186" width="32" height="60" rx="12" fill="#f4c7b0" stroke="#c46a45" stroke-width="3"/>
+            <rect x="168" y="176" width="20" height="14" rx="5" fill="#c46a45"/>
+            <rect x="214" y="176" width="34" height="70" rx="12" fill="#fff7ee" stroke="#8a5a12" stroke-width="3"/>
+            <rect x="220" y="164" width="22" height="16" rx="6" fill="#8a5a12"/>
+          </g>
+          <path d="M300 230c10-28 28-36 36-18 8 16-6 34-18 36-10 2-20-4-18-18z" fill="#3e6b56"/>
+          <path d="M318 228c8-20 22-22 24-8 2 12-8 22-16 20-6-1-10-6-8-12z" fill="#2f5d4c"/>
+          <rect x="312" y="228" width="6" height="28" rx="3" fill="#6b4a32"/>
+        </svg>
+      </div>
+      <div class="status on-art"><div class="island"></div><span>9:41</span><span>100%</span></div>
+      <div class="sheet">
+        <h1>Set the bottles on the table.</h1>
+        <p class="deck">Add what you take. Stack checks the doses and shows what you pay each month.</p>
+        <label for="email-c">Email</label>
+        <input id="email-c" type="email" placeholder="you@email.com" />
+        <button class="btn" type="button">Continue</button>
+        <a class="quiet" href="#welcome">I already have an account</a>
+      </div>
+    </section>
+  </div>
+
+  <div class="device">
+    <section class="screen" id="stack">
+      <div class="status"><div class="island"></div><span>9:41</span><span>100%</span></div>
+      <div class="shelf" aria-hidden="true">
+        <svg viewBox="0 0 390 132">
+          <rect width="390" height="132" fill="#f3ddc6"/>
+          <rect x="28" y="78" width="334" height="14" rx="7" fill="#e7c4a4"/>
+          <rect x="46" y="36" width="28" height="52" rx="10" fill="#d5ebe1" stroke="#2f5d4c" stroke-width="3"/>
+          <rect x="92" y="48" width="26" height="40" rx="9" fill="#f4c7b0" stroke="#c46a45" stroke-width="3"/>
+          <rect x="136" y="40" width="28" height="48" rx="10" fill="#fff7ee" stroke="#8a5a12" stroke-width="3"/>
+          <circle cx="196" cy="62" r="16" fill="#f0a35a"/>
+          <path d="M230 70c8-16 22-16 26-4 3 10-6 18-14 16-7-1-13-6-12-12z" fill="#3e6b56"/>
+          <rect x="276" y="44" width="30" height="44" rx="10" fill="#efe2cf" stroke="#5e5348" stroke-width="3"/>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Alex's stack</h2>
+        <div class="money"><strong>$175</strong><span>a month</span></div>
+        <p class="goldnote">About $27 is duplicate spend.</p>
+        <div class="plist">
+          <div class="prow"><svg width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="14" fill="#e5f0ea"/><rect x="16" y="10" width="8" height="20" rx="4" fill="#2f5d4c"/></svg><div><b>NMN 1,000 mg</b><i>Daily</i></div><span class="price">$46</span></div>
+          <div class="prow"><svg width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="14" fill="#f8e4d8"/><circle cx="20" cy="20" r="7" fill="#c46a45"/></svg><div><b>TMG 500 mg</b><i>Overlaps with NMN</i></div><span class="price">$32</span></div>
+          <div class="prow"><svg width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="14" fill="#f8efd8"/><circle cx="16" cy="20" r="5" fill="#8a5a12"/><circle cx="24" cy="18" r="4" fill="#c46a45"/></svg><div><b>Resveratrol 500 mg</b><i>Evening</i></div><span class="price">$36</span></div>
+          <div class="prow"><svg width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="14" fill="#efe6da"/><path d="M20 12a7 7 0 1 0 7 8 6 6 0 0 1-7-8z" fill="#4a433c"/></svg><div><b>Magnesium glycinate</b><i>200 mg, bedtime</i></div><span class="price">$18</span></div>
+          <div class="prow"><svg width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" rx="14" fill="#e7f2ea"/><circle cx="15" cy="20" r="3" fill="#2f5d4c"/><circle cx="22" cy="16" r="3" fill="#8a5a12"/><circle cx="24" cy="23" r="3" fill="#c46a45"/></svg><div><b>Multivitamin</b><i>Daily, includes magnesium</i></div><span class="price">$29</span></div>
+        </div>
+        <a class="share" href="#audit">Share stack</a>
+        <div style="flex:1"></div>
+        <button class="btn" type="button">Add supplement</button>
+      </div>
+      <nav class="tabbar" aria-label="Tabs">
+        <a class="tab on" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg>Stack</a>
+        <a class="tab" href="#discover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 6-6 2 2-6 6-2Z"/></svg>Discover</a>
+        <a class="tab" href="#audit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>Audit</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>Impact</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>More</a>
+      </nav>
+    </section>
+  </div>
+
+  <div class="device">
+    <section class="screen" id="audit">
+      <div class="status"><div class="island"></div><span>9:41</span><span>100%</span></div>
+      <div class="body">
+        <div class="scorehead">
+          <svg width="108" height="108" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#efe4d4" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#4a433c" stroke-width="8" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="66" transform="rotate(-90 60 60)"/>
+            <text x="60" y="68" text-anchor="middle" font-family="Nunito, sans-serif" font-size="36" font-weight="800" fill="#2c261f">79</text>
+          </svg>
+          <div>
+            <p style="margin:0; font-weight:800; font-size:18px">Out of 100</p>
+            <p>1 close to the upper limit, 2 doubled up. Price is not part of it.</p>
+          </div>
+        </div>
+        <div class="paper">
+          <div class="reason"><span>Vitamin D is close to the upper limit</span><span>-5</span></div>
+          <div class="reason"><span>B-complex is in 2 products</span><span>-8</span></div>
+          <div class="reason"><span>Vitamin B12 is in 2 products</span><span>-8</span></div>
+          <div class="reason"><span>Magnesium overlaps, still within the limit</span><span>0</span></div>
+        </div>
+        <div class="note">
+          <span>Possible savings</span>
+          <strong>You could save $27 a month</strong>
+        </div>
+        <div class="paper" style="margin-top:12px">
+          <div class="reason"><span>Vitamin D, 4,000 IU</span><span>100% of the limit</span></div>
+          <div class="reason"><span>Magnesium, 250 mg</span><span>71% of the limit</span></div>
+          <div class="reason"><span>Vitamin B6, 15 mg</span><span>15% of the limit</span></div>
+        </div>
+        <svg viewBox="0 0 340 88" width="100%" height="88" aria-hidden="true" style="margin-top:8px">
+          <rect x="8" y="20" width="28" height="52" rx="8" fill="#d5ebe1" stroke="#2f5d4c" stroke-width="3"/>
+          <rect x="48" y="28" width="26" height="44" rx="8" fill="#f4c7b0" stroke="#c46a45" stroke-width="3"/>
+          <path d="M100 48h36" stroke="#c46a45" stroke-width="3" stroke-linecap="round"/>
+          <rect x="148" y="24" width="28" height="48" rx="8" fill="#fff7ee" stroke="#8a5a12" stroke-width="3"/>
+          <text x="200" y="46" font-family="Nunito, sans-serif" font-size="15" font-weight="800" fill="#5e5348">Two bottles,</text>
+          <text x="200" y="66" font-family="Nunito, sans-serif" font-size="15" font-weight="800" fill="#5e5348">one ingredient.</text>
+        </svg>
+      </div>
+      <nav class="tabbar" aria-label="Tabs">
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg>Stack</a>
+        <a class="tab" href="#discover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 6-6 2 2-6 6-2Z"/></svg>Discover</a>
+        <a class="tab on" href="#audit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>Audit</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>Impact</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>More</a>
+      </nav>
+    </section>
+  </div>
+
+  <div class="device">
+    <section class="screen" id="discover">
+      <div class="status"><div class="island"></div><span>9:41</span><span>100%</span></div>
+      <div class="body">
+        <p class="lead">Stacks people were happy to list.</p>
+        <input class="search" aria-label="Search stacks" placeholder="Search stacks or ingredients" />
+        <div class="segs">
+          <a class="on" href="#discover">New</a>
+          <a href="#discover">Most kept</a>
+          <a href="#discover">Like you</a>
+          <a href="#discover">Saved</a>
+        </div>
+        <article class="scene-card">
+          <div class="banner">
+            <svg viewBox="0 0 360 74"><rect width="360" height="74" fill="#2c3d55"/><circle cx="290" cy="28" r="14" fill="#f3e6c4"/><rect x="0" y="52" width="360" height="22" fill="#243246"/><rect x="28" y="28" width="18" height="30" rx="6" fill="#d5ebe1"/><rect x="54" y="34" width="16" height="24" rx="5" fill="#f4c7b0"/></svg>
+          </div>
+          <div class="pad">
+            <div class="badge">44</div>
+            <h3>Calm evenings</h3>
+            <p class="who">Alex, 11 products</p>
+            <p class="sum">2 above the upper limit, 2 doubled up.</p>
+            <p class="chips">Sleep</p>
+          </div>
+        </article>
+        <article class="scene-card">
+          <div class="banner">
+            <svg viewBox="0 0 360 74"><rect width="360" height="74" fill="#e7f2ea"/><path d="M0 74 80 40l50 18 70-32 60 20 100-28v56H0z" fill="#2f5d4c"/><circle cx="300" cy="22" r="12" fill="#f0a35a"/></svg>
+          </div>
+          <div class="pad">
+            <div class="badge good">95</div>
+            <h3>Recovery basics</h3>
+            <p class="who">A Stack user, 3 products</p>
+            <p class="sum">1 close to the upper limit.</p>
+            <p class="chips">Recovery</p>
+          </div>
+        </article>
+      </div>
+      <nav class="tabbar" aria-label="Tabs">
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg>Stack</a>
+        <a class="tab on" href="#discover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 6-6 2 2-6 6-2Z"/></svg>Discover</a>
+        <a class="tab" href="#audit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>Audit</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>Impact</a>
+        <a class="tab" href="#stack"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>More</a>
+      </nav>
+    </section>
+  </div>
+</body>
+</html>

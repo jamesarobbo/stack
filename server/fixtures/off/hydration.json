@@ -1,0 +1,27 @@
+{
+  "code": "5060447850007",
+  "status": 1,
+  "status_verbose": "product found",
+  "product": {
+    "product_name": "Hydration tablets",
+    "brands": "Phizz, Example",
+    "quantity": "10 tablets",
+    "serving_size": "1 tablet",
+    "nutriments": {
+      "vitamin-d_serving": 0.00001,
+      "vitamin-d_unit": "g",
+      "vitamin-d_100g": 0.0001,
+      "vitamin-d_value": 0.0001,
+      "magnesium_serving": 0.056,
+      "magnesium_unit": "g",
+      "magnesium_100g": 0.56,
+      "sodium_serving": 0.1,
+      "sodium_unit": "g",
+      "vitamin-c": 0.07,
+      "vitamin-c_unit": "g",
+      "vitamin-c_100g": 0.07,
+      "energy-kcal_serving": 5,
+      "energy-kcal_unit": "kcal"
+    }
+  }
+}

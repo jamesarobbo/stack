@@ -1,0 +1,25 @@
+{
+  "code": "5000000000018",
+  "status": 1,
+  "status_verbose": "product found",
+  "product": {
+    "product_name": "Mixed units",
+    "brands": "Example brand",
+    "serving_size": "8.6 g",
+    "quantity": "10 tablets",
+    "nutriments": {
+      "vitamin-d_serving": 10,
+      "vitamin-d_unit": "µg",
+      "vitamin-c_serving": 400,
+      "vitamin-c_unit": "IU",
+      "magnesium_serving": 0.2,
+      "magnesium_unit": "g",
+      "zinc_serving": 0.015,
+      "zinc_unit": "mg",
+      "vitamin-b12_serving": 2.5e-06,
+      "vitamin-b12_unit": "µg",
+      "iron_serving": 14,
+      "iron_unit": "mg"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+---
+description: Never use em dashes or en dashes in this project
+alwaysApply: true
+---
+
+Never use an em dash (U+2014) or an en dash (U+2013) in this project. That includes UI copy, strings, seed data, docs, README, comments, commit messages, and pull request text.
+
+Use a comma, full stop, colon, parentheses, or a plain hyphen, whichever reads as plain speech. Write ranges as "2 to 4".
+
+Before finishing, run `npm run check:dashes` from the repo root. It fails if a tracked text file contains either character. Lockfiles and vendored files are excluded.

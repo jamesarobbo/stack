@@ -1,0 +1,70 @@
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { View } from 'react-native';
+import { OnboardingFrame } from '@/src/components/OnboardingProgress';
+import { Chip } from '@/src/components/share';
+import { Button, T } from '@/src/components/ui';
+import { syncProfile } from '@/src/data/profile';
+import { localToday } from '@/src/dates';
+import { AGE_RANGES, SEXES, ageRangeFromBirthDate, isAgeRange, isSex, prefillSex, type AgeRange, type Sex } from '@/src/health/demographics';
+import { getSetting, setSetting } from '@/src/settings';
+import { track } from '@/src/telemetry';
+import { useTheme } from '@/src/theme';
+
+export default function AboutStep() {
+  const theme = useTheme();
+  const [initial] = useState(initialAnswers);
+  const [age, setAge] = useState<AgeRange | null>(initial.age);
+  const [sex, setSex] = useState<Sex | null>(initial.sex);
+
+  return (
+    <OnboardingFrame
+      step="about"
+      footer={<Button label="Continue" disabled={age == null || sex == null} onPress={() => void go(age, sex)} />}
+    >
+      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+        About you
+      </T>
+      <T size={16} color={theme.muted}>
+        {"Used for Discover's people like you and for grouped results. Never shown on your shared page."}
+      </T>
+      <T weight="semibold" size={17} style={{ marginTop: 8 }}>
+        Age range
+      </T>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {AGE_RANGES.map((option) => (
+          <Chip key={option.key} label={option.label} selected={age === option.key} onPress={() => setAge(option.key)} />
+        ))}
+      </View>
+      <T weight="semibold" size={17} style={{ marginTop: 8 }}>
+        Sex
+      </T>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {SEXES.map((option) => (
+          <Chip key={option.key} label={option.label} selected={sex === option.key} onPress={() => setSex(option.key)} />
+        ))}
+      </View>
+    </OnboardingFrame>
+  );
+}
+
+/** Saved answers first. Otherwise a suggestion from the single Apple Health sheet on the wearable step, which stays on this device. */
+function initialAnswers(): { age: AgeRange | null; sex: Sex | null } {
+  const savedAge = getSetting('ageRange');
+  const savedSex = getSetting('sex');
+  if (savedAge || savedSex) return { age: isAgeRange(savedAge) ? savedAge : null, sex: isSex(savedSex) ? savedSex : null };
+  const birthDate = getSetting('healthBirthDate');
+  return {
+    age: birthDate ? ageRangeFromBirthDate(birthDate, localToday()) : null,
+    sex: prefillSex(getSetting('healthSex')),
+  };
+}
+
+async function go(age: AgeRange | null, sex: Sex | null) {
+  if (!age || !sex) return;
+  await setSetting('ageRange', age);
+  await setSetting('sex', sex);
+  track('onboarding_answer', { step: 'about' });
+  await syncProfile(getSetting('sessionToken')).catch(() => undefined);
+  router.push('/onboarding/supplements');
+}

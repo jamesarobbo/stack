@@ -1,0 +1,438 @@
+import { and, eq } from 'drizzle-orm';
+import { isCurrency, type CurrencyCode } from '../../../shared/money';
+import type { IntakeLog, Reminder } from '../../../shared/reminders';
+import { buildExample } from '../data/example';
+import { coerceUnit } from '../data/units';
+import { clampStartDate, localToday } from '../dates';
+import type { IngredientInput, ProductInput, SampleInput, TagInput, TagKind } from '../domain/types';
+import { getCurrency } from '../money';
+import { connectAppleHealth, refreshAppleHealth } from '../health/connect';
+import type { HealthConnection } from '../health/types';
+import { randomId } from '../id';
+import { clearSettings, getSetting, registerSettingsPersistence, setSetting } from '../settings';
+import { sampleSeedAction, shouldClearExampleHealthSource, shouldResetSeededName } from './sampleSeed';
+import { db } from './client';
+import { dayTags, healthSamples, intakeLogs, productIngredients, products, reminders, settingsRows } from './schema';
+
+export type Snapshot = {
+  products: ProductInput[];
+  samples: SampleInput[];
+  tags: TagInput[];
+  reminders: Reminder[];
+  logs: IntakeLog[];
+};
+
+let persistenceReady = false;
+
+function ensurePersistence() {
+  if (persistenceReady) return;
+  persistenceReady = true;
+  registerSettingsPersistence(async (key, value) => {
+    if (value == null) {
+      await db.delete(settingsRows).where(eq(settingsRows.key, key));
+      return;
+    }
+    await db
+      .insert(settingsRows)
+      .values({ key, value })
+      .onConflictDoUpdate({ target: settingsRows.key, set: { value } });
+  });
+}
+
+export async function prepareSettings() {
+  ensurePersistence();
+  const { hydrateSettings } = await import('../settings');
+  await hydrateSettings(async () => {
+    const rows = await db.select().from(settingsRows);
+    return rows.map((row) => [row.key, row.value] as [string, string]);
+  });
+}
+
+function mapProduct(
+  row: typeof products.$inferSelect,
+  ingredients: (typeof productIngredients.$inferSelect)[],
+): ProductInput {
+  return {
+    id: row.id,
+    catalogueId: row.catalogueId,
+    name: row.name,
+    brand: row.brand,
+    note: row.note,
+    priceCents: row.priceCents,
+    priceCurrency: row.priceCurrency,
+    servingsPerContainer: row.servingsPerContainer,
+    servingsPerDay: row.servingsPerDay,
+    startDate: row.startDate,
+    ingredients: ingredients
+      .filter((ingredient) => ingredient.productId === row.id)
+      .map((ingredient) => ({
+        key: ingredient.key,
+        name: ingredient.name,
+        amount: ingredient.amount,
+        unit: ingredient.unit,
+        costWeight: ingredient.costWeight,
+        summary: ingredient.summary ?? undefined,
+        family: ingredient.family ?? undefined,
+        familyLabel: ingredient.familyLabel ?? undefined,
+      })),
+  };
+}
+
+export async function loadSnapshot(): Promise<Snapshot> {
+  const productRows = await db.select().from(products);
+  const ingredientRows = await db.select().from(productIngredients);
+  const sampleRows = await db.select().from(healthSamples);
+  const tagRows = await db.select().from(dayTags);
+  const reminderRows = await db.select().from(reminders);
+  const logRows = await db.select().from(intakeLogs);
+  const ordered = [...productRows].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return {
+    products: ordered.map((row) => mapProduct(row, ingredientRows)),
+    samples: sampleRows.map((row) => ({
+      metric: row.metric as SampleInput['metric'],
+      date: row.date,
+      value: row.value,
+    })),
+    tags: tagRows.map((row) => ({ date: row.date, kind: row.kind as TagKind })),
+    reminders: reminderRows.map((row) => ({ id: row.id, productId: row.productId, time: row.time, days: row.days })),
+    logs: logRows.map((row) => ({ id: row.id, productId: row.productId, day: row.day, takenAt: row.takenAt })),
+  };
+}
+
+function priceCode(product: { priceCurrency?: string | null }, whenMissing: CurrencyCode): CurrencyCode {
+  return isCurrency(product.priceCurrency) ? product.priceCurrency : whenMissing;
+}
+
+async function insertProduct(product: ProductInput, createdAt: string, whenMissing: CurrencyCode = getCurrency()) {
+  await db.insert(products).values({
+    id: product.id,
+    catalogueId: product.catalogueId ?? null,
+    name: product.name,
+    brand: product.brand,
+    note: product.note,
+    priceCents: product.priceCents,
+    priceCurrency: priceCode(product, whenMissing),
+    servingsPerContainer: product.servingsPerContainer,
+    servingsPerDay: product.servingsPerDay,
+    startDate: product.startDate,
+    createdAt,
+  });
+  if (product.ingredients.length === 0) return;
+  await db.insert(productIngredients).values(
+    product.ingredients.map((ingredient) => ({
+      id: randomId(),
+      productId: product.id,
+      key: ingredient.key,
+      name: ingredient.name,
+      amount: ingredient.amount,
+      unit: coerceUnit(ingredient.unit),
+      costWeight: ingredient.costWeight,
+      summary: ingredient.summary ?? null,
+      family: ingredient.family ?? null,
+      familyLabel: ingredient.familyLabel ?? null,
+    })),
+  );
+}
+
+async function insertSamples(samples: SampleInput[], source: string) {
+  const rows = samples.map((sample) => ({
+    id: randomId(),
+    metric: sample.metric,
+    date: sample.date,
+    value: sample.value,
+    source,
+  }));
+  for (let i = 0; i < rows.length; i += 80) {
+    await db.insert(healthSamples).values(rows.slice(i, i + 80));
+  }
+}
+
+/** One-time: drop the fictional seed if the user never edited it. Never inserts example data. */
+export async function clearUntouchedSampleOnce() {
+  const action = sampleSeedAction({
+    sampleSeedCleared: getSetting('sampleSeedCleared'),
+    usingSampleData: getSetting('usingSampleData'),
+  });
+  if (action === 'skip') return;
+  if (action === 'clear') {
+    await db.delete(productIngredients);
+    await db.delete(products);
+    await db.delete(healthSamples);
+    await db.delete(dayTags);
+    if (shouldResetSeededName(action, getSetting('displayName'))) await setSetting('displayName', '');
+    if (shouldClearExampleHealthSource(action, getSetting('healthSource'))) await setSetting('healthSource', '');
+    await setSetting('usingSampleData', '0');
+  }
+  await setSetting('sampleSeedCleared', '1');
+}
+
+export async function loadExample() {
+  await db.delete(productIngredients);
+  await db.delete(products);
+  await db.delete(healthSamples);
+  await db.delete(dayTags);
+  const today = localToday();
+  const example = buildExample(today);
+  for (let index = 0; index < example.products.length; index += 1) {
+    const product = example.products[index];
+    if (!product) continue;
+    await insertProduct(product, `${today}T00:00:0${index}.000Z`);
+  }
+  await insertSamples(example.samples, 'example');
+  if (example.tags.length > 0) {
+    await db.insert(dayTags).values(example.tags.map((tag) => ({ id: randomId(), date: tag.date, kind: tag.kind })));
+  }
+  const keep = new Set(example.products.map((product) => product.id));
+  const reminderRows = await db.select().from(reminders);
+  for (const row of reminderRows) {
+    if (!keep.has(row.productId)) await db.delete(reminders).where(eq(reminders.id, row.id));
+  }
+  await setSetting('displayName', 'Alex');
+  await setSetting('usingSampleData', '1');
+  await setSetting('healthSource', 'example');
+}
+
+export async function addProduct(input: {
+  name: string;
+  brand?: string | null;
+  note?: string | null;
+  priceCents: number;
+  servingsPerContainer: number;
+  servingsPerDay: number;
+  startDate: string;
+  catalogueId?: string | null;
+  ingredients: IngredientInput[];
+}) {
+  await insertProduct(
+    {
+      id: randomId(),
+      name: input.name.trim(),
+      brand: input.brand ?? null,
+      note: input.note ?? null,
+      priceCents: input.priceCents,
+      servingsPerContainer: input.servingsPerContainer,
+      servingsPerDay: input.servingsPerDay,
+      startDate: clampStartDate(input.startDate),
+      catalogueId: input.catalogueId ?? null,
+      ingredients: input.ingredients,
+    },
+    new Date().toISOString(),
+  );
+  await setSetting('usingSampleData', '0');
+}
+
+export async function updateProductPrice(id: string, priceCents: number, currency: string) {
+  const cents = Math.max(0, Math.round(priceCents));
+  const priceCurrency = isCurrency(currency) ? currency : getCurrency();
+  await db.update(products).set({ priceCents: cents, priceCurrency }).where(eq(products.id, id));
+  await setSetting('usingSampleData', '0');
+}
+
+export async function updateProductStartDate(id: string, startDate: string) {
+  await db.update(products).set({ startDate: clampStartDate(startDate) }).where(eq(products.id, id));
+  await setSetting('usingSampleData', '0');
+}
+
+export async function updateIngredientUnit(productId: string, key: string, name: string, unit: string) {
+  await db
+    .update(productIngredients)
+    .set({ unit: coerceUnit(unit) })
+    .where(and(eq(productIngredients.productId, productId), eq(productIngredients.key, key), eq(productIngredients.name, name)));
+  await setSetting('usingSampleData', '0');
+}
+
+export async function updateIngredientAmount(productId: string, key: string, name: string, amount: number) {
+  const next = Number.isFinite(amount) && amount > 0 ? amount : 0;
+  await db
+    .update(productIngredients)
+    .set({ amount: next })
+    .where(and(eq(productIngredients.productId, productId), eq(productIngredients.key, key), eq(productIngredients.name, name)));
+  await setSetting('usingSampleData', '0');
+}
+
+export async function removeProduct(id: string) {
+  await db.delete(productIngredients).where(eq(productIngredients.productId, id));
+  await db.delete(products).where(eq(products.id, id));
+  await db.delete(reminders).where(eq(reminders.productId, id));
+  await db.delete(intakeLogs).where(eq(intakeLogs.productId, id));
+  await setSetting('usingSampleData', '0');
+}
+
+export async function markTaken(productId: string, day: string): Promise<IntakeLog> {
+  const takenAt = new Date().toISOString();
+  const existing = await db
+    .select()
+    .from(intakeLogs)
+    .where(and(eq(intakeLogs.productId, productId), eq(intakeLogs.day, day)));
+  if (existing[0]) {
+    await db.update(intakeLogs).set({ takenAt }).where(eq(intakeLogs.id, existing[0].id));
+    return { id: existing[0].id, productId, day, takenAt };
+  }
+  const id = randomId();
+  await db.insert(intakeLogs).values({ id, productId, day, takenAt });
+  return { id, productId, day, takenAt };
+}
+
+export async function clearTaken(productId: string, day: string): Promise<void> {
+  await db.delete(intakeLogs).where(and(eq(intakeLogs.productId, productId), eq(intakeLogs.day, day)));
+}
+
+export async function mergeIntakeLogs(incoming: IntakeLog[]): Promise<void> {
+  for (const log of incoming) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(log.day)) continue;
+    const existing = await db
+      .select()
+      .from(intakeLogs)
+      .where(and(eq(intakeLogs.productId, log.productId), eq(intakeLogs.day, log.day)));
+    if (!existing[0]) {
+      await db.insert(intakeLogs).values({ id: log.id, productId: log.productId, day: log.day, takenAt: log.takenAt });
+      continue;
+    }
+    if (log.takenAt > existing[0].takenAt) {
+      await db.update(intakeLogs).set({ takenAt: log.takenAt }).where(eq(intakeLogs.id, existing[0].id));
+    }
+  }
+}
+
+export async function addTag(kind: TagKind, date = localToday()) {
+  const existing = await db.select().from(dayTags);
+  if (existing.some((tag) => tag.date === date && tag.kind === kind)) return;
+  await db.insert(dayTags).values({ id: randomId(), date, kind });
+}
+
+export async function connectHealth(): Promise<string> {
+  const result = await connectAppleHealth();
+  if (result.mode === 'healthkit') await storeHealth(result);
+  return result.message;
+}
+
+const HEALTH_REFRESH_MS = 12 * 60 * 60 * 1000;
+
+/** Re-reads Apple Health on launch at most twice a day, without showing a permission sheet. */
+export async function refreshHealthIfStale(now = Date.now()): Promise<boolean> {
+  if (getSetting('healthSource') !== 'healthkit') return false;
+  const last = Date.parse(getSetting('healthReadAt') ?? '');
+  if (Number.isFinite(last) && now - last < HEALTH_REFRESH_MS) return false;
+  const result = await refreshAppleHealth();
+  if (!result || result.mode !== 'healthkit' || !result.samples || result.samples.length === 0) return false;
+  await storeHealth(result);
+  return true;
+}
+
+async function storeHealth(result: HealthConnection) {
+  await db.delete(healthSamples);
+  if (result.samples && result.samples.length > 0) await insertSamples(result.samples, 'healthkit');
+  await setSetting('healthSource', 'healthkit');
+  await setSetting('usingSampleData', '0');
+  await setSetting('healthReadAt', new Date().toISOString());
+  if (result.device) await setSetting('healthDevice', result.device);
+  if (result.demographics?.birthDate) await setSetting('healthBirthDate', result.demographics.birthDate);
+  if (result.demographics?.sex) await setSetting('healthSex', result.demographics.sex);
+}
+
+export type NewProduct = {
+  name: string;
+  brand?: string | null;
+  note?: string | null;
+  priceCents: number;
+  priceCurrency?: string | null;
+  servingsPerContainer: number;
+  servingsPerDay: number;
+  startDate: string;
+  catalogueId?: string | null;
+  ingredients: IngredientInput[];
+};
+
+/** Adds several products in one transaction, so a copy lands whole or not at all. */
+export async function addProducts(list: NewProduct[], options: { replaceIds?: string[] } = {}) {
+  const now = Date.now();
+  db.transaction((tx) => {
+    for (const id of options.replaceIds ?? []) {
+      tx.delete(productIngredients).where(eq(productIngredients.productId, id)).run();
+      tx.delete(products).where(eq(products.id, id)).run();
+      tx.delete(reminders).where(eq(reminders.productId, id)).run();
+      tx.delete(intakeLogs).where(eq(intakeLogs.productId, id)).run();
+    }
+    list.forEach((input, index) => {
+      const id = randomId();
+      tx.insert(products)
+        .values({
+          id,
+          catalogueId: input.catalogueId ?? null,
+          name: input.name.trim(),
+          brand: input.brand ?? null,
+          note: input.note ?? null,
+          priceCents: Math.max(0, Math.round(input.priceCents)),
+          priceCurrency: priceCode(input, getCurrency()),
+          servingsPerContainer: input.servingsPerContainer,
+          servingsPerDay: input.servingsPerDay,
+          startDate: clampStartDate(input.startDate),
+          createdAt: new Date(now + index).toISOString(),
+        })
+        .run();
+      if (input.ingredients.length === 0) return;
+      tx.insert(productIngredients)
+        .values(
+          input.ingredients.map((ingredient) => ({
+            id: randomId(),
+            productId: id,
+            key: ingredient.key,
+            name: ingredient.name,
+            amount: ingredient.amount,
+            unit: coerceUnit(ingredient.unit),
+            costWeight: ingredient.costWeight,
+            summary: ingredient.summary ?? null,
+            family: ingredient.family ?? null,
+            familyLabel: ingredient.familyLabel ?? null,
+          })),
+        )
+        .run();
+    });
+  });
+  await setSetting('usingSampleData', '0');
+}
+
+export async function deleteLocalData() {
+  await db.delete(productIngredients);
+  await db.delete(products);
+  await db.delete(reminders);
+  await db.delete(intakeLogs);
+  await db.delete(healthSamples);
+  await db.delete(dayTags);
+  await db.delete(settingsRows);
+  await clearSettings();
+}
+
+export async function exportPayload() {
+  const snapshot = await loadSnapshot();
+  return {
+    app: 'Stack',
+    exportedAt: new Date().toISOString(),
+    note: 'Educational export of what you logged on this device. Not a medical record.',
+    products: snapshot.products,
+    reminders: snapshot.reminders,
+    intakeLogs: snapshot.logs,
+    healthSamples: snapshot.samples,
+    dayTags: snapshot.tags,
+  };
+}
+
+export async function replaceProductsFromSync(incoming: ProductInput[]) {
+  await db.delete(productIngredients);
+  await db.delete(products);
+  const keep = new Set(incoming.map((product) => product.id));
+  const reminderRows = await db.select().from(reminders);
+  for (const row of reminderRows) {
+    if (!keep.has(row.productId)) await db.delete(reminders).where(eq(reminders.id, row.id));
+  }
+  for (let index = 0; index < incoming.length; index += 1) {
+    const product = incoming[index];
+    if (!product) continue;
+    await insertProduct(
+      { ...product, id: product.id || randomId() },
+      `${localToday()}T00:00:${String(index).padStart(2, '0')}.000Z`,
+      'USD',
+    );
+  }
+  await setSetting('usingSampleData', '0');
+}

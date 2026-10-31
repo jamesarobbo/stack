@@ -1,0 +1,2 @@
+AUTH_PEPPER=replace-with-wrangler-secret
+REVENUECAT_WEBHOOK_AUTH=replace-with-wrangler-secret
