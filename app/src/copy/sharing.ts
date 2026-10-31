@@ -17,7 +17,7 @@ export type OutcomeMetricKey = OutcomeMetric;
 /** Counts below 3 come back as null from the Worker and are not shown at all. */
 export function copyCountLabel(count: number | null | undefined): string | null {
   if (count == null || count < 3) return null;
-  return `Kept by ${count} people`;
+  return `Copied by ${count} people`;
 }
 
 export function creditLine(displayName: string | null | undefined): string {

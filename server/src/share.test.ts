@@ -75,6 +75,8 @@ describe('publishing', () => {
     expect(html).not.toMatch(/proven|clinically|cures?\b/i);
     expect(html).not.toMatch(/[\u2013\u2014]/);
     expect(html).not.toContain('Typical change');
+    expect(html).not.toContain('Copied by');
+    expect(html).not.toContain('Kept by');
 
     const svg = await request(env, `/s/${share.slug}/og.svg`);
     const text = await svg.text();
@@ -141,7 +143,7 @@ describe('publishing', () => {
 });
 
 describe('versions and copies', () => {
-  it('starts a new copy count when the doses change', async () => {
+  it('counts each account once and does not restart the copy count when the doses change', async () => {
     const { env, sqlite } = createTestEnv();
     const maker = await signIn(env, 'maker@example.com');
     const share = await json<View>(await publish(env, maker, { products: [magnesium], listed: true }));
@@ -153,6 +155,8 @@ describe('versions and copies', () => {
       expect(copied.status).toBe(200);
       tokens.push(token);
     }
+    const fresh = await signIn(env, 'fresh@example.com');
+    expect((await request(env, `/v1/shares/${share.slug}/copy`, { method: 'POST', token: fresh, body: {} })).status).toBe(200);
     const again = await json<{ restarted: boolean }>(
       await request(env, `/v1/shares/${share.slug}/copy`, { method: 'POST', token: tokens[0], body: {} }),
     );
@@ -160,11 +164,7 @@ describe('versions and copies', () => {
     expect((await request(env, `/v1/shares/${share.slug}/copy`, { method: 'POST', token: maker, body: {} })).status).toBe(400);
 
     await scheduled(env);
-    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBeNull();
-
-    backdateCopies(sqlite, 10);
-    await scheduled(env);
-    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(3);
+    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(4);
 
     const kept = {
       id: 'k1',
@@ -180,12 +180,16 @@ describe('versions and copies', () => {
     };
     const synced = await request(env, '/v1/sync/stack', { method: 'PUT', token: tokens[1], body: { products: [kept] } });
     expect(synced.status).toBe(200);
-    await scheduled(env);
-    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(3);
-
     await request(env, '/v1/sync/stack', { method: 'PUT', token: tokens[0], body: { products: [] } });
     await scheduled(env);
-    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBeNull();
+    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(4);
+
+    const page = await (await request(env, `/s/${share.slug}`)).text();
+    expect(page).toContain('Copied by 4 people');
+    expect(page).not.toContain('Kept by');
+    const svg = await (await request(env, `/s/${share.slug}/og.svg`)).text();
+    expect(svg).toContain('Copied by 4 people');
+    expect(svg).not.toContain('Kept by');
 
     const renamed = await json<View>(await publish(env, maker, { products: [magnesium], stackName: 'Evening', listed: true }));
     expect(renamed.version).toBe(2);
@@ -200,7 +204,8 @@ describe('versions and copies', () => {
       kept_count: number;
       material_version: number;
     };
-    expect(row).toEqual({ kept_count: 0, material_version: 3 });
+    expect(row).toEqual({ kept_count: 4, material_version: 3 });
+    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(4);
 
     const viewed = await json<View>(await request(env, `/v1/shares/${share.slug}`, { token: tokens[1] }));
     expect(viewed.viewer?.copied?.current).toBe(false);
@@ -208,6 +213,8 @@ describe('versions and copies', () => {
       await request(env, `/v1/shares/${share.slug}/copy`, { method: 'POST', token: tokens[1], body: {} }),
     );
     expect(restarted.restarted).toBe(true);
+    await scheduled(env);
+    expect((await json<View>(await request(env, `/v1/shares/${share.slug}`))).copyCount).toBe(4);
   });
 });
 

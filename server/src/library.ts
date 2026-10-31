@@ -29,10 +29,32 @@ export const GOAL_LABELS: Record<LibraryGoal, string> = {
 
 /** Copy counts below this are not shown. */
 export const MIN_SHOWN_COPIES = 3;
-/** A copy counts once the products have stayed in the copier's stack this long. */
-export const KEPT_AFTER_DAYS = 7;
-/** Top ranks by copies made in this many days that were then kept. */
+/** 30 day copy count, stored on kept_recent. Discover's Top rank does not use this window. */
 export const TOP_WINDOW_DAYS = 30;
+/** One copy is worth this many log-views in the Top rank. */
+export const TOP_COPY_WEIGHT = 8;
+/** Age divisor for Top. A stack this many days old has its engagement halved. */
+export const TOP_RECENCY_DAYS = 21;
+
+/**
+ * Top rank. Copies are weighted, views are log scaled, and age decays the total
+ * so a new stack is not buried. Price and outcome results are not inputs.
+ */
+export function topScore(input: { copies: number; views: number; ageDays: number }): number {
+  const copies = Math.max(0, input.copies);
+  const views = Math.max(0, input.views);
+  const ageDays = Math.max(0, input.ageDays);
+  return (TOP_COPY_WEIGHT * copies + Math.log(1 + views)) / (1 + ageDays / TOP_RECENCY_DAYS);
+}
+
+/** SQL twin of topScore. kept_count is the all-time distinct copy count. */
+export const TOP_RANK_SQL = `(${TOP_COPY_WEIGHT}.0 * s.kept_count + ln(1.0 + (SELECT COUNT(*) FROM share_views v WHERE v.share_id = s.id))) / (1.0 + max(0, julianday('now') - julianday(s.created_at)) / ${TOP_RECENCY_DAYS}.0) DESC, s.created_at DESC, s.stack_name ASC`;
+
+/** "Copied by 24 people", or null when the count is hidden. */
+export function copyCountLabel(count: number | null | undefined): string | null {
+  if (count == null || count < MIN_SHOWN_COPIES) return null;
+  return `Copied by ${count} people`;
+}
 
 const PAGE_MAX = 50;
 const DAY_MS = 86_400_000;
@@ -182,9 +204,26 @@ export async function dropFromLibrary(db: D1Database, shareId: string): Promise<
 }
 
 /**
- * Once per UTC day: kept copy counts for listed shares, plus housekeeping.
- * A kept copy is from an account at least a day old, of the current formulation,
- * at least 7 days old, with the copied products still in the copier's synced stack.
+ * Distinct accounts that copied this share, excluding the sharer. One row per account.
+ * The 7 day wait, in-stack check, account age, and formulation filter are not part of this number.
+ */
+function copyCountUpdate(onlyId: boolean): string {
+  const scope = onlyId ? 'revoked_at IS NULL AND id = ?' : 'revoked_at IS NULL';
+  return `UPDATE shares SET
+    kept_count = (SELECT COUNT(*) FROM share_copies c WHERE c.share_id = shares.id AND c.user_id != shares.user_id),
+    kept_recent = (SELECT COUNT(*) FROM share_copies c WHERE c.share_id = shares.id AND c.user_id != shares.user_id AND c.copied_at >= ?)
+  WHERE ${scope}`;
+}
+
+/** Rewrites the cached copy count for one share. Called when someone copies it. */
+export async function refreshShareCopyCount(db: D1Database, shareId: string, now = new Date()): Promise<void> {
+  const recentFrom = new Date(now.getTime() - TOP_WINDOW_DAYS * DAY_MS).toISOString();
+  await db.prepare(copyCountUpdate(true)).bind(recentFrom, shareId).run();
+}
+
+/**
+ * Once per UTC day: copy counts for live shares, plus housekeeping.
+ * A copy is one distinct account other than the sharer. Columns such as in_stack stay for other jobs.
  */
 export async function refreshDailyStats(db: D1Database, now = new Date(), force = false): Promise<boolean> {
   const day = now.toISOString().slice(0, 10);
@@ -192,20 +231,9 @@ export async function refreshDailyStats(db: D1Database, now = new Date(), force 
     const meta = await db.prepare("SELECT value FROM app_meta WHERE key = 'stats_day'").bind().first<{ value: string }>();
     if (meta?.value === day) return false;
   }
-  const keptBefore = new Date(now.getTime() - KEPT_AFTER_DAYS * DAY_MS).toISOString();
-  const recentFrom = new Date(now.getTime() - (KEPT_AFTER_DAYS + TOP_WINDOW_DAYS) * DAY_MS).toISOString();
-  const kept = `FROM share_copies c
-    WHERE c.share_id = shares.id AND c.user_id != shares.user_id AND c.in_stack = 1
-      AND c.account_age_days >= 1 AND c.material_version = shares.material_version AND c.copied_at <= ?`;
+  const recentFrom = new Date(now.getTime() - TOP_WINDOW_DAYS * DAY_MS).toISOString();
   await db.batch([
-    db
-      .prepare(
-        `UPDATE shares SET
-           kept_count = (SELECT COUNT(*) ${kept}),
-           kept_recent = (SELECT COUNT(*) ${kept} AND c.copied_at >= ?)
-         WHERE revoked_at IS NULL`,
-      )
-      .bind(keptBefore, keptBefore, recentFrom),
+    db.prepare(copyCountUpdate(false)).bind(recentFrom),
     db.prepare('DELETE FROM pending_links WHERE created_at < ?').bind(new Date(now.getTime() - 2 * 3_600_000).toISOString()),
     db.prepare('DELETE FROM off_cache WHERE fetched_at < ?').bind(new Date(now.getTime() - 30 * DAY_MS).toISOString()),
     db.prepare('DELETE FROM rate_limits WHERE window_start < ?').bind(Math.floor(now.getTime() / 1000) - 2 * 86_400),
@@ -234,7 +262,7 @@ type ShareListRow = {
   material_version: number;
   updated_at: string;
   created_at: string;
-  cohort_kept?: number;
+  cohort_copies?: number;
 };
 
 export async function searchLibrary(
@@ -254,11 +282,11 @@ export async function searchLibrary(
   const match = input.q ? ftsMatch(input.q) : null;
   if (input.q && input.q.trim() && !match) return { items: [], nextOffset: null, note: 'No stacks match that search.' };
   if ((input.segment === 'saved' || input.segment === 'like_you') && !input.viewer) {
-    return { items: [], nextOffset: null, note: input.segment === 'saved' ? 'Sign in to see saved stacks.' : 'Sign in to see stacks kept by people like you.' };
+    return { items: [], nextOffset: null, note: input.segment === 'saved' ? 'Sign in to see saved stacks.' : 'Sign in to see stacks copied by people like you.' };
   }
   const cohort = input.viewer ? cohortKeyFor(input.viewer.ageRange, input.viewer.sex) : null;
   if (input.segment === 'like_you' && !cohort) {
-    return { items: [], nextOffset: null, note: 'Add an age range and sex in Settings to see stacks kept by people like you.' };
+    return { items: [], nextOffset: null, note: 'Add an age range and sex in Settings to see stacks copied by people like you.' };
   }
 
   const params: unknown[] = [];
@@ -285,22 +313,21 @@ export async function searchLibrary(
   }
 
   let order = 's.created_at DESC';
-  if (input.segment === 'top') order = 's.kept_recent DESC, s.kept_count DESC, s.created_at DESC';
+  if (input.segment === 'top') order = TOP_RANK_SQL;
   if (input.segment === 'saved') order = 'v.created_at DESC';
   const selectParams: unknown[] = [];
   if (input.segment === 'like_you' && input.viewer) {
     const [sex, ...group] = (cohort ?? '').split('_');
     const ages = ageRangesFor(group.join('_'));
     select += `, (SELECT COUNT(*) FROM share_copies c JOIN users u ON u.id = c.user_id
-        WHERE c.share_id = s.id AND c.user_id != s.user_id AND c.in_stack = 1 AND c.account_age_days >= 1
-          AND c.material_version = s.material_version AND c.copied_at <= ?
-          AND u.sex = ? AND u.age_range IN (${ages.map(() => '?').join(', ')})) AS cohort_kept`;
-    selectParams.push(new Date(Date.now() - KEPT_AFTER_DAYS * DAY_MS).toISOString(), sex, ...ages);
+        WHERE c.share_id = s.id AND c.user_id != s.user_id
+          AND u.sex = ? AND u.age_range IN (${ages.map(() => '?').join(', ')})) AS cohort_copies`;
+    selectParams.push(sex, ...ages);
     where = `(${where})`;
-    order = 'cohort_kept DESC, kept_count DESC, created_at DESC';
+    order = 'cohort_copies DESC, kept_count DESC, created_at DESC';
   }
 
-  const having = input.segment === 'like_you' ? `WHERE cohort_kept >= ${MIN_SHOWN_COPIES}` : '';
+  const having = input.segment === 'like_you' ? `WHERE cohort_copies >= ${MIN_SHOWN_COPIES}` : '';
   const query =
     input.segment === 'like_you'
       ? `SELECT * FROM (${select} FROM ${from} WHERE ${where}) ${having} ORDER BY ${order} LIMIT ? OFFSET ?`
@@ -326,8 +353,8 @@ export async function searchLibrary(
   if (items.length === 0 && offset === 0) {
     if (match || goal) note = 'No stacks match that search.';
     else if (input.segment === 'saved') note = 'Saved stacks show here.';
-    else if (input.segment === 'like_you') note = 'No listed stack has been kept by 3 people like you yet.';
-    else if (input.segment === 'top') note = 'Top fills in once people copy and keep listed stacks.';
+    else if (input.segment === 'like_you') note = 'No listed stack has been copied by 3 people like you yet.';
+    else if (input.segment === 'top') note = 'Top fills in once people copy or open listed stacks.';
   }
   return { items, nextOffset: rows.length > limit ? offset + limit : null, note };
 }

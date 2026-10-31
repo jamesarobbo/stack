@@ -250,7 +250,7 @@ export default function ShareScreen() {
             </View>
             {confirmUnshare ? (
               <View style={styles.confirm}>
-                <T size={14}>Turn the link off? It stops working for everyone, leaves Discover, and the kept count starts again if you share later.</T>
+                <T size={14}>Turn the link off? It stops working for everyone, leaves Discover, and the copy count starts again if you share later.</T>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <View style={{ flex: 1 }}>
                     <Button label="Keep sharing" tone="ghost" onPress={() => setConfirmUnshare(false)} />

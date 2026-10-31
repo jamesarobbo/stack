@@ -33,5 +33,5 @@ The shape of the list follows Impeccable, the design vocabulary by Paul Bakaus (
 
 - Do not redesign a screen that already follows this skill. Match the nearest reference surface.
 - Do not add a page title to a tab, a house icon, an eyebrow, or an add control off My Stack.
-- Do not show a kept count under 3, and do not rank stacks by health numbers.
+- Do not show a copy count under 3, and do not rank stacks by health numbers.
 - Do not put the audit score on a price, and do not colour savings with green. Gold is the money colour.

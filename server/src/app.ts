@@ -15,10 +15,11 @@ import {
 } from './dsld';
 import { OFF_ATTRIBUTION, loadOffUpc, offUserAgent } from './off';
 import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from './revenuecat';
-import { blockCreator, intParam, refreshDailyStats, reportShare, searchLibrary, setSaved, syncSearchRow, type LibrarySegment } from './library';
+import { blockCreator, copyCountLabel, intParam, refreshDailyStats, reportShare, searchLibrary, setSaved, syncSearchRow, type LibrarySegment } from './library';
 import { ogImageVersion, ogSvg, publishedResult, renderOgPng, storyImageVersion, storySvg, type OgAssets } from './og';
 import { addressKey, allow, clientAddress } from './rateLimit';
 import { renderSharePage, type PageContext } from './sharePage';
+import { recordShareView } from './shareViews';
 import {
   cohortReport,
   currentShare,
@@ -421,6 +422,7 @@ app.get('/v1/shares/:slug', async (c) => {
   const found = await publicShare(c.env.DB, c.req.param('slug'));
   if (!found) return c.json({ error: 'This stack is no longer shared.' }, 404);
   const user = await userFromRequest(c);
+  await trackShareView(c, found.row, user?.id ?? null);
   const viewer = user ? await viewerState(c.env.DB, found.row, user.id) : null;
   return c.json({ ...found.view, url: shareUrl(c, found.view.slug), viewer });
 });
@@ -468,7 +470,7 @@ app.get('/v1/library', async (c) => {
   await refreshDailyStats(c.env.DB);
   const profile = user ? await readProfile(c.env.DB, user.id) : null;
   const page = await searchLibrary(c.env.DB, {
-    segment: (['new', 'top', 'saved', 'like_you'] as const).includes(segment as LibrarySegment) ? (segment as LibrarySegment) : 'new',
+    segment: (['new', 'top', 'saved', 'like_you'] as const).includes(segment as LibrarySegment) ? (segment as LibrarySegment) : 'top',
     q: (c.req.query('q') ?? '').slice(0, 80),
     goal: c.req.query('goal') ?? '',
     limit: intParam(c.req.query('limit'), 20, 1, 50),
@@ -612,6 +614,7 @@ app.get('/s/:slug', async (c) => {
   const found = await publicShare(c.env.DB, c.req.param('slug'));
   const context = pageContext(c);
   if (!found) return c.html(renderSharePage(null, context), 404);
+  await trackShareView(c, found.row, null);
   return c.html(renderSharePage(found.view, context), 200);
 });
 
@@ -645,6 +648,7 @@ function ogInput(c: AppContext, view: Awaited<ReturnType<typeof publicShare>> ex
     composition: view.score.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit })),
     host: new URL(publicOrigin(c)).host,
     result: publishedResult(view.result, view.displayName),
+    copyLabel: copyCountLabel(view.copyCount),
   };
 }
 
@@ -712,6 +716,23 @@ function adminDenied(c: AppContext): Response | null {
   const presented = header.startsWith('Bearer ') ? header.slice(7) : '';
   if (!presented || !safeEqual(presented, secret)) return c.json({ error: 'Unauthorized.' }, 401);
   return null;
+}
+
+/** Counts a real open of the public page or the in-app stack detail. Image fetches are not views. */
+async function trackShareView(c: AppContext, row: { id: string; user_id: string }, viewerId: string | null): Promise<void> {
+  try {
+    const pepper = c.env.AUTH_PEPPER || 'local';
+    const key = await addressKey(pepper, clientAddress((name) => c.req.header(name)));
+    await recordShareView(c.env.DB, {
+      shareId: row.id,
+      ownerId: row.user_id,
+      viewerId,
+      addressKey: key,
+      userAgent: c.req.header('user-agent'),
+    });
+  } catch {
+    // A failed view write must not break the page.
+  }
 }
 
 async function allowAddress(c: AppContext, bucket: string, limit: number, windowSeconds: number): Promise<boolean> {

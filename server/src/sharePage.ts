@@ -1,5 +1,5 @@
 import { OFF_ATTRIBUTION } from './off';
-import { GOAL_LABELS, LIBRARY_GOALS, type LibraryGoal } from './library';
+import { GOAL_LABELS, LIBRARY_GOALS, copyCountLabel, type LibraryGoal } from './library';
 import { ogImageVersion, publishedResult, resultWindow, scoreTone, storyImageVersion } from './og';
 import type { ShareView } from './sharing';
 
@@ -129,7 +129,8 @@ function pageBody(view: ShareView, context: PageContext): string {
   const result = published
     ? `<section class="card result rise d2"><p class="result-kicker">${escapeHtml(published.kicker)}</p><p class="result-value">${escapeHtml(published.value)}</p><p class="result-word">${escapeHtml(published.label)} ${escapeHtml(published.word)}</p><p class="muted small">${escapeHtml(resultWindow(published))}</p></section>`
     : '';
-  const kept = view.copyCount != null ? `<p class="kept">Kept by ${view.copyCount} people who copied it</p>` : '';
+  const kept = copyCountLabel(view.copyCount);
+  const copies = kept ? `<p class="copies">${escapeHtml(kept)}</p>` : '';
   const changes =
     view.updatedOn && view.changes.length > 0
       ? `<details class="changes"><summary>Updated on ${escapeHtml(formatDate(view.updatedOn))}</summary><ul>${view.changes.map((change) => `<li>${escapeHtml(change)}</li>`).join('')}</ul></details>`
@@ -143,7 +144,7 @@ ${brandBar(openHref)}
   <h1>${escapeHtml(view.stackName)}</h1>
   <p class="byline">${who}, ${view.products.length} ${view.products.length === 1 ? 'product' : 'products'}</p>
   ${goals ? `<div class="chips">${goals}</div>` : ''}
-  ${kept}
+  ${copies}
 </section>
 <section class="card score-card ${tone} rise d1">
   <div class="ring" aria-label="Audit score ${view.auditScore} out of 100">
@@ -220,7 +221,7 @@ p { margin: 0; line-height: 1.45; }
 .byline { color: var(--muted); font-size: 16px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .chip { font-size: 13px; font-weight: 600; color: var(--teal-deep); background: var(--teal-soft); border-radius: 999px; padding: 6px 12px; }
-.kept { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--teal); }
+.copies { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--teal); }
 .shelf { margin: 4px 0 8px; border-radius: 18px; overflow: hidden; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 18px; margin: 16px 0; box-shadow: 0 1px 2px rgba(80,50,30,.06); }
 .score-card { position: relative; display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; color: var(--ink); overflow: hidden; background: var(--card); }

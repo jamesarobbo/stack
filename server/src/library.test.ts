@@ -2,7 +2,8 @@ import type { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 import { ageAccount, createTestEnv, json, request, signIn, type TestEnv } from '../test/env';
 import { scheduled } from './app';
-import { ftsMatch } from './library';
+import { ftsMatch, TOP_RANK_SQL, topScore } from './library';
+import { isBotUserAgent, recordShareView } from './shareViews';
 
 function product(name: string, key: string, amount = 100) {
   return {
@@ -78,7 +79,7 @@ describe('search', () => {
 });
 
 describe('segments', () => {
-  it('ranks top by recently kept copies and hides counts below 3', async () => {
+  it('ranks top by recent copies and hides counts below 3', async () => {
     const { env, sqlite } = createTestEnv();
     const popular = await listStack(env, 'pop@example.com', { products: [product('Calm', 'magnesium')], stackName: 'Popular' });
     const quiet = await listStack(env, 'quiet@example.com', { products: [product('Zinc', 'zinc', 10)], stackName: 'Quiet' });
@@ -108,10 +109,10 @@ describe('segments', () => {
     expect(((await row.json()) as { viewer: { saved: boolean } }).viewer.saved).toBe(true);
   });
 
-  it('ranks people like you by copies kept by the same cohort', async () => {
+  it('ranks people like you by copies from the same cohort', async () => {
     const { env, sqlite } = createTestEnv();
-    const women = await listStack(env, 'w@example.com', { products: [product('Calm', 'magnesium')], stackName: 'Kept by women' });
-    const men = await listStack(env, 'm@example.com', { products: [product('Zinc', 'zinc', 10)], stackName: 'Kept by men' });
+    const women = await listStack(env, 'w@example.com', { products: [product('Calm', 'magnesium')], stackName: 'Women' });
+    const men = await listStack(env, 'm@example.com', { products: [product('Zinc', 'zinc', 10)], stackName: 'Men' });
     await keepCopies(
       env,
       sqlite,
@@ -129,6 +130,86 @@ describe('segments', () => {
     expect((await library(env, '?segment=like_you', viewer)).note).toMatch(/Add an age range and sex/);
     await request(env, '/v1/me/profile', { method: 'PUT', token: viewer, body: { ageRange: '18_29', sex: 'female' } });
     const like = await library(env, '?segment=like_you', viewer);
-    expect(like.items.map((item) => item.stackName)).toEqual(['Kept by women']);
+    expect(like.items.map((item) => item.stackName)).toEqual(['Women']);
+  });
+});
+
+const BROWSER = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1';
+const BOT = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
+
+describe('top score', () => {
+  it('weights copies above log views and decays with age', () => {
+    expect(topScore({ copies: 1, views: 0, ageDays: 0 })).toBe(8);
+    expect(topScore({ copies: 0, views: 100, ageDays: 0 })).toBeCloseTo(Math.log(101));
+    expect(topScore({ copies: 1, views: 0, ageDays: 0 })).toBeGreaterThan(topScore({ copies: 0, views: 100, ageDays: 0 }));
+    expect(topScore({ copies: 2, views: 0, ageDays: 21 })).toBeCloseTo(8);
+    expect(topScore({ copies: 1, views: 0, ageDays: 0 })).toBeGreaterThan(topScore({ copies: 2, views: 0, ageDays: 60 }));
+    expect(TOP_RANK_SQL).toContain('kept_count');
+    expect(TOP_RANK_SQL).toContain('share_views');
+    expect(TOP_RANK_SQL).toContain('ln(');
+    expect(TOP_RANK_SQL).not.toMatch(/price|outcome|percent|audit_score/i);
+  });
+});
+
+describe('top ranking', () => {
+  it('puts one copy above many views, and a new copy above an older pair', async () => {
+    const { env, sqlite } = createTestEnv();
+    const copied = await listStack(env, 'c@example.com', { products: [product('Calm', 'magnesium')], stackName: 'One copy' });
+    const viewed = await listStack(env, 'v@example.com', { products: [product('Zinc', 'zinc', 10)], stackName: 'Many views' });
+    const older = await listStack(env, 'o@example.com', { products: [product('Iron', 'iron', 8)], stackName: 'Older' });
+    const reader = await signIn(env, 'reader@example.com');
+    await request(env, `/v1/shares/${copied.slug}/copy`, { method: 'POST', token: reader, body: {} });
+    await request(env, `/v1/shares/${older.slug}/copy`, { method: 'POST', token: await signIn(env, 'two@example.com'), body: {} });
+    await request(env, `/v1/shares/${older.slug}/copy`, { method: 'POST', token: await signIn(env, 'three@example.com'), body: {} });
+    sqlite.prepare('UPDATE shares SET created_at = ? WHERE slug = ?').run(new Date(Date.now() - 60 * 86_400_000).toISOString(), older.slug);
+
+    const row = sqlite.prepare('SELECT id, user_id FROM shares WHERE slug = ?').get(viewed.slug) as { id: string; user_id: string };
+    for (let index = 0; index < 100; index += 1) {
+      await recordShareView(env.DB, {
+        shareId: row.id,
+        ownerId: row.user_id,
+        viewerId: `viewer-${index}`,
+        userAgent: BROWSER,
+      });
+    }
+
+    const top = await library(env, '?segment=top');
+    expect(top.items.map((item) => item.stackName)).toEqual(['One copy', 'Many views', 'Older']);
+  });
+
+  it('does not move a stack up because it has a personal result', async () => {
+    const { env, sqlite } = createTestEnv();
+    const result = { metric: 'resting_hr_bpm', direction: 'down', percent: -6, withinNormal: false, windowDays: 84, device: 'Apple Watch' };
+    await listStack(env, 'a@example.com', { products: [product('Calm', 'magnesium')], stackName: 'Alpha' });
+    await listStack(env, 'z@example.com', { products: [product('Zinc', 'zinc', 10)], stackName: 'Zinc', result });
+    sqlite.prepare('UPDATE shares SET created_at = ?').run('2026-06-01T00:00:00.000Z');
+    const top = await library(env, '?segment=top');
+    expect(top.items.map((item) => item.stackName)).toEqual(['Alpha', 'Zinc']);
+  });
+
+  it('counts a browser once per day and skips the owner and bots', async () => {
+    const { env, sqlite } = createTestEnv();
+    const listed = await listStack(env, 'maker@example.com', { products: [product('Calm', 'magnesium')], stackName: 'Viewed' });
+    const row = sqlite.prepare('SELECT id, user_id FROM shares WHERE slug = ?').get(listed.slug) as { id: string; user_id: string };
+    const day = new Date('2026-04-01T12:00:00.000Z');
+    const next = new Date('2026-04-02T12:00:00.000Z');
+    expect(await recordShareView(env.DB, { shareId: row.id, ownerId: row.user_id, viewerId: 'u1', userAgent: BROWSER, now: day })).toBe(true);
+    expect(await recordShareView(env.DB, { shareId: row.id, ownerId: row.user_id, viewerId: 'u1', userAgent: BROWSER, now: day })).toBe(false);
+    expect(await recordShareView(env.DB, { shareId: row.id, ownerId: row.user_id, viewerId: 'u1', userAgent: BROWSER, now: next })).toBe(true);
+    expect(await recordShareView(env.DB, { shareId: row.id, ownerId: row.user_id, viewerId: row.user_id, userAgent: BROWSER, now: day })).toBe(false);
+    expect(await recordShareView(env.DB, { shareId: row.id, ownerId: row.user_id, viewerId: 'u2', userAgent: BOT, now: day })).toBe(false);
+    expect(isBotUserAgent('')).toBe(true);
+    expect(isBotUserAgent(BROWSER)).toBe(false);
+
+    const ip = '10.4.4.4';
+    await request(env, `/s/${listed.slug}`, { ip, userAgent: BROWSER });
+    await request(env, `/s/${listed.slug}`, { ip, userAgent: BROWSER });
+    await request(env, `/s/${listed.slug}`, { ip, userAgent: BOT });
+    await request(env, `/v1/shares/${listed.slug}`, { token: listed.token, userAgent: BROWSER, ip });
+    const other = await signIn(env, 'other@example.com');
+    await request(env, `/v1/shares/${listed.slug}`, { token: other, userAgent: BROWSER, ip: '10.4.4.5' });
+    await request(env, `/v1/shares/${listed.slug}`, { token: other, userAgent: BROWSER, ip: '10.4.4.6' });
+    const views = sqlite.prepare('SELECT COUNT(*) AS n FROM share_views WHERE share_id = ?').get(row.id) as { n: number };
+    expect(views.n).toBe(4);
   });
 });

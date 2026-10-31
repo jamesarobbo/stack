@@ -38,6 +38,8 @@ export type OgInput = {
   composition: { name: string; ofLimit: number | null }[];
   host: string;
   result: OgResult | null;
+  /** "Copied by 24 people", or null when fewer than 3 accounts have copied. */
+  copyLabel?: string | null;
 };
 
 const CREAM = '#F6F0E6';
@@ -100,6 +102,10 @@ export function ogSvg(input: OgInput): string {
     .join('');
   const byline = `${input.creator}, ${input.productCount} ${input.productCount === 1 ? 'product' : 'products'}`;
   const bylineY = titleY + (title.length - 1) * (titleSize + 8) + 42;
+  const copyLabel = input.copyLabel ? truncate(input.copyLabel, 22, 590) : '';
+  const copyLine = copyLabel
+    ? `<text x="64" y="${bylineY + 34}" font-family="Nunito" font-weight="500" font-size="22" fill="${MUTED}">${escapeXml(copyLabel)}</text>`
+    : '';
   const ctaY = 562;
   const resultY = bylineY + 22;
   const resultH = 118;
@@ -128,6 +134,7 @@ ${bottles(520, 28)}
 <text x="128" y="74" font-family="Nunito" font-weight="700" font-size="32" fill="${INK}" letter-spacing="-0.6">Stack</text>
 ${titleText}
 <text x="64" y="${bylineY}" font-family="Nunito" font-weight="500" font-size="26" fill="${MUTED}">${escapeXml(truncate(byline, 26, 590))}</text>
+${copyLine}
 ${result}
 ${composition}
 <rect x="64" y="${ctaY}" width="520" height="48" rx="16" fill="${TEAL}"/>
@@ -159,13 +166,17 @@ export function storySvg(input: OgInput): string {
     .join('');
   const bylineY = titleY + (title.length - 1) * 76 + 58;
   const byline = `${input.creator}, ${input.productCount} ${input.productCount === 1 ? 'product' : 'products'}`;
+  const storyCopy = input.copyLabel ? truncate(input.copyLabel, 28, inner) : '';
+  const copyLine = storyCopy
+    ? `<text x="${pad}" y="${bylineY + 40}" font-family="Nunito" font-weight="500" font-size="26" fill="${MUTED}">${escapeXml(storyCopy)}</text>`
+    : '';
   const ctaY = 1688;
   const rows = input.composition.slice(0, 4);
   const rowH = 72;
   const compTop = ctaY - 40 - rows.length * rowH;
   const resultH = input.result ? 250 : 0;
   const resultY = compTop - (input.result ? resultH + 56 : 0);
-  const panelTop = bylineY + 36;
+  const panelTop = bylineY + (storyCopy ? 76 : 36);
   const panelBottom = (input.result ? resultY : compTop) - 28;
   const panelH = Math.max(420, panelBottom - panelTop);
   const ringR = Math.min(150, Math.round((panelH - 220) / 2));
@@ -211,6 +222,7 @@ ${bottles(STORY_WIDTH - pad - 110, 112)}
 <text x="${pad + 72}" y="168" font-family="Nunito" font-weight="700" font-size="36" fill="${INK}" letter-spacing="-0.6">Stack</text>
 ${titleText}
 <text x="${pad}" y="${bylineY}" font-family="Nunito" font-weight="500" font-size="28" fill="${MUTED}">${escapeXml(truncate(byline, 28, inner))}</text>
+${copyLine}
 <rect x="${pad}" y="${panelTop}" width="${inner}" height="${panelH}" rx="40" fill="url(#panel)"/>
 <circle cx="${STORY_WIDTH / 2}" cy="${ringCy}" r="${ringR + 48}" fill="${panelTo}" fill-opacity="0.4"/>
 <circle cx="${STORY_WIDTH / 2}" cy="${ringCy}" r="${ringR}" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="24"/>

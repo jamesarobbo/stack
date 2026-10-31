@@ -159,13 +159,13 @@ Free is the stack log, the duplicate dollars, the upper-limit flags, and a singl
 
 Share stack publishes products and daily doses, the audit score with its reasons, and an optional personal headline. Prices, notes, start dates, and wearable samples are never sent. The name is hidden unless the person turns it on, and a review step lists everything that will be public before publishing. Example data cannot be shared. Publishing opens the share sheet with the link. The score is documented in `docs/audit-score.md`, results and groups in `docs/personal-outcome.md`.
 
-Every edit that changes something creates a new version, and the page shows "Updated on" with a short list of changes. A change of ingredients or doses restarts the kept count and the copier group, so an edit cannot inherit them.
+Every edit that changes something creates a new version, and the page shows "Updated on" with a short list of changes. A change of ingredients or doses starts a new copier outcome group. The copy count does not restart: it is the number of distinct accounts that copied, excluding the sharer.
 
 The public page is `GET /s/<slug>` on the Worker, on a white background with a Smart App Banner, Open Graph and Twitter tags, a 1200 by 630 link preview (`/s/<slug>/og.png`), and a 1080 by 1920 story image (`/s/<slug>/story.png`). Both images are cached per share version and renderer version, so a drawing change generates a new file. The page shows the score and why, the dose composition, one action, and a personal result only when the owner published one (the window, the device, and that it is one person). Cohort averages stay off the page. It makes no health claims. The action, `/s/<slug>/get`, remembers the slug for 2 hours against a hashed address and opens the App Store, so a new install opens that stack after onboarding. With the app installed, universal links open it directly. Universal links need `APPLE_TEAM_ID` on the Worker and a new native build (the app's `associatedDomains` comes from `EXPO_PUBLIC_SHARE_HOST` or `EXPO_PUBLIC_API_URL`).
 
 Copy to my stack shows a preview first: products you already take, overlaps, what is new, and your score after. Each row can be added, skipped, or replace yours. The products are written in one transaction with `catalogueId` `share:<slug>`, so the copy lands whole or not at all, and it can be copied again after deleting them. Copying works before sign-in and counts once the person signs in.
 
-Discover is the second tab, after Stack: Stack, Discover, Audit, Impact, More. One control switches New, Most kept, Like you, and Saved. Audit offers Browse listed stacks when the dose audit has a gap. The last onboarding step can open Discover after Continue with Free. The rules are in `docs/stack-library.md`.
+Discover is the second tab, after Stack: Stack, Discover, Audit, Impact, More. Discover opens on Top. One control switches Top, New, Like you, and Saved. Top blends copies, deduped page views, and recency. Audit offers Browse listed stacks when the dose audit has a gap. The last onboarding step can open Discover after Continue with Free. The rules are in `docs/stack-library.md`.
 
 ## CI
 

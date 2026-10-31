@@ -19,6 +19,7 @@ import {
   isAgeRange,
   isSex,
   parseLibraryGoals,
+  refreshShareCopyCount,
   shownCopies,
   type CardComposition,
   type LibraryGoal,
@@ -190,7 +191,6 @@ export async function upsertShare(
           .bind(existing.id, version, materialVersion, payload, JSON.stringify(changes), now),
       );
     }
-    if (material) statements.push(db.prepare('UPDATE shares SET kept_count = 0, kept_recent = 0 WHERE id = ?').bind(existing.id));
     await db.batch(statements);
     await indexShare(db, {
       id: existing.id,
@@ -410,6 +410,7 @@ export async function recordCopy(
     .bind(row.id, userId, now, row.version, row.material_version, now, ageDays, consent)
     .run();
   await db.prepare('DELETE FROM copier_outcomes WHERE share_id = ? AND user_id = ?').bind(row.id, userId).run();
+  await refreshShareCopyCount(db, row.id);
   return { ok: true, copiedOn: now.slice(0, 10), restarted: Boolean(existing) };
 }
 

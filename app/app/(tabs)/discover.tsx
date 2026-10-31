@@ -27,7 +27,7 @@ const PAGE = 20;
 
 export default function DiscoverScreen() {
   const app = useApp();
-  const [segment, setSegment] = useState<LibrarySegmentKey>('new');
+  const [segment, setSegment] = useState<LibrarySegmentKey>('top');
   const [typed, setTyped] = useState('');
   const [query, setQuery] = useState('');
   const [goal, setGoal] = useState<LibraryGoalKey | null>(null);

@@ -18,8 +18,8 @@ export const LIBRARY_GOALS = [
 export type LibraryGoalKey = (typeof LIBRARY_GOALS)[number]['key'];
 
 export const LIBRARY_SEGMENTS = [
+  { key: 'top', label: 'Top' },
   { key: 'new', label: 'New' },
-  { key: 'top', label: 'Most kept' },
   { key: 'like_you', label: 'Like you' },
   { key: 'saved', label: 'Saved' },
 ] as const;
@@ -28,8 +28,8 @@ export type LibrarySegmentKey = (typeof LIBRARY_SEGMENTS)[number]['key'];
 
 export const SEGMENT_NOTES: Record<LibrarySegmentKey, string> = {
   new: 'Newest listed stacks first.',
-  top: 'Ranked by people who still had the products in their stack 7 days after copying, over the last 30 days.',
-  like_you: 'Ranked by how many people in your age group and sex kept the stack. Not ranked by results.',
+  top: 'Copies count the most. Page views add a smaller amount, and newer stacks are not buried. Price and wearable results are not used.',
+  like_you: 'Ranked by how many people in your age group and sex copied the stack. Not ranked by results.',
   saved: 'Stacks you saved. Only you can see this list.',
 };
 

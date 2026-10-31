@@ -6,14 +6,22 @@ A stack with any ingredient above twice its upper limit, or a product name with 
 
 ## Segments
 
-One control with four segments.
+One control with four segments. Discover opens on Top.
 
+- Top: the default rank. Score is `(8 * copies + ln(1 + views)) / (1 + ageDays / 21)`. `copies` is the distinct accounts that copied, other than the sharer, one per account. `views` is the number of share page and stack detail opens, one per viewer per UTC day. `ageDays` is how long ago the share was created. A copy is worth more than a large pile of views, and a newer stack is not buried by an older one with the same engagement. Price is not stored on a share and is not in the score. Wearable results and copier averages are not in the score. Counts below 3 are not shown on the card. The words are "Copied by 24 people".
 - New: listed stacks by the day they were first shared, newest first.
-- Most kept: ranked by kept copies from the last 30 days. A kept copy is one whose products were still in the copier's stack 7 days later, from an account at least a day old, of the current formulation. The creator's own copies do not count. Counts below 3 are not shown anywhere.
-- People like you: ranked by how many people in the viewer's sex and age group kept the stack, with at least 3. Needs sign-in and an age range and sex. It never ranks by results. A card can show the group result line when that group passes the rules in `docs/personal-outcome.md`.
+- People like you: ranked by how many people in the viewer's sex and age group copied the stack, with at least 3. Needs sign-in and an age range and sex. The empty note is "No listed stack has been copied by 3 people like you yet." It never ranks by results. A card can show the group result line when that group passes the rules in `docs/personal-outcome.md`.
 - Saved: the signed-in person's bookmarks that are still listed.
 
-Counts are recomputed once a day by the Worker's scheduled task.
+The copy count is written when someone copies, and recomputed once a day. The stored columns are still named kept_count and kept_recent. kept_count is the copy count above. kept_recent is copies from the last 30 days and is not the Top rank.
+
+## Views
+
+`share_views` stores one row per share, viewer, and UTC day (`server/migrations/0007_share_views.sql`). A signed-in open of the stack detail uses `user:<id>`. The public page uses `ip:<hash>` of the address, so the raw address is not stored. The same viewer on the same day does not count twice. The sharer's own account is not counted on the in-app detail. The public page cannot tell the owner apart, so that open can count. Bots, link-preview fetchers, and requests with no user agent are not counted. The preview images (`og.png`, `story.png`) are not views.
+
+## Later
+
+Linked copies, where a copied stack stays tied to the original, and notifications when a shared stack changes, are not built. Both wait until after launch.
 
 ## Search
 

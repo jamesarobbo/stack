@@ -92,10 +92,15 @@ export function freshAddress(): string {
   return `10.0.${Math.floor(address / 250)}.${address % 250}`;
 }
 
-export async function request(env: TestEnv, path: string, init: { method?: string; token?: string; body?: unknown; ip?: string } = {}) {
+export async function request(
+  env: TestEnv,
+  path: string,
+  init: { method?: string; token?: string; body?: unknown; ip?: string; userAgent?: string } = {},
+) {
   const headers: Record<string, string> = { 'cf-connecting-ip': init.ip ?? freshAddress() };
   if (init.body !== undefined) headers['content-type'] = 'application/json';
   if (init.token) headers.authorization = `Bearer ${init.token}`;
+  if (init.userAgent) headers['user-agent'] = init.userAgent;
   return app.request(
     `http://localhost${path}`,
     { method: init.method ?? 'GET', headers, body: init.body === undefined ? undefined : JSON.stringify(init.body) },

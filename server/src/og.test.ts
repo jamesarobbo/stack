@@ -33,6 +33,10 @@ describe('link preview image', () => {
     expect(story).not.toMatch(/[\u2013\u2014]/);
     expect(ogImageVersion(1)).toBe(3_000_001);
     expect(storyImageVersion(1)).toBe(3_500_001);
+    const counted = ogSvg({ ...input, copyLabel: 'Copied by 24 people' });
+    expect(counted).toContain('Copied by 24 people');
+    expect(counted).not.toContain('Kept by');
+    expect(storySvg({ ...input, copyLabel: 'Copied by 24 people' })).toContain('Copied by 24 people');
     expect(wrap(input.stackName, 60, 560, 2)).toHaveLength(2);
     expect(truncate('x'.repeat(200), 20, 100).endsWith('\u2026')).toBe(true);
   });
@@ -58,6 +62,7 @@ describe('link preview image', () => {
       expect(svg).toContain('&lt;b&gt;');
       expect(svg).not.toContain('<b>');
       expect(svg).not.toContain('Kept by');
+      expect(svg).not.toContain('Copied by');
       expect(svg).not.toMatch(/[\u2013\u2014]/);
     }
   });
