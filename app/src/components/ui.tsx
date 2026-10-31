@@ -8,8 +8,9 @@ import { DISCLAIMER } from '../config';
 import { monthlyCostCents } from '../domain/audit';
 import type { ProductInput } from '../domain/types';
 import { formatMoney } from '../format';
+import { productSubtitle } from '../productSubtitle';
 import { currencyOf } from '../../../shared/money';
-import { font, useTheme, useThemedStyles, type Theme } from '../theme';
+import { font, space, useTheme, useThemedStyles, type Theme } from '../theme';
 
 type Weight = keyof typeof font;
 
@@ -133,13 +134,21 @@ export function LabeledField({
   placeholder,
   keyboardType,
   autoCapitalize = 'sentences',
+  textContentType,
+  autoComplete,
+  returnKeyType = 'done',
+  secureTextEntry,
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder?: string;
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'decimal-pad';
-  autoCapitalize?: 'none' | 'sentences';
+  autoCapitalize?: 'none' | 'sentences' | 'words';
+  textContentType?: 'none' | 'name' | 'emailAddress' | 'username' | 'oneTimeCode';
+  autoComplete?: 'off' | 'email' | 'name' | 'username' | 'one-time-code';
+  returnKeyType?: 'done' | 'next' | 'search' | 'go';
+  secureTextEntry?: boolean;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
@@ -156,6 +165,11 @@ export function LabeledField({
         placeholderTextColor={theme.muted}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
+        textContentType={textContentType}
+        autoComplete={autoComplete}
+        returnKeyType={returnKeyType}
+        secureTextEntry={secureTextEntry}
+        clearButtonMode="while-editing"
         style={styles.field}
       />
     </View>
@@ -283,15 +297,13 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
       style={({ pressed }) => [styles.product, last ? styles.productLast : null, pressed ? { opacity: 0.85 } : null]}
     >
       <Capsule color={theme.muted} />
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, gap: 2 }}>
         <T weight="semibold" size={16}>
           {product.name}
         </T>
-        {product.note ? (
-          <T size={13} color={theme.muted}>
-            {product.note}
-          </T>
-        ) : null}
+        <T size={13} color={theme.muted}>
+          {productSubtitle(product)}
+        </T>
       </View>
       {product.priceCents <= 0 ? (
         <T size={14} color={theme.muted}>
@@ -324,35 +336,35 @@ export function Boot({ message }: { message: string }) {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: theme.bg },
-    scroll: { paddingHorizontal: 20, paddingBottom: 28, gap: 14 },
-    footer: { paddingHorizontal: 20, paddingTop: 8, backgroundColor: theme.bg, gap: 8 },
+    scroll: { paddingHorizontal: space.xl, paddingBottom: 28, gap: 14 },
+    footer: { paddingHorizontal: space.xl, paddingTop: space.sm, backgroundColor: theme.bg, gap: space.sm },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     card: {
       backgroundColor: theme.card,
       borderRadius: theme.radius,
-      padding: 16,
+      padding: space.lg,
       borderWidth: 1,
       borderColor: theme.line,
-      gap: 8,
+      gap: 10,
     },
-    pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
-    button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: space.xs, alignSelf: 'flex-start' },
+    button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: space.lg, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     field: {
       minHeight: 48,
       backgroundColor: theme.card,
-      borderRadius: 12,
+      borderRadius: theme.radius,
       borderWidth: 1,
       borderColor: theme.line,
       paddingHorizontal: 14,
-      paddingVertical: 12,
+      paddingVertical: space.md,
       fontSize: 16,
       color: theme.text,
     },
     buttonTeal: { backgroundColor: theme.action },
     buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
     disclaimer: {
-      borderRadius: 12,
+      borderRadius: theme.radius,
       borderWidth: 1,
       borderColor: theme.line,
       backgroundColor: theme.card,
@@ -362,14 +374,14 @@ function localStyles(theme: Theme) {
     product: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
-      paddingVertical: 12,
+      gap: space.md,
+      paddingVertical: space.md,
       paddingHorizontal: 14,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.line,
       minHeight: 56,
     },
     productLast: { borderBottomWidth: 0 },
-    boot: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
+    boot: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: space.xxl, gap: space.sm },
   });
 }

@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { DateField } from '@/src/components/DateField';
+import { NativeSegmented } from '@/src/components/NativeSegmented';
 import { UnitField } from '@/src/components/UnitField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { COMMON_INGREDIENTS, type CommonIngredient } from '@/src/data/commonIngredients';
@@ -19,6 +20,7 @@ import {
 } from '@/src/data/labels';
 import { DEFAULT_UNIT } from '@/src/data/units';
 import { clampStartDate, localToday } from '@/src/dates';
+import { humanProductNote } from '@/src/productSubtitle';
 import type { IngredientInput } from '@/src/domain/types';
 import { ApiError } from '@/src/api';
 import { currencyName } from '../../shared/money';
@@ -118,18 +120,14 @@ export default function AddScreen() {
               Scan a barcode
             </T>
           </Pressable>
-          <View style={styles.switch}>
-            <Pressable accessibilityRole="button" onPress={() => setMode('search')} style={[styles.switchItem, mode === 'search' && styles.switchOn]}>
-              <T weight="semibold" size={14} color={mode === 'search' ? theme.text : theme.muted}>
-                Search
-              </T>
-            </Pressable>
-            <Pressable accessibilityRole="button" onPress={() => setMode('manual')} style={[styles.switchItem, mode === 'manual' && styles.switchOn]}>
-              <T weight="semibold" size={14} color={mode === 'manual' ? theme.text : theme.muted}>
-                Manual
-              </T>
-            </Pressable>
-          </View>
+          <NativeSegmented
+            items={[
+              { key: 'search', label: 'Search' },
+              { key: 'manual', label: 'Manual' },
+            ]}
+            value={mode}
+            onChange={setMode}
+          />
           {loadingLabel ? (
             <T size={14} color={theme.muted}>
               Looking up that label...
@@ -211,6 +209,9 @@ function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void;
         placeholderTextColor={theme.faint}
         style={styles.input}
         autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="search"
+        clearButtonMode="while-editing"
       />
       <T size={12} color={theme.muted}>
         Search uses the NIH Dietary Supplement Label Database. You still enter the price and the start date. Amounts are what the label says, not a suggestion.
@@ -340,11 +341,7 @@ function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }
             setError('Servings need to be numbers above zero.');
             return;
           }
-          const note = label.dsldId
-            ? `NIH DSLD ${label.dsldId}. Serving size: ${label.servingSize}.`
-            : label.upc
-              ? `Barcode ${label.upc}. Serving size: ${label.servingSize}.`
-              : null;
+          const note = humanProductNote({ brand: label.brand, servingSize: label.servingSize });
           await app.addManual({
             name: label.name,
             brand: label.brand || null,
@@ -560,13 +557,8 @@ function initialIngredients(off: RemoteLabel | null, seed: CommonIngredient | nu
   return [{ key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 }];
 }
 
-function productNote(digits: string, off: RemoteLabel | null): string | null {
-  if (!digits) return null;
-  if (off) {
-    const serving = off.servingSize && off.servingSize !== '1 serving' ? ` Serving size: ${off.servingSize}.` : '';
-    return `Barcode ${digits}.${serving}`;
-  }
-  return `Barcode ${digits}. Not in the NIH DSLD.`;
+function productNote(_digits: string, off: RemoteLabel | null): string | null {
+  return humanProductNote({ brand: off?.brand, servingSize: off?.servingSize });
 }
 
 function Field({
@@ -589,7 +581,17 @@ function Field({
       <T size={12} weight="semibold" color={theme.muted}>
         {label}
       </T>
-      <TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={theme.faint} keyboardType={keyboard} style={styles.input} />
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={theme.faint}
+        keyboardType={keyboard}
+        inputMode={keyboard === 'decimal-pad' ? 'decimal' : keyboard === 'number-pad' ? 'numeric' : undefined}
+        returnKeyType="done"
+        clearButtonMode="while-editing"
+        style={styles.input}
+      />
     </View>
   );
 }
@@ -630,9 +632,6 @@ function localStyles(theme: Theme) {
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
-  switch: { flexDirection: 'row', backgroundColor: theme.greyPill, borderRadius: 14, padding: 4 },
-  switchItem: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 44, borderRadius: 10 },
-  switchOn: { backgroundColor: theme.card },
   input: {
     backgroundColor: theme.card,
     borderRadius: 12,

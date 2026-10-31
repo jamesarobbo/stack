@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet, Switch, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { DailyTotal, ScoreReason } from '../domain/auditScore';
 import { heroParts, type OutcomeFields } from '../domain/outcome';
 import { formatDose } from '../../../shared/doses';
 import { PERSONAL_RESULT_NOTE } from '../../../shared/outcome';
 import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { NativeSegmented } from './NativeSegmented';
 import { T } from './ui';
 
 const NATIVE = Platform.OS !== 'web';
@@ -637,41 +638,14 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
 }
 
 export function Segmented<K extends string>({ items, value, onChange }: { items: readonly { key: K; label: string }[]; value: K; onChange: (key: K) => void }) {
-  const theme = useTheme();
-  const styles = useThemedStyles(localStyles);
-  return (
-    <View style={styles.segmented} accessibilityRole="tablist">
-      {items.map((item) => {
-        const on = item.key === value;
-        return (
-          <Pressable
-            key={item.key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: on }}
-            onPress={() => onChange(item.key)}
-            style={[styles.segment, on ? styles.segmentOn : null]}
-          >
-            <T size={13} weight="semibold" color={on ? theme.text : theme.muted} style={{ textAlign: 'center' }}>
-              {item.label}
-            </T>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
+  return <NativeSegmented items={items} value={value} onChange={onChange} />;
 }
 
 export function Toggle({ label, detail, value, onChange }: { label: string; detail?: string; value: boolean; onChange: (next: boolean) => void }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   return (
-    <Pressable
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: value }}
-      onPress={() => onChange(!value)}
-      style={({ pressed }) => [styles.toggle, pressed ? { opacity: 0.9 } : null]}
-    >
-      <View style={[styles.box, value ? styles.boxOn : null]}>{value ? <Ionicons name="checkmark" size={16} color="#FFFFFF" /> : null}</View>
+    <View style={styles.toggle}>
       <View style={{ flex: 1, gap: 2 }}>
         <T weight="semibold" size={15}>
           {label}
@@ -682,7 +656,15 @@ export function Toggle({ label, detail, value, onChange }: { label: string; deta
           </T>
         ) : null}
       </View>
-    </Pressable>
+      <Switch
+        accessibilityLabel={label}
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ false: theme.greyPill, true: theme.action }}
+        thumbColor="#FFFFFF"
+        ios_backgroundColor={theme.greyPill}
+      />
+    </View>
   );
 }
 

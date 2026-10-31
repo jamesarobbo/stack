@@ -145,6 +145,9 @@ export const darkTheme: Theme = {
   },
 };
 
+/** Shared gaps and padding. Prefer these over one off numbers. */
+export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
+
 /** System text. Weights only, so iOS uses SF and Android uses its own UI face. */
 export const font = {
   regular: '400',
