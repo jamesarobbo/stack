@@ -69,6 +69,12 @@ export function TodayList({
                 All taken
               </T>
             </Pressable>
+          ) : editable ? (
+            <View style={styles.all} accessible accessibilityLabel="All taken today">
+              <T size={15} color={theme.muted}>
+                All taken today
+              </T>
+            </View>
           ) : null}
           {visible.map((product) => {
             const on = taken.has(product.id);

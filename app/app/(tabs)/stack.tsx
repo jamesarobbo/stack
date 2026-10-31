@@ -1,35 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef } from 'react';
-import {
-  LayoutAnimation,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  UIManager,
-  View,
-} from 'react-native';
+import { useMemo } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreBadge } from '@/src/components/share';
 import { ReminderOffer } from '@/src/components/DailyReminderCard';
-import { TodayList } from '@/src/components/TodayList';
+import { LogTodayCard } from '@/src/components/LogTodayCard';
 import { Card, Pill, ProductRow, ShareButton, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
 import { auditStack } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
-import { localToday } from '@/src/dates';
 import { formatMoney } from '@/src/format';
 import { joinMoney } from '../../../shared/money';
 import { isValidTime } from '../../../shared/reminders';
 import { requestReminderAccess } from '@/src/reminders/notify';
 import { useApp } from '@/src/state';
 import { space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 function nowTime(): string {
   const now = new Date();
@@ -48,23 +35,6 @@ export default function StackScreen() {
   const showOffer = app.reminderOffer && app.products.length > 0 && !app.usingSampleData;
   const showCheckIn = app.products.length > 0 && (app.dailyReminder || app.logs.length > 0);
   const showLogToday = app.products.length > 0 && !showCheckIn && !showOffer;
-  const todayKey = localToday();
-  const takenToday = new Set(app.logs.filter((log) => log.day === todayKey).map((log) => log.productId));
-  const takenCount = app.products.reduce((count, product) => count + (takenToday.has(product.id) ? 1 : 0), 0);
-  const allTakenToday = app.products.length > 0 && takenCount >= app.products.length;
-  const logStatus =
-    takenCount === 0
-      ? 'Nothing logged yet today'
-      : allTakenToday
-        ? 'All taken today'
-        : `${takenCount} of ${app.products.length} taken today`;
-  const prevAllTaken = useRef(allTakenToday);
-  useEffect(() => {
-    if (prevAllTaken.current === allTakenToday) return;
-    prevAllTaken.current = allTakenToday;
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  }, [allTakenToday]);
-
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
@@ -79,64 +49,15 @@ export default function StackScreen() {
         </T>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {showCheckIn && !allTakenToday ? (
-          <Card>
-            <TodayList
-              products={app.products}
-              logs={app.logs}
-              onOpen={() => router.push('/today')}
-              onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
-              onAllTaken={(day) => void app.markAllTaken(day)}
-            />
-          </Card>
-        ) : null}
-        {showCheckIn && allTakenToday ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="All taken today"
-            onPress={() => router.push('/today')}
-            style={({ pressed }) => [styles.logDoneRow, pressed ? { opacity: 0.88 } : null]}
-          >
-            <Ionicons name="checkmark-circle" size={22} color={theme.action} />
-            <T size={15} weight="medium" color={theme.muted} style={{ flex: 1 }}>
-              All taken today
-            </T>
-            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
-          </Pressable>
-        ) : null}
-        {showLogToday && !allTakenToday ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Log today. ${logStatus}`}
-            onPress={() => router.push('/today')}
-            style={({ pressed }) => [styles.logCard, pressed ? { opacity: 0.92 } : null]}
-          >
-            <View style={styles.logAccent} />
-            <Ionicons name="checkmark-circle" size={28} color={theme.action} />
-            <View style={styles.logCopy}>
-              <T weight="semibold" size={17}>
-                Log today
-              </T>
-              <T size={14} color={theme.muted}>
-                {logStatus}
-              </T>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
-          </Pressable>
-        ) : null}
-        {showLogToday && allTakenToday ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="All taken today"
-            onPress={() => router.push('/today')}
-            style={({ pressed }) => [styles.logDoneRow, pressed ? { opacity: 0.88 } : null]}
-          >
-            <Ionicons name="checkmark-circle" size={22} color={theme.action} />
-            <T size={15} weight="medium" color={theme.muted} style={{ flex: 1 }}>
-              All taken today
-            </T>
-            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
-          </Pressable>
+        {showCheckIn || showLogToday ? (
+          <LogTodayCard
+            mode={showCheckIn ? 'checkIn' : 'promo'}
+            products={app.products}
+            logs={app.logs}
+            onOpen={() => router.push('/today')}
+            onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
+            onAllTaken={(day) => void app.markAllTaken(day)}
+          />
         ) : null}
         {showOffer ? (
           <ReminderOffer
@@ -239,42 +160,6 @@ function localStyles(theme: Theme) {
   links: { flexDirection: 'row', gap: 16 },
   link: { minHeight: 44, justifyContent: 'center' },
   scroll: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, gap: 14 },
-  logCard: {
-    minHeight: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    paddingLeft: 12,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.bg === '#000000' ? '#2A3A4A' : '#C5D8EF',
-    backgroundColor: theme.tealSoft,
-    overflow: 'hidden',
-  },
-  /** Quiet single row once every product is taken for the local today. */
-  logDoneRow: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.line,
-    backgroundColor: theme.card,
-  },
-  logAccent: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
-    backgroundColor: theme.action,
-  },
-  logCopy: { flex: 1, gap: 2 },
   spend: { letterSpacing: -1.5, lineHeight: 50 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   scoreRow: {
