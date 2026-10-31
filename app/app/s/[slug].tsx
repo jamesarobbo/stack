@@ -423,15 +423,17 @@ export default function SharedStackScreen() {
                         {slice.people}
                       </T>
                     </View>
-                    <T size={14} weight="semibold" color={theme.text} style={{ textAlign: 'right', maxWidth: '50%' }}>
-                      {sentence(slice.band)}
-                    </T>
+                    <View accessible accessibilityHint={cohorts.disclaimer} style={{ maxWidth: '50%' }}>
+                      <T size={14} weight="semibold" color={theme.text} style={{ textAlign: 'right' }}>
+                        {`${sentence(slice.band)}*`}
+                      </T>
+                    </View>
                   </View>
                 ))}
               </View>
             ))}
           <T size={12} color={theme.muted}>
-            {`${cohorts.disclaimer}. Updated daily.`}
+            {`* ${cohorts.disclaimer}. Updated daily.`}
           </T>
         </Card>
       ) : null}

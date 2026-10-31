@@ -19,6 +19,10 @@ export const HISTORY_DAYS = 400;
 export const MAX_PERCENT = 60;
 
 export const PERSONAL_DISCLAIMER = '1 person, not a trial';
+/** Visible footnote for a personal result. The stored disclaimer stays the short line. */
+export const PERSONAL_RESULT_NOTE = "One person's wearable. Not proof it caused the change.";
+/** Visible footnote for a group result. Same meaning as the cohort disclaimer. */
+export const GROUP_RESULT_NOTE = 'Real-world data from people who copied this stack, not a trial';
 export const PERSONAL_FRAMING = 'What changed for me';
 
 /** Smallest change that reads as a change when there is too little history to measure normal variation. */

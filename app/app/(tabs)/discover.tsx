@@ -17,6 +17,7 @@ import {
   type LibrarySegmentKey,
 } from '@/src/copy/library';
 import { sharerName } from '@/src/copy/sharing';
+import { GROUP_RESULT_NOTE, PERSONAL_RESULT_NOTE } from '../../../shared/outcome';
 import type { LibraryItem, LibraryPage } from '@/src/data/sharing';
 import { formatUsDate } from '@/src/dates';
 import { useApp } from '@/src/state';
@@ -165,6 +166,16 @@ export default function DiscoverScreen() {
         <EmptyLead title={DISCOVER_EMPTY_TITLE} body={DISCOVER_EMPTY_BODY} />
       ) : null}
       {nextOffset != null ? <Button label="Load more" tone="ghost" onPress={() => void loadMore()} /> : null}
+      {items.some((item) => item.outcomeLine) ? (
+        <T size={12} color={theme.muted}>
+          {`* ${PERSONAL_RESULT_NOTE}`}
+        </T>
+      ) : null}
+      {items.some((item) => item.likeYou) ? (
+        <T size={12} color={theme.muted}>
+          {`* ${GROUP_RESULT_NOTE}`}
+        </T>
+      ) : null}
     </Screen>
   );
 }
@@ -180,7 +191,8 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
       <View style={[styles.cardTop, styles.pad]}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={[`${item.stackName}, dose score ${item.auditScore}`, phrase].filter(Boolean).join(', ')}
+          accessibilityLabel={[`${item.stackName}, dose score ${item.auditScore}`, phrase, item.outcomeLine ? `${item.outcomeLine}*` : null].filter(Boolean).join(', ')}
+          accessibilityHint={item.outcomeLine ? PERSONAL_RESULT_NOTE : undefined}
           onPress={open}
           style={({ pressed }) => [styles.cardMain, pressed ? { opacity: 0.92 } : null]}
         >
@@ -205,14 +217,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
               </View>
             </View>
             <ProductChips names={item.productNames ?? []} />
-            {item.outcomeLine ? (
-              <View style={{ gap: 2 }}>
-                <T size={14}>{item.outcomeLine}</T>
-                <T size={12} color={theme.muted}>
-                  {"One person's wearable. Not proof it caused the change."}
-                </T>
-              </View>
-            ) : null}
+            {item.outcomeLine ? <T size={14}>{`${item.outcomeLine}*`}</T> : null}
             <EngagementStats copies={item.copyCount} views={item.viewCount} />
           </View>
         </Pressable>
@@ -233,7 +238,9 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
               <T size={13} weight="semibold" color={theme.teal}>
                 {item.likeYou.label}
               </T>
-              <T size={13}>{item.likeYou.line}</T>
+              <View accessible accessibilityHint={GROUP_RESULT_NOTE}>
+                <T size={13}>{`${item.likeYou.line}*`}</T>
+              </View>
             </View>
           ) : null}
           {item.goals.length > 0 || item.updatedOn ? (

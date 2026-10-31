@@ -1,4 +1,5 @@
 import { compactCount, copiesLabel, viewsLabel } from '../../shared/engagement';
+import { PERSONAL_RESULT_NOTE } from '../../shared/outcome';
 import { usernameHandle } from '../../shared/username';
 import { OFF_ATTRIBUTION } from './off';
 import { GOAL_LABELS, LIBRARY_GOALS, type LibraryGoal } from './library';
@@ -129,7 +130,7 @@ function pageBody(view: ShareView, context: PageContext): string {
     .join('');
   const published = publishedResult(view.result, usernameHandle(view.username));
   const result = published
-    ? `<section class="card result rise d2"><p class="result-kicker">${escapeHtml(published.kicker)}</p><p class="result-value">${escapeHtml(published.value)}</p><p class="result-word">${escapeHtml(published.label)} ${escapeHtml(published.word)}</p><p class="muted small">${escapeHtml(resultWindow(published))}</p></section>`
+    ? `<section class="card result rise d2"><p class="result-kicker">${escapeHtml(published.kicker)}</p><p class="result-value">${escapeHtml(published.value)}</p><p class="result-word" aria-describedby="result-note">${escapeHtml(published.label)} ${escapeHtml(published.word)}*</p><p class="muted small">${escapeHtml(resultWindow(published))}</p><p id="result-note" class="muted small">* ${escapeHtml(PERSONAL_RESULT_NOTE)}</p></section>`
     : '';
   const copies = engagementHtml(view);
   const changes =

@@ -4,6 +4,7 @@ import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet, V
 import type { DailyTotal, ScoreReason } from '../domain/auditScore';
 import { heroParts, type OutcomeFields } from '../domain/outcome';
 import { formatDose } from '../../../shared/doses';
+import { PERSONAL_RESULT_NOTE } from '../../../shared/outcome';
 import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
@@ -216,21 +217,31 @@ export function OutcomeHero({
       <T size={13} weight="semibold" color={theme.muted}>
         {who ? `What changed for ${who}` : (result.framing ?? 'What changed for me')}
       </T>
-      <View style={styles.outcomeRow}>
-        <View style={styles.outcomeIcon}>
-          <Ionicons name={icon} size={22} color={theme.teal} />
+      <View
+        accessible
+        accessibilityLabel={`${parts.value}. ${result.label} ${parts.word}`}
+        accessibilityHint={PERSONAL_RESULT_NOTE}
+        style={{ gap: 10 }}
+      >
+        <View style={styles.outcomeRow}>
+          <View style={styles.outcomeIcon}>
+            <Ionicons name={icon} size={22} color={theme.teal} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <T weight="bold" size={parts.value.length > 5 ? 36 : 52} color={theme.text} style={{ letterSpacing: -1.5, lineHeight: 58 }}>
+              {parts.value}
+            </T>
+            <T size={15} weight="semibold" color={theme.text}>
+              {`${result.label} ${parts.word}*`}
+            </T>
+          </View>
         </View>
-        <View style={{ flex: 1 }}>
-          <T weight="bold" size={parts.value.length > 5 ? 36 : 52} color={theme.text} style={{ letterSpacing: -1.5, lineHeight: 58 }}>
-            {parts.value}
-          </T>
-          <T size={15} weight="semibold" color={theme.text}>
-            {`${result.label} ${parts.word}`}
-          </T>
-        </View>
+        <T size={13} color={theme.muted}>
+          {`12 weeks before against 12 weeks after, measured on ${result.device}.`}
+        </T>
       </View>
       <T size={13} color={theme.muted}>
-        {`12 weeks before against 12 weeks after, measured on ${result.device}. ${result.disclaimer ?? '1 person, not a trial'}.`}
+        {`* ${PERSONAL_RESULT_NOTE}`}
       </T>
     </View>
   );
@@ -365,7 +376,7 @@ export function ScoreBadge({ score, size = 56 }: { score: number; size?: number 
 export type CardResult = { value: string; word: string; label: string; device: string; disclaimer: string; kicker: string };
 
 function resultWindow(result: CardResult): string {
-  return `12 weeks before against 12 weeks after, measured on ${result.device}. ${result.disclaimer}.`;
+  return `12 weeks before against 12 weeks after, measured on ${result.device}.`;
 }
 
 /** What the link preview image will look like, drawn with Views so it matches without rendering a PNG on the phone. */
@@ -390,7 +401,7 @@ export function ShareCardPreview({
   const styles = useThemedStyles(localStyles);
   const tone = scoreTone(score);
   return (
-    <View style={styles.preview} accessibilityLabel="Link preview">
+    <View style={styles.preview} accessibilityLabel="Link preview" accessibilityHint={result?.disclaimer}>
       <BrandMark />
       <T weight="bold" size={22} style={{ letterSpacing: -0.5, lineHeight: 26 }}>
         {stackName}
@@ -406,10 +417,13 @@ export function ShareCardPreview({
                 {result.value}
               </T>
               <T size={13} weight="semibold">
-                {`${result.label} ${result.word}`}
+                {`${result.label} ${result.word}*`}
               </T>
               <T size={12} color={theme.muted}>
                 {resultWindow(result)}
+              </T>
+              <T size={12} color={theme.muted}>
+                {`* ${result.disclaimer}`}
               </T>
             </View>
           ) : null}
@@ -461,7 +475,7 @@ export function StoryCardPreview({
   const styles = useThemedStyles(localStyles);
   const tone = scoreTone(score);
   return (
-    <View style={styles.story} accessibilityLabel="Story card">
+    <View style={styles.story} accessibilityLabel="Story card" accessibilityHint={result?.disclaimer}>
       <BrandMark size={22} />
       <T weight="bold" size={28} style={{ letterSpacing: -0.8, lineHeight: 32 }}>
         {stackName}
@@ -487,10 +501,13 @@ export function StoryCardPreview({
             {result.value}
           </T>
           <T size={16} weight="semibold">
-            {`${result.label} ${result.word}`}
+            {`${result.label} ${result.word}*`}
           </T>
           <T size={13} color={theme.muted}>
             {resultWindow(result)}
+          </T>
+          <T size={13} color={theme.muted}>
+            {`* ${result.disclaimer}`}
           </T>
         </View>
       ) : null}

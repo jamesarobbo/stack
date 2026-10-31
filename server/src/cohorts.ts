@@ -9,10 +9,10 @@
  * - Results are recomputed once per UTC day from submissions made before that day began.
  */
 
-import { OUTCOME_LABELS, OUTCOME_METRICS, type OutcomeMetric } from '../../shared/outcome';
+import { GROUP_RESULT_NOTE, OUTCOME_LABELS, OUTCOME_METRICS, type OutcomeMetric } from '../../shared/outcome';
 
 export const MIN_PEOPLE = 10;
-export const COHORT_DISCLAIMER = 'Real-world data from people who copied this stack, not a trial';
+export const COHORT_DISCLAIMER = GROUP_RESULT_NOTE;
 
 export type CohortKey =
   | 'all'

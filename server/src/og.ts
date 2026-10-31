@@ -4,7 +4,7 @@
  * Copier averages never appear. The owner's published headline can, with its window and device.
  */
 
-export const OG_CACHE_VERSION = 4;
+export const OG_CACHE_VERSION = 5;
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const STORY_WIDTH = 1080;
@@ -85,7 +85,11 @@ export function publishedResult(
 }
 
 export function resultWindow(result: OgResult): string {
-  return `12 weeks before against 12 weeks after, measured on ${result.device}. ${result.disclaimer}.`;
+  return `12 weeks before against 12 weeks after, measured on ${result.device}.`;
+}
+
+export function resultFootnote(result: OgResult): string {
+  return `* ${result.disclaimer}`;
 }
 
 export function ogSvg(input: OgInput): string {
@@ -109,7 +113,7 @@ export function ogSvg(input: OgInput): string {
     : '';
   const ctaY = 562;
   const resultY = bylineY + 22;
-  const resultH = 118;
+  const resultH = 150;
   const rowsTop = input.result ? resultY + resultH + 28 : ctaY - 24 - rows.length * 44;
   const composition = compositionRows(rows, 64, rowsTop, { nameWidth: 168, barX: 246, barWidth: 230, fontSize: 22 });
   const result = input.result ? wideResult(input.result, 64, resultY, 580, resultH) : '';
@@ -165,7 +169,7 @@ export function storySvg(input: OgInput): string {
   const rows = input.composition.slice(0, 4);
   const rowH = 72;
   const compTop = ctaY - 40 - rows.length * rowH;
-  const resultH = input.result ? 250 : 0;
+  const resultH = input.result ? 300 : 0;
   const resultY = compTop - (input.result ? resultH + 56 : 0);
   const panelTop = bylineY + (storyCopy ? 76 : 36);
   const panelBottom = (input.result ? resultY : compTop) - 28;
@@ -221,7 +225,7 @@ ${composition}
 }
 
 function wideResult(result: OgResult, x: number, y: number, width: number, height: number): string {
-  const headline = wrap(`${result.label} ${result.word}`, 22, width - estimateWidth(result.value, 40) - 80, 2);
+  const headline = wrap(`${result.label} ${result.word}*`, 22, width - estimateWidth(result.value, 40) - 80, 2);
   const textX = x + 28 + estimateWidth(result.value, 40) + 16;
   const headlineText = headline
     .map(
@@ -229,20 +233,24 @@ function wideResult(result: OgResult, x: number, y: number, width: number, heigh
         `<text x="${textX}" y="${y + 50 + index * 26}" font-family="Inter" font-weight="700" font-size="22" fill="${INK}">${escapeXml(line)}</text>`,
     )
     .join('');
-  const windowText = wrap(resultWindow(result), 16, width - 48, 2)
+  const windowLines = wrap(resultWindow(result), 16, width - 48, 2);
+  const windowText = windowLines
     .map(
       (line, index) =>
         `<text x="${x + 24}" y="${y + 88 + index * 20}" font-family="Inter" font-weight="500" font-size="16" fill="${MUTED}">${escapeXml(line)}</text>`,
     )
     .join('');
+  const noteY = y + 88 + windowLines.length * 20;
+  const note = `<text x="${x + 24}" y="${noteY}" font-family="Inter" font-weight="500" font-size="16" fill="${MUTED}">${escapeXml(resultFootnote(result))}</text>`;
   return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="20" fill="${TEAL_SOFT}"/>
 <text x="${x + 24}" y="${y + 58}" font-family="Inter" font-weight="700" font-size="40" fill="${INK}" letter-spacing="-1.5">${escapeXml(result.value)}</text>
 ${headlineText}
-${windowText}`;
+${windowText}
+${note}`;
 }
 
 function storyResult(result: OgResult, x: number, y: number, width: number, height: number): string {
-  const headline = wrap(`${result.label} ${result.word}`, 30, width - 56, 1);
+  const headline = wrap(`${result.label} ${result.word}*`, 30, width - 56, 1);
   const windowLines = wrap(resultWindow(result), 22, width - 56, 2);
   const headlineText = headline
     .map((line) => `<text x="${x + 28}" y="${y + 162}" font-family="Inter" font-weight="700" font-size="30" fill="${INK}">${escapeXml(line)}</text>`)
@@ -253,11 +261,14 @@ function storyResult(result: OgResult, x: number, y: number, width: number, heig
         `<text x="${x + 28}" y="${y + 200 + index * 28}" font-family="Inter" font-weight="500" font-size="22" fill="${MUTED}">${escapeXml(line)}</text>`,
     )
     .join('');
+  const noteY = y + 200 + windowLines.length * 28;
+  const note = `<text x="${x + 28}" y="${noteY}" font-family="Inter" font-weight="500" font-size="22" fill="${MUTED}">${escapeXml(resultFootnote(result))}</text>`;
   return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="28" fill="${TEAL_SOFT}"/>
 <text x="${x + 28}" y="${y + 36}" font-family="Inter" font-weight="700" font-size="20" fill="${TEAL_DEEP}">${escapeXml(result.kicker)}</text>
 <text x="${x + 28}" y="${y + 114}" font-family="Inter" font-weight="700" font-size="64" fill="${INK}" letter-spacing="-2">${escapeXml(result.value)}</text>
 ${headlineText}
-${windowText}`;
+${windowText}
+${note}`;
 }
 
 function compositionRows(
