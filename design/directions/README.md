@@ -27,3 +27,7 @@ At the time of the pick it bent the old rules: a cream canvas, clay in the drawi
 ## Kitchen, clearer
 
 `kitchen-v2/` holds three static palette trials (Daylight, Orchard, Linen). They are not wired to the app. The live tokens stay on the shipped Kitchen cream until a later pass.
+
+## Apple minimal
+
+`apple-minimal/` holds two later trials, light and dark, after those three were rejected. They are not wired to the app either.
