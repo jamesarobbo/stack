@@ -30,7 +30,7 @@ The same change is measured at earlier pretend start dates, every 2 weeks, entir
 
 Optional. The share screen lists the results that are ready and a review step shows exactly what will be public before anything is published. Updating a share keeps the published result unless the person picks another one or removes it.
 
-The result line ends with a star. In the app, the star opens About results (More, then About results). That page says a personal result is one person's wearable data compared with their own baseline over the stated window, and it is not proof the stack caused the change. The kicker is "What changed for @username", or "What changed for me" on the share screen. The public page keeps the note beside the result: "One person's wearable. Not proof it caused the change." The link preview and the story image keep a short footnote: "* 1 person, not a trial".
+The result line ends with a star. In the app the star is plain text. About results is in More, and that page says a personal result is one person's wearable data compared with their own baseline over the stated window, and it is not proof the stack caused the change. The accessibility label speaks that caveat. The kicker is "What changed for @username", or "What changed for me" on the share screen. The public page keeps the note beside the result: "One person's wearable. Not proof it caused the change." The link preview and the story image keep a short footnote: "* 1 person, not a trial".
 
 ## Copier results
 
@@ -42,4 +42,4 @@ Results are shown in the app only, to signed-in people, never on the web page. G
 
 A group is shown only with at least 10 people, and only when the people in its parent group who fall outside the shown groups are none or at least 10. That stops two groups being subtracted to reveal one person. The middle value is shown as a 5 point range and the head count as a range. Groups are recomputed once a day from results sent before that day began.
 
-The wording is "Real-world data from people who copied this stack, not a trial". Each group line ends with a star, and that star opens About results. The page also says a group needs at least 10 people, how age and sex groups are chosen, and that groups are updated once a day. Stacks are not ranked by these numbers.
+The wording is "Real-world data from people who copied this stack, not a trial". Each group line ends with a plain star. About results, in More, also says a group needs at least 10 people, how age and sex groups are chosen, and that groups are updated once a day. Stacks are not ranked by these numbers.

@@ -209,7 +209,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
               <ProductChips names={item.productNames ?? []} />
             </View>
           </Pressable>
-          {item.outcomeLine ? <ResultLine line={item.outcomeLine} hint={PERSONAL_RESULT_NOTE} /> : null}
+          {item.outcomeLine ? <ResultLine line={item.outcomeLine} note={PERSONAL_RESULT_NOTE} /> : null}
           {phrase ? (
             <Pressable accessibilityRole="button" accessibilityLabel={phrase} onPress={open} style={({ pressed }) => [pressed ? { opacity: 0.92 } : null]}>
               <EngagementStats copies={item.copyCount} views={item.viewCount} />
@@ -233,7 +233,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
               <T size={13} weight="semibold" color={theme.teal}>
                 {item.likeYou.label}
               </T>
-              <ResultLine line={item.likeYou.line} hint={GROUP_RESULT_NOTE} size={13} />
+              <ResultLine line={item.likeYou.line} note={GROUP_RESULT_NOTE} size={13} />
             </View>
           ) : null}
           {item.goals.length > 0 || item.updatedOn ? (

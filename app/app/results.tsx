@@ -10,7 +10,7 @@ export default function AboutResultsScreen() {
         About results
       </T>
       <T size={15} color={theme.muted}>
-        A star on a result line opens this page.
+        A star on a result marks which kind of result it is. This page explains both.
       </T>
       <Card>
         <T weight="semibold">One person</T>

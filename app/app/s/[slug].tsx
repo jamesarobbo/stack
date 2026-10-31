@@ -424,7 +424,7 @@ export default function SharedStackScreen() {
                       </T>
                     </View>
                     <View style={{ maxWidth: '50%' }}>
-                      <ResultLine line={sentence(slice.band)} hint={cohorts.disclaimer} size={14} weight="semibold" align="right" />
+                      <ResultLine line={sentence(slice.band)} note={cohorts.disclaimer} size={14} weight="semibold" align="right" />
                     </View>
                   </View>
                 ))}
