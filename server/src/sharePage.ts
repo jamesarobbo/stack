@@ -130,7 +130,7 @@ function pageBody(view: ShareView, context: PageContext): string {
     .join('');
   const published = publishedResult(view.result, usernameHandle(view.username));
   const result = published
-    ? `<section class="card result rise d2"><p class="result-kicker">${escapeHtml(published.kicker)}</p><p class="result-value">${escapeHtml(published.value)}</p><p class="result-word" aria-describedby="result-note">${escapeHtml(published.label)} ${escapeHtml(published.word)}*</p><p class="muted small">${escapeHtml(resultWindow(published))}</p><p id="result-note" class="muted small">* ${escapeHtml(PERSONAL_RESULT_NOTE)}</p></section>`
+    ? `<section class="card result rise d2"><p class="result-kicker">${escapeHtml(published.kicker)}</p><p class="result-value">${escapeHtml(published.value)}</p><p class="result-word" aria-describedby="result-note">${escapeHtml(published.label)} ${escapeHtml(published.word)}<sup>*</sup></p><p class="muted small">${escapeHtml(resultWindow(published))}</p><p id="result-note" class="muted small">* ${escapeHtml(PERSONAL_RESULT_NOTE)}</p></section>`
     : '';
   const copies = engagementHtml(view);
   const changes =
@@ -281,6 +281,7 @@ p { margin: 0; line-height: 1.45; }
 .result-kicker { font-size: 13px; font-weight: 700; color: var(--teal-deep); }
 .result-value { font-size: 52px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; margin: 4px 0; }
 .result-word { font-size: 18px; font-weight: 700; }
+.result-word sup { font-size: 70%; line-height: 0; position: relative; top: -0.45em; color: inherit; font-weight: 700; }
 .story-row { text-align: center; margin-top: 10px; }
 .story-link { color: var(--teal); font-weight: 600; text-decoration: none; }
 .changes { margin-top: 16px; font-size: 14px; color: var(--muted); }

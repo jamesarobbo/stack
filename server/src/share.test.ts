@@ -135,7 +135,7 @@ describe('publishing', () => {
     expect(page).toContain('12 weeks before against 12 weeks after');
     expect(page).toContain('1 person, not a trial');
     expect(page).toContain("One person's wearable. Not proof it caused the change.");
-    expect(page).toContain('lower*');
+    expect(page).toContain('lower<sup>*</sup>');
     expect(page).toContain('Apple Watch');
     expect(page).not.toContain('Typical change');
     const image = await (await request(env, `/s/${shared.slug}/og.svg`)).text();

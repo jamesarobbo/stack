@@ -200,6 +200,36 @@ export function ScoreHero({
   );
 }
 
+type LineWeight = 'regular' | 'medium' | 'semibold' | 'bold';
+
+/** Superscript star, about 70% of the line, in the same colour. Not a control. */
+function MarkedLine({
+  line,
+  size,
+  weight = 'regular',
+  color,
+  align = 'left',
+}: {
+  line: string;
+  size: number;
+  weight?: LineWeight;
+  color?: string;
+  align?: 'left' | 'right';
+}) {
+  const theme = useTheme();
+  const ink = color ?? theme.text;
+  const star = Math.max(8, Math.round(size * 0.7));
+  const raise = Math.max(2, Math.round(size * 0.28));
+  return (
+    <T size={size} weight={weight} color={ink} style={align === 'right' ? { textAlign: 'right' } : undefined}>
+      {line}
+      <T size={star} weight={weight} color={ink} style={{ lineHeight: star, transform: [{ translateY: -raise }] }}>
+        *
+      </T>
+    </T>
+  );
+}
+
 /** A result line marked with a star. The star is plain text. The label speaks the caveat. */
 export function ResultLine({
   line,
@@ -212,16 +242,13 @@ export function ResultLine({
   line: string;
   note: string;
   size?: number;
-  weight?: 'regular' | 'medium' | 'semibold' | 'bold';
+  weight?: LineWeight;
   color?: string;
   align?: 'left' | 'right';
 }) {
-  const theme = useTheme();
   return (
     <View accessible accessibilityRole="text" accessibilityLabel={`${line}*. ${note}`} style={{ alignItems: align === 'right' ? 'flex-end' : 'flex-start' }}>
-      <T size={size} weight={weight} color={color ?? theme.text} style={align === 'right' ? { textAlign: 'right' } : undefined}>
-        {`${line}*`}
-      </T>
+      <MarkedLine line={line} size={size} weight={weight} color={color} align={align} />
     </View>
   );
 }
@@ -432,9 +459,7 @@ export function ShareCardPreview({
               <T weight="bold" size={28} style={{ letterSpacing: -1, lineHeight: 32 }}>
                 {result.value}
               </T>
-              <T size={13} weight="semibold">
-                {`${result.label} ${result.word}*`}
-              </T>
+              <MarkedLine line={`${result.label} ${result.word}`} size={13} weight="semibold" />
               <T size={12} color={theme.muted}>
                 {resultWindow(result)}
               </T>
@@ -516,9 +541,7 @@ export function StoryCardPreview({
           <T weight="bold" size={48} style={{ letterSpacing: -1.5, lineHeight: 52 }}>
             {result.value}
           </T>
-          <T size={16} weight="semibold">
-            {`${result.label} ${result.word}*`}
-          </T>
+          <MarkedLine line={`${result.label} ${result.word}`} size={16} weight="semibold" />
           <T size={13} color={theme.muted}>
             {resultWindow(result)}
           </T>

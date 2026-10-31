@@ -31,8 +31,8 @@ describe('link preview image', () => {
     expect(story).toContain('height="1920"');
     expect(story).toContain('Sam &lt;script&gt;');
     expect(story).not.toMatch(/[\u2013\u2014]/);
-    expect(ogImageVersion(1)).toBe(5_000_001);
-    expect(storyImageVersion(1)).toBe(5_500_001);
+    expect(ogImageVersion(1)).toBe(6_000_001);
+    expect(storyImageVersion(1)).toBe(6_500_001);
     const counted = ogSvg({ ...input, copyLabel: 'Copied by 24 people' });
     expect(counted).toContain('Copied by 24 people');
     expect(counted).not.toContain('Kept by');
@@ -57,7 +57,9 @@ describe('link preview image', () => {
     const story = storySvg(withResult);
     for (const svg of [card, story]) {
       expect(svg).toContain('6%');
-      expect(svg).toContain('lower*');
+      expect(svg).toContain('lower');
+      expect(svg).toContain('>*</text>');
+      expect(svg).not.toContain('lower*');
       expect(svg).toContain('* 1 person, not a trial');
       expect(svg).toContain('12 weeks');
       expect(svg).toContain('&lt;b&gt;');

@@ -4,7 +4,7 @@
  * Copier averages never appear. The owner's published headline can, with its window and device.
  */
 
-export const OG_CACHE_VERSION = 5;
+export const OG_CACHE_VERSION = 6;
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const STORY_WIDTH = 1080;
@@ -225,14 +225,18 @@ ${composition}
 }
 
 function wideResult(result: OgResult, x: number, y: number, width: number, height: number): string {
-  const headline = wrap(`${result.label} ${result.word}*`, 22, width - estimateWidth(result.value, 40) - 80, 2);
+  const headlineSize = 22;
+  const starSize = Math.round(headlineSize * 0.7);
+  const headline = wrap(`${result.label} ${result.word}`, headlineSize, width - estimateWidth(result.value, 40) - 80 - starSize, 2);
   const textX = x + 28 + estimateWidth(result.value, 40) + 16;
   const headlineText = headline
     .map(
       (line, index) =>
-        `<text x="${textX}" y="${y + 50 + index * 26}" font-family="Inter" font-weight="700" font-size="22" fill="${INK}">${escapeXml(line)}</text>`,
+        `<text x="${textX}" y="${y + 50 + index * 26}" font-family="Inter" font-weight="700" font-size="${headlineSize}" fill="${INK}">${escapeXml(line)}</text>`,
     )
     .join('');
+  const last = headline[headline.length - 1] ?? '';
+  const star = resultStar(textX + estimateWidth(last, headlineSize) + 2, y + 50 + (headline.length - 1) * 26, headlineSize, INK);
   const windowLines = wrap(resultWindow(result), 16, width - 48, 2);
   const windowText = windowLines
     .map(
@@ -245,16 +249,21 @@ function wideResult(result: OgResult, x: number, y: number, width: number, heigh
   return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="20" fill="${TEAL_SOFT}"/>
 <text x="${x + 24}" y="${y + 58}" font-family="Inter" font-weight="700" font-size="40" fill="${INK}" letter-spacing="-1.5">${escapeXml(result.value)}</text>
 ${headlineText}
+${star}
 ${windowText}
 ${note}`;
 }
 
 function storyResult(result: OgResult, x: number, y: number, width: number, height: number): string {
-  const headline = wrap(`${result.label} ${result.word}*`, 30, width - 56, 1);
+  const headlineSize = 30;
+  const starSize = Math.round(headlineSize * 0.7);
+  const headline = wrap(`${result.label} ${result.word}`, headlineSize, width - 56 - starSize, 1);
   const windowLines = wrap(resultWindow(result), 22, width - 56, 2);
   const headlineText = headline
-    .map((line) => `<text x="${x + 28}" y="${y + 162}" font-family="Inter" font-weight="700" font-size="30" fill="${INK}">${escapeXml(line)}</text>`)
+    .map((line) => `<text x="${x + 28}" y="${y + 162}" font-family="Inter" font-weight="700" font-size="${headlineSize}" fill="${INK}">${escapeXml(line)}</text>`)
     .join('');
+  const last = headline[0] ?? '';
+  const star = resultStar(x + 28 + estimateWidth(last, headlineSize) + 3, y + 162, headlineSize, INK);
   const windowText = windowLines
     .map(
       (line, index) =>
@@ -267,8 +276,16 @@ function storyResult(result: OgResult, x: number, y: number, width: number, heig
 <text x="${x + 28}" y="${y + 36}" font-family="Inter" font-weight="700" font-size="20" fill="${TEAL_DEEP}">${escapeXml(result.kicker)}</text>
 <text x="${x + 28}" y="${y + 114}" font-family="Inter" font-weight="700" font-size="64" fill="${INK}" letter-spacing="-2">${escapeXml(result.value)}</text>
 ${headlineText}
+${star}
 ${windowText}
 ${note}`;
+}
+
+/** Superscript star in the same fill as the result line, about 70% of that size. */
+function resultStar(x: number, baseline: number, fontSize: number, fill: string): string {
+  const size = Math.round(fontSize * 0.7);
+  const raise = Math.round(fontSize * 0.32);
+  return `<text x="${x}" y="${baseline - raise}" font-family="Inter" font-weight="700" font-size="${size}" fill="${fill}">*</text>`;
 }
 
 function compositionRows(
