@@ -1,7 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import {
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  UIManager,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreBadge } from '@/src/components/share';
 import { ReminderOffer } from '@/src/components/DailyReminderCard';
@@ -18,6 +26,10 @@ import { isValidTime } from '../../../shared/reminders';
 import { requestReminderAccess } from '@/src/reminders/notify';
 import { useApp } from '@/src/state';
 import { space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 function nowTime(): string {
   const now = new Date();
@@ -39,12 +51,19 @@ export default function StackScreen() {
   const todayKey = localToday();
   const takenToday = new Set(app.logs.filter((log) => log.day === todayKey).map((log) => log.productId));
   const takenCount = app.products.reduce((count, product) => count + (takenToday.has(product.id) ? 1 : 0), 0);
+  const allTakenToday = app.products.length > 0 && takenCount >= app.products.length;
   const logStatus =
     takenCount === 0
       ? 'Nothing logged yet today'
-      : takenCount >= app.products.length
+      : allTakenToday
         ? 'All taken today'
         : `${takenCount} of ${app.products.length} taken today`;
+  const prevAllTaken = useRef(allTakenToday);
+  useEffect(() => {
+    if (prevAllTaken.current === allTakenToday) return;
+    prevAllTaken.current = allTakenToday;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [allTakenToday]);
 
   return (
     <View style={styles.screen}>
@@ -60,7 +79,7 @@ export default function StackScreen() {
         </T>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {showCheckIn ? (
+        {showCheckIn && !allTakenToday ? (
           <Card>
             <TodayList
               products={app.products}
@@ -71,7 +90,21 @@ export default function StackScreen() {
             />
           </Card>
         ) : null}
-        {showLogToday ? (
+        {showCheckIn && allTakenToday ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="All taken today"
+            onPress={() => router.push('/today')}
+            style={({ pressed }) => [styles.logDoneRow, pressed ? { opacity: 0.88 } : null]}
+          >
+            <Ionicons name="checkmark-circle" size={22} color={theme.action} />
+            <T size={15} weight="medium" color={theme.muted} style={{ flex: 1 }}>
+              All taken today
+            </T>
+            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
+          </Pressable>
+        ) : null}
+        {showLogToday && !allTakenToday ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Log today. ${logStatus}`}
@@ -88,6 +121,20 @@ export default function StackScreen() {
                 {logStatus}
               </T>
             </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
+          </Pressable>
+        ) : null}
+        {showLogToday && allTakenToday ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="All taken today"
+            onPress={() => router.push('/today')}
+            style={({ pressed }) => [styles.logDoneRow, pressed ? { opacity: 0.88 } : null]}
+          >
+            <Ionicons name="checkmark-circle" size={22} color={theme.action} />
+            <T size={15} weight="medium" color={theme.muted} style={{ flex: 1 }}>
+              All taken today
+            </T>
             <Ionicons name="chevron-forward" size={18} color={theme.muted} />
           </Pressable>
         ) : null}
@@ -205,6 +252,19 @@ function localStyles(theme: Theme) {
     borderColor: theme.bg === '#000000' ? '#2A3A4A' : '#C5D8EF',
     backgroundColor: theme.tealSoft,
     overflow: 'hidden',
+  },
+  /** Quiet single row once every product is taken for the local today. */
+  logDoneRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: theme.radius,
+    borderWidth: 1,
+    borderColor: theme.line,
+    backgroundColor: theme.card,
   },
   logAccent: {
     position: 'absolute',
