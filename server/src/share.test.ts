@@ -335,6 +335,50 @@ describe('moderation', () => {
   });
 });
 
+describe('currency on a profile and a published total', () => {
+  it('saves a currency and ignores a code that is not in hundredths', async () => {
+    const { env } = createTestEnv();
+    const token = await signIn(env, 'maker@example.com');
+    const saved = await json<{ profile: { currency: string | null } }>(
+      await request(env, '/v1/me/profile', { method: 'PUT', token, body: { currency: 'GBP' } }),
+    );
+    expect(saved.profile.currency).toBe('GBP');
+    const ignored = await json<{ profile: { currency: string | null } }>(
+      await request(env, '/v1/me/profile', { method: 'PUT', token, body: { currency: 'JPY' } }),
+    );
+    expect(ignored.profile.currency).toBe('GBP');
+    const me = await json<{ profile: { currency: string | null } }>(await request(env, '/v1/me', { token }));
+    expect(me.profile.currency).toBe('GBP');
+  });
+
+  it('publishes the monthly total in the currency it was entered in and drops an unknown code', async () => {
+    const { env } = createTestEnv();
+    const token = await signIn(env, 'maker@example.com');
+    const response = await publish(
+      env,
+      token,
+      {
+        products: [magnesium],
+        spend: [
+          { currency: 'GBP', monthlyCents: 17500 },
+          { currency: 'BTC', monthlyCents: 100 },
+        ],
+      },
+      'sam_lifts',
+    );
+    expect(response.status).toBe(200);
+    const share = await json<{ slug: string; spend: { currency: string; monthlyCents: number }[] }>(response);
+    expect(share.spend).toEqual([{ currency: 'GBP', monthlyCents: 17500 }]);
+    const html = await (await request(env, `/s/${share.slug}`)).text();
+    expect(html).toContain('£175 a month');
+    expect(html).toContain('class="spend"');
+    expect(html).not.toContain('BTC');
+    const svg = await (await request(env, `/s/${share.slug}/og.svg`)).text();
+    expect(svg).toContain('£175 a month');
+    expect(svg).toContain('#8A5600');
+  });
+});
+
 describe('unsharing', () => {
   it('revokes the link and deletes everything with the account', async () => {
     const { env, sqlite } = createTestEnv();

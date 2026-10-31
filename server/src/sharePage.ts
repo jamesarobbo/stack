@@ -1,4 +1,5 @@
 import { compactCount, copiesLabel, viewsLabel } from '../../shared/engagement';
+import { spendSentence } from '../../shared/money';
 import { PERSONAL_RESULT_NOTE } from '../../shared/outcome';
 import { usernameHandle } from '../../shared/username';
 import { OFF_ATTRIBUTION } from './off';
@@ -144,6 +145,7 @@ ${brandBar(openHref)}
 <section class="hero rise">
   <h1>${escapeHtml(view.stackName)}</h1>
   <p class="byline">${who}, ${view.products.length} ${view.products.length === 1 ? 'product' : 'products'}</p>
+  ${spendSentence(view.spend ?? []) ? `<p class="spend">${escapeHtml(spendSentence(view.spend ?? []) ?? '')}</p>` : ''}
   ${goals ? `<div class="chips">${goals}</div>` : ''}
   ${copies}
 </section>
@@ -236,6 +238,7 @@ p { margin: 0; line-height: 1.45; }
 .muted { color: var(--muted); }
 .small { font-size: 14px; }
 .byline { color: var(--muted); font-size: 16px; }
+.spend { color: #8A5600; font-size: 17px; font-weight: 700; margin-top: 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .chip { font-size: 13px; font-weight: 600; color: var(--teal-deep); background: var(--teal-soft); border-radius: 999px; padding: 6px 12px; }
 .stats { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; color: var(--muted); }

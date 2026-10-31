@@ -40,7 +40,11 @@ export type OgInput = {
   result: OgResult | null;
   /** "Copied by 24 people", or null when fewer than 3 accounts have copied. */
   copyLabel?: string | null;
+  /** Monthly total in the currencies it was entered in. Omitted from the drawing when empty. */
+  spendLabel?: string | null;
 };
+
+const GOLD = '#8A5600';
 
 const CREAM = '#F2F2F7';
 const CARD = '#FFFFFF';
@@ -141,7 +145,7 @@ ${composition}
 <circle cx="932" cy="250" r="112" fill="none" stroke="${ring}" stroke-width="18" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${circumference.toFixed(1)}" transform="rotate(-90 932 250)"/>
 <text x="932" y="268" text-anchor="middle" font-family="Inter" font-weight="700" font-size="92" fill="${INK}" letter-spacing="-3">${input.score}</text>
 <text x="932" y="302" text-anchor="middle" font-family="Inter" font-weight="500" font-size="20" fill="${MUTED}">out of 100</text>
-<text x="932" y="430" text-anchor="middle" font-family="Inter" font-weight="700" font-size="26" fill="${MUTED}">Dose score</text>
+${input.spendLabel?.trim() ? `<text x="932" y="400" text-anchor="middle" font-family="Inter" font-weight="700" font-size="22" fill="${GOLD}">${escapeXml(truncate(input.spendLabel.trim(), 22, 380))}</text>\n` : ''}<text x="932" y="430" text-anchor="middle" font-family="Inter" font-weight="700" font-size="26" fill="${MUTED}">Dose score</text>
 ${summary}
 </svg>`;
 }
@@ -165,13 +169,17 @@ export function storySvg(input: OgInput): string {
   const copyLine = storyCopy
     ? `<text x="${pad}" y="${bylineY + 40}" font-family="Inter" font-weight="500" font-size="26" fill="${MUTED}">${escapeXml(storyCopy)}</text>`
     : '';
+  const storySpend = input.spendLabel?.trim() ? truncate(input.spendLabel.trim(), 28, inner) : '';
+  const spendLine = storySpend
+    ? `<text x="${pad}" y="${bylineY + (storyCopy ? 80 : 44)}" font-family="Inter" font-weight="700" font-size="28" fill="${GOLD}">${escapeXml(storySpend)}</text>`
+    : '';
   const ctaY = 1688;
   const rows = input.composition.slice(0, 4);
   const rowH = 72;
   const compTop = ctaY - 40 - rows.length * rowH;
   const resultH = input.result ? 300 : 0;
   const resultY = compTop - (input.result ? resultH + 56 : 0);
-  const panelTop = bylineY + (storyCopy ? 76 : 36);
+  const panelTop = bylineY + (storyCopy ? 76 : 36) + (storySpend ? 48 : 0);
   const panelBottom = (input.result ? resultY : compTop) - 28;
   const panelH = Math.max(420, panelBottom - panelTop);
   const ringR = Math.min(150, Math.round((panelH - 220) / 2));
@@ -210,7 +218,7 @@ ${brand(pad, 128, 56)}
 ${titleText}
 <text x="${pad}" y="${bylineY}" font-family="Inter" font-weight="500" font-size="28" fill="${MUTED}">${escapeXml(truncate(byline, 28, inner))}</text>
 ${copyLine}
-<rect x="${pad}" y="${panelTop}" width="${inner}" height="${panelH}" rx="28" fill="${CARD}"/>
+${storySpend ? `${spendLine}\n` : ''}<rect x="${pad}" y="${panelTop}" width="${inner}" height="${panelH}" rx="28" fill="${CARD}"/>
 <circle cx="${STORY_WIDTH / 2}" cy="${ringCy}" r="${ringR}" fill="none" stroke="${TRACK}" stroke-width="20"/>
 <circle cx="${STORY_WIDTH / 2}" cy="${ringCy}" r="${ringR}" fill="none" stroke="${ring}" stroke-width="20" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${circumference.toFixed(1)}" transform="rotate(-90 ${STORY_WIDTH / 2} ${ringCy})"/>
 <text x="${STORY_WIDTH / 2}" y="${ringCy + Math.round(ringR * 0.22)}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="${Math.round(ringR * 0.72)}" fill="${INK}" letter-spacing="-3">${input.score}</text>

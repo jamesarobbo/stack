@@ -31,6 +31,12 @@ describe('link preview image', () => {
     expect(story).toContain('height="1920"');
     expect(story).toContain('Sam &lt;script&gt;');
     expect(story).not.toMatch(/[\u2013\u2014]/);
+    expect(svg).not.toContain('#8A5600');
+    expect(story).not.toContain('#8A5600');
+    const priced = ogSvg({ ...input, spendLabel: '£175 a month' });
+    expect(priced).toContain('£175 a month');
+    expect(priced).toContain('#8A5600');
+    expect(storySvg({ ...input, spendLabel: '£40 a month and $12 a month' })).toContain('£40 a month and $12 a month');
     expect(ogImageVersion(1)).toBe(6_000_001);
     expect(storyImageVersion(1)).toBe(6_500_001);
     const counted = ogSvg({ ...input, copyLabel: 'Copied by 24 people' });

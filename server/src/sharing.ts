@@ -1,4 +1,5 @@
 import { scoreStack, type ScoreProduct, type ScoreResult } from '../../shared/auditScore';
+import { isCurrency } from '../../shared/money';
 import {
   OUTCOME_LABELS,
   PERSONAL_DISCLAIMER,
@@ -55,6 +56,8 @@ export type ShareSnapshot = {
   products: StoredProduct[];
   auditScore: number;
   result: SharedResult | null;
+  /** Monthly totals in the currencies they were entered in. Individual prices are not stored. */
+  spend?: { currency: string; monthlyCents: number }[];
 };
 
 export type ShareView = {
@@ -72,6 +75,7 @@ export type ShareView = {
   username: string | null;
   listed: boolean;
   version: number;
+  spend: { currency: string; monthlyCents: number }[];
   createdOn: string;
   updatedOn: string | null;
   changes: string[];
@@ -99,8 +103,8 @@ const SHARE_COLUMNS =
 export async function saveProfile(
   db: D1Database,
   userId: string,
-  input: { ageRange?: unknown; sex?: unknown; displayName?: unknown },
-): Promise<{ ok: true; profile: { ageRange: string | null; sex: string | null; displayName: string | null; username: string | null } } | { ok: false; error: string }> {
+  input: { ageRange?: unknown; sex?: unknown; displayName?: unknown; currency?: unknown },
+): Promise<{ ok: true; profile: { ageRange: string | null; sex: string | null; displayName: string | null; username: string | null; currency: string | null } } | { ok: false; error: string }> {
   const sets: string[] = [];
   const params: unknown[] = [];
   if (isAgeRange(input.ageRange)) {
@@ -120,6 +124,10 @@ export async function saveProfile(
     sets.push('display_name = ?');
     params.push(name);
   }
+  if (isCurrency(input.currency)) {
+    sets.push('currency = ?');
+    params.push(input.currency);
+  }
   if (sets.length > 0) {
     await db
       .prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`)
@@ -129,15 +137,21 @@ export async function saveProfile(
   const row = await readProfile(db, userId);
   return {
     ok: true,
-    profile: { ageRange: row?.age_range ?? null, sex: row?.sex ?? null, displayName: row?.display_name ?? null, username: row?.username ?? null },
+    profile: {
+      ageRange: row?.age_range ?? null,
+      sex: row?.sex ?? null,
+      displayName: row?.display_name ?? null,
+      username: row?.username ?? null,
+      currency: row?.currency ?? null,
+    },
   };
 }
 
 export async function readProfile(db: D1Database, userId: string) {
   return db
-    .prepare('SELECT age_range, sex, display_name, username, created_at FROM users WHERE id = ?')
+    .prepare('SELECT age_range, sex, display_name, username, currency, created_at FROM users WHERE id = ?')
     .bind(userId)
-    .first<{ age_range: string | null; sex: string | null; display_name: string | null; username: string | null; created_at: string }>();
+    .first<{ age_range: string | null; sex: string | null; display_name: string | null; username: string | null; currency: string | null; created_at: string }>();
 }
 
 export async function upsertShare(
@@ -170,7 +184,8 @@ export async function upsertShare(
     result = presentResult(fields);
   }
 
-  const snapshot: ShareSnapshot = { displayName: null, stackName, goals, products, auditScore: scored.score, result };
+  const spend = parseSpend(input.spend);
+  const snapshot: ShareSnapshot = { displayName: null, stackName, goals, products, auditScore: scored.score, result, spend };
   const payload = JSON.stringify(snapshot);
   if (payload.length > 80_000) return { ok: false, error: 'That stack is too large to share.' };
   const listed = input.listed === true || input.publicIndex === true;
@@ -312,6 +327,9 @@ export function describeChanges(before: ShareSnapshot, after: ShareSnapshot): st
   if (before.goals.join(' ') !== after.goals.join(' ')) changes.push('Goals changed');
   if (JSON.stringify(before.result) !== JSON.stringify(after.result)) {
     changes.push(after.result ? 'Personal result updated' : 'Personal result removed');
+  }
+  if (JSON.stringify(parseSpend(before.spend)) !== JSON.stringify(parseSpend(after.spend))) {
+    changes.push('Monthly total updated');
   }
   return changes.slice(0, 12);
 }
@@ -582,6 +600,7 @@ function parseSnapshot(payload: string): ShareSnapshot | null {
       goals: parseLibraryGoals(parsed.goals),
       products: parsed.products.map((product) => ({ ...product, source: product.source === 'off' ? 'off' : null })),
       result: parsed.result && typeof parsed.result === 'object' && 'withinNormal' in parsed.result ? parsed.result : null,
+      spend: parseSpend(parsed.spend),
     };
   } catch {
     return null;
@@ -625,7 +644,22 @@ async function present(db: D1Database, row: ShareRow): Promise<ShareView> {
     updatedOn: row.version > 1 ? row.updated_at.slice(0, 10) : null,
     changes,
     openFoodFacts: products.some((product) => product.source === 'off'),
+    spend: snapshot?.spend ?? [],
   };
+}
+
+function parseSpend(value: unknown): { currency: string; monthlyCents: number }[] {
+  if (!Array.isArray(value)) return [];
+  const lines: { currency: string; monthlyCents: number }[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object') continue;
+    const raw = item as Record<string, unknown>;
+    if (!isCurrency(raw.currency)) continue;
+    const monthlyCents = typeof raw.monthlyCents === 'number' ? Math.round(raw.monthlyCents) : Number.NaN;
+    if (!Number.isFinite(monthlyCents) || monthlyCents <= 0 || monthlyCents > 100_000_000) continue;
+    lines.push({ currency: raw.currency, monthlyCents });
+  }
+  return lines.slice(0, 8);
 }
 
 async function activeShare(db: D1Database, userId: string): Promise<ShareRow | null> {

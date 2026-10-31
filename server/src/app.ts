@@ -17,7 +17,9 @@ import { OFF_ATTRIBUTION, loadOffUpc, offUserAgent } from './off';
 import { subscriptionFromEvent, subscriptionIsPro, type RevenueCatEvent } from './revenuecat';
 import { blockCreator, copyCountLabel, intParam, refreshDailyStats, reportShare, searchLibrary, setSaved, syncSearchRow, type LibrarySegment } from './library';
 import { ogImageVersion, ogSvg, publishedResult, renderOgPng, storyImageVersion, storySvg, type OgAssets } from './og';
+import { spendSentence } from '../../shared/money';
 import { addressKey, allow, clientAddress } from './rateLimit';
+import { isCurrency } from '../../shared/money';
 import { normalizeUsername, usernameHandle } from '../../shared/username';
 import { setUsername, usernameAvailable, usernameRejection } from './username';
 import { renderSharePage, type PageContext } from './sharePage';
@@ -89,6 +91,7 @@ type StackProduct = {
   servingsPerDay: number;
   startDate: string;
   catalogueId?: string | null;
+  priceCurrency: string;
   ingredients: StackIngredient[];
 };
 
@@ -210,6 +213,7 @@ app.get('/v1/me', async (c) => {
       sex: profile?.sex ?? null,
       displayName: profile?.display_name ?? null,
       username: profile?.username ?? null,
+      currency: profile?.currency ?? null,
     },
   });
 });
@@ -676,6 +680,7 @@ function ogInput(c: AppContext, view: Awaited<ReturnType<typeof publicShare>> ex
     host: new URL(publicOrigin(c)).host,
     result: publishedResult(view.result, usernameHandle(view.username)),
     copyLabel: copyCountLabel(view.copyCount),
+    spendLabel: spendSentence(view.spend ?? []),
   };
 }
 
@@ -901,6 +906,7 @@ function parseProducts(value: unknown): StackProduct[] | null {
       servingsPerDay: product.servingsPerDay,
       startDate: product.startDate,
       catalogueId: typeof product.catalogueId === 'string' ? product.catalogueId : null,
+      priceCurrency: isCurrency(product.priceCurrency) ? product.priceCurrency : 'USD',
       ingredients,
     });
   }
