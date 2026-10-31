@@ -1,12 +1,12 @@
 import { createElement } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { clampStartDate, formatUsDate, localToday } from '../dates';
-import { font, useTheme, useThemedStyles, type Theme } from '../theme';
+import { StyleSheet, View, useColorScheme } from 'react-native';
+import { clampStartDate, localToday } from '../dates';
+import { font, useTheme } from '../theme';
 import { T } from './ui';
 
 /**
- * Web fallback. The browser date input stores YYYY-MM-DD.
- * The line above it is the US display (for example Oct 30, 2026).
+ * Web stand-in for the native row.
+ * The label is on the left. The date input on the right is the value, and it opens the browser picker when tapped.
  */
 export function DateField({
   label,
@@ -18,55 +18,47 @@ export function DateField({
   onChange: (iso: string) => void;
 }) {
   const theme = useTheme();
-  const styles = useThemedStyles(localStyles);
+  const scheme = useColorScheme();
   const today = localToday();
   const iso = clampStartDate(value, today);
 
   return (
-    <View style={styles.wrap}>
-      <T size={12} weight="semibold" color={theme.muted}>
+    <View style={rowStyle}>
+      <T size={16} weight="semibold" style={{ flex: 1 }}>
         {label}
       </T>
-      <View style={styles.field}>
-        <T weight="semibold">{formatUsDate(iso)}</T>
-        {createElement('input', {
-          type: 'date',
-          lang: 'en-US',
-          value: iso,
-          max: today,
-          'aria-label': label,
-          onChange: (event: { target: { value: string } }) => {
-            if (!event.target.value) return;
-            onChange(clampStartDate(event.target.value, today));
-          },
-          style: {
-            marginTop: 8,
-            width: '100%',
-            boxSizing: 'border-box',
-            border: 'none',
-            background: 'transparent',
-            color: theme.text,
-            fontWeight: font.regular,
-            fontSize: 16,
-            padding: 0,
-          },
-        })}
-      </View>
+      {createElement('input', {
+        type: 'date',
+        lang: 'en-US',
+        value: iso,
+        max: today,
+        'aria-label': label,
+        onChange: (event: { target: { value: string } }) => {
+          if (!event.target.value) return;
+          onChange(clampStartDate(event.target.value, today));
+        },
+        style: {
+          color: theme.text,
+          backgroundColor: theme.greyPill,
+          colorScheme: scheme === 'dark' ? 'dark' : 'light',
+          fontWeight: font.semibold,
+          fontSize: 16,
+          border: 'none',
+          borderRadius: 8,
+          minHeight: 36,
+          padding: '8px 12px',
+        },
+      })}
     </View>
   );
 }
 
-function localStyles(theme: Theme) {
-  return StyleSheet.create({
-  wrap: { gap: 4 },
-  field: {
-    backgroundColor: theme.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.line,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+const rowStyle = StyleSheet.create({
+  row: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-});
-}
-
+}).row;
