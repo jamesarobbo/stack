@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { BottleRow } from '@/src/components/illustrations';
 import { DoseMeters, FadeIn, ScoreHero } from '@/src/components/share';
 import { Card, Disclaimer, EmptyLead, Pill, Screen, T } from '@/src/components/ui';
 import { GO_TO_STACK_LABEL, STACK_TAB_HREF } from '@/src/copy/labels';
@@ -11,9 +10,11 @@ import { scoreProducts } from '@/src/domain/auditScore';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
 import { formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function AuditScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const audit = useMemo(() => auditStack(app.products), [app.products]);
   const scored = useMemo(() => scoreProducts(app.products), [app.products]);
@@ -70,12 +71,9 @@ export default function AuditScreen() {
           Duplicate ingredients
         </T>
         {audit.duplicates.length > 0 ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <BottleRow />
-            <T size={14} weight="semibold" color={theme.muted} style={{ flex: 1 }}>
-              Two bottles, one ingredient.
-            </T>
-          </View>
+          <T size={14} weight="semibold" color={theme.muted}>
+            The same ingredient is in more than one product.
+          </T>
         ) : null}
         {audit.duplicates.length === 0 ? (
           <T size={14} color={theme.muted}>
@@ -159,7 +157,8 @@ export default function AuditScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   link: { minHeight: 44, justifyContent: 'center' },
   savings: {
     backgroundColor: theme.amberBg,
@@ -174,3 +173,5 @@ const styles = StyleSheet.create({
   lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   moneyPill: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
 });
+}
+

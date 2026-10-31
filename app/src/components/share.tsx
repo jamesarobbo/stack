@@ -4,19 +4,10 @@ import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet, V
 import type { DailyTotal, ScoreReason } from '../domain/auditScore';
 import { heroParts, type OutcomeFields } from '../domain/outcome';
 import { formatDose } from '../../../shared/doses';
-import { theme } from '../theme';
+import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 const NATIVE = Platform.OS !== 'web';
-
-export const tint = {
-  slate: '#4A433C',
-  slateDeep: '#2C261F',
-  slateSoft: '#EFE6DA',
-  tealDeep: '#245041',
-  nearBar: '#C4922A',
-  track: '#EADFD0',
-};
 
 export type ScoreTone = 'good' | 'neutral';
 
@@ -72,6 +63,7 @@ export function ScoreRing({
   track,
   textColor,
   subColor,
+  label,
 }: {
   score: number;
   size?: number;
@@ -80,6 +72,7 @@ export function ScoreRing({
   track: string;
   textColor: string;
   subColor: string;
+  label?: string;
 }) {
   const reduced = useReducedMotion();
   const target = Math.max(0, Math.min(100, score)) / 100;
@@ -108,7 +101,7 @@ export function ScoreRing({
   const arc = { ...ring, borderTopColor: color, borderRightColor: color, borderBottomColor: 'transparent', borderLeftColor: 'transparent' };
 
   return (
-    <View style={{ width: size, height: size }} accessible accessibilityLabel={`Audit score ${score} out of 100`}>
+    <View style={{ width: size, height: size }} accessible accessibilityLabel={label ?? `Dose score ${score} out of 100, from doses and overlaps, not price.`}>
       <View style={[ring, { position: 'absolute', borderColor: track }]} />
       <View style={{ position: 'absolute', left: half, width: half, height: size, overflow: 'hidden' }}>
         <Animated.View style={[arc, { position: 'absolute', left: -half, transform: [{ rotate: right }] }]} />
@@ -120,23 +113,17 @@ export function ScoreRing({
         <T scale={false} weight="bold" size={size * 0.36} color={textColor} style={{ letterSpacing: -1.5, lineHeight: size * 0.4 }}>
           {String(reduced ? Math.round(target * 100) : shown)}
         </T>
-        <T scale={false} size={11} weight="medium" color={subColor} style={{ marginTop: -2 }}>
-          out of 100
-        </T>
+        {size >= 100 ? (
+          <T scale={false} size={11} weight="medium" color={subColor} style={{ marginTop: -2 }}>
+            out of 100
+          </T>
+        ) : null}
       </View>
     </View>
   );
 }
 
-const REASON_DOT: Record<ScoreReason['kind'], string> = {
-  over: theme.flagText,
-  near: theme.amber,
-  doubled: tint.slate,
-  overlap_ok: theme.teal,
-  unchecked: theme.faint,
-};
-
-/** The bold score panel. The reasons sit inside it, so the number is never shown without its why. */
+/** The score sits on a card with its reasons, so the number is never shown without its why. */
 export function ScoreHero({
   score,
   summary,
@@ -150,14 +137,30 @@ export function ScoreHero({
   title?: string;
   note?: string;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const tone = scoreTone(score);
   const shown = reasons.filter((reason) => reason.kind !== 'unchecked').slice(0, 5);
   const unchecked = reasons.filter((reason) => reason.kind === 'unchecked');
-  const ring = tone === 'good' ? theme.teal : tint.slate;
+  const ring = tone === 'good' ? theme.good : theme.score;
+  const reasonDot: Record<ScoreReason['kind'], string> = {
+    over: theme.flagText,
+    near: theme.near,
+    doubled: theme.score,
+    overlap_ok: theme.teal,
+    unchecked: theme.muted,
+  };
   return (
     <View style={styles.hero}>
       <View style={styles.heroTop}>
-        <ScoreRing score={score} color={ring} track={tint.track} textColor={theme.text} subColor={theme.muted} />
+        <ScoreRing
+          score={score}
+          color={ring}
+          track={theme.scoreTrack}
+          textColor={theme.text}
+          subColor={theme.muted}
+          label={`Dose score ${score} out of 100, from doses and overlaps, not price.`}
+        />
         <View style={{ flex: 1, gap: 4 }}>
           <T size={13} weight="semibold" color={theme.muted}>
             {title}
@@ -174,7 +177,7 @@ export function ScoreHero({
         <View style={styles.reasons}>
           {shown.map((reason) => (
             <View key={`${reason.kind}-${reason.key}`} style={styles.reason}>
-              <View style={[styles.dot, { backgroundColor: REASON_DOT[reason.kind] }]} />
+              <View style={[styles.dot, { backgroundColor: reasonDot[reason.kind] }]} />
               <T size={14} color={theme.text} style={{ flex: 1 }}>
                 {reason.text}
               </T>
@@ -204,11 +207,13 @@ export function OutcomeHero({
   result: Pick<OutcomeFields, 'direction' | 'percent' | 'withinNormal' | 'device'> & { label: string; disclaimer?: string; framing?: string };
   who?: string | null;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const parts = heroParts(result);
   const icon = result.withinNormal || result.direction === 'flat' ? 'remove' : result.direction === 'down' ? 'arrow-down' : 'arrow-up';
   return (
     <View style={styles.outcome}>
-      <T size={13} weight="semibold" color={tint.tealDeep}>
+      <T size={13} weight="semibold" color={theme.muted}>
         {who ? `What changed for ${who}` : (result.framing ?? 'What changed for me')}
       </T>
       <View style={styles.outcomeRow}>
@@ -239,6 +244,7 @@ export function doseState(ofLimit: number | null): 'ok' | 'near' | 'over' | 'non
 }
 
 function Meter({ ofLimit, height = 8 }: { ofLimit: number; height?: number }) {
+  const theme = useTheme();
   const reduced = useReducedMotion();
   const grow = useState(() => new Animated.Value(0))[0];
   useEffect(() => {
@@ -253,15 +259,17 @@ function Meter({ ofLimit, height = 8 }: { ofLimit: number; height?: number }) {
   const state = doseState(ofLimit);
   const pct = Math.max(4, Math.min(100, Math.round(ofLimit * 100)));
   const width = grow.interpolate({ inputRange: [0, 1], outputRange: ['0%', `${pct}%`] });
-  const color = state === 'over' ? theme.flagText : state === 'near' ? tint.nearBar : theme.teal;
+  const color = state === 'over' ? theme.flagText : state === 'near' ? theme.near : theme.action;
   return (
-    <View style={{ height, borderRadius: height / 2, backgroundColor: tint.track, overflow: 'hidden' }}>
+    <View style={{ height, borderRadius: height / 2, backgroundColor: theme.scoreTrack, overflow: 'hidden' }}>
       <Animated.View style={{ width, height, borderRadius: height / 2, backgroundColor: color }} />
     </View>
   );
 }
 
 export function DoseMeters({ totals, limit = 10 }: { totals: DailyTotal[]; limit?: number }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={{ gap: 14 }}>
       {totals.slice(0, limit).map((total) => {
@@ -290,7 +298,7 @@ export function DoseMeters({ totals, limit = 10 }: { totals: DailyTotal[]; limit
                 <T
                   size={13}
                   weight={state === 'ok' ? 'regular' : 'semibold'}
-                  color={state === 'over' ? theme.flagText : state === 'near' ? theme.amber : theme.muted}
+                  color={state === 'over' ? theme.flagText : state === 'near' ? theme.near : theme.muted}
                 >
                   {`${pct}% of limit`}
                 </T>
@@ -305,6 +313,8 @@ export function DoseMeters({ totals, limit = 10 }: { totals: DailyTotal[]; limit
 
 /** Compact ingredient strip for Discover cards: up to 4 ingredients with their share of the upper limit. */
 export function CompositionStrip({ items, height = 8 }: { items: { name: string; ofLimit: number | null }[]; height?: number }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const rows = items.slice(0, 4);
   if (rows.length === 0) return null;
   return (
@@ -330,6 +340,7 @@ export function CompositionStrip({ items, height = 8 }: { items: { name: string;
 
 /** Square score badge for list rows. */
 export function ScoreBadge({ score, size = 56 }: { score: number; size?: number }) {
+  const theme = useTheme();
   const tone = scoreTone(score);
   return (
     <View
@@ -337,12 +348,12 @@ export function ScoreBadge({ score, size = 56 }: { score: number; size?: number 
         width: size,
         height: size,
         borderRadius: size * 0.3,
-        backgroundColor: tone === 'good' ? theme.teal : tint.slate,
+        backgroundColor: tone === 'good' ? theme.goodFill : theme.neutralFill,
         alignItems: 'center',
         justifyContent: 'center',
       }}
       accessible
-      accessibilityLabel={`Audit score ${score} out of 100`}
+      accessibilityLabel={`Dose score ${score} out of 100, from doses and overlaps, not price.`}
     >
       <T scale={false} weight="bold" size={size * 0.4} color="#FFFFFF" style={{ letterSpacing: -0.8, lineHeight: size * 0.46 }}>
         {String(score)}
@@ -375,10 +386,11 @@ export function ShareCardPreview({
   composition: { name: string; ofLimit: number | null }[];
   result?: CardResult | null;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const tone = scoreTone(score);
   return (
     <View style={styles.preview} accessibilityLabel="Link preview">
-      <View style={styles.previewBar} />
       <BrandMark />
       <T weight="bold" size={22} style={{ letterSpacing: -0.5, lineHeight: 26 }}>
         {stackName}
@@ -410,13 +422,12 @@ export function ShareCardPreview({
             </View>
           ))}
         </View>
-        <View style={[styles.previewPanel, { backgroundColor: tone === 'good' ? theme.teal : tint.slate }]}>
-          <View style={[styles.previewGlow, { backgroundColor: tone === 'good' ? tint.tealDeep : tint.slateDeep }]} />
-          <ScoreRing score={score} size={86} stroke={8} color="#FFFFFF" track="rgba(255,255,255,0.2)" textColor="#FFFFFF" subColor="rgba(255,255,255,0.78)" />
-          <T size={11} weight="semibold" color="rgba(255,255,255,0.78)">
-            Dose audit
+        <View style={styles.previewPanel}>
+          <ScoreRing score={score} size={86} stroke={8} color={tone === 'good' ? theme.good : theme.score} track={theme.scoreTrack} textColor={theme.text} subColor={theme.muted} />
+          <T size={11} weight="semibold" color={theme.muted}>
+            Dose score
           </T>
-          <T size={12} weight="semibold" color="#FFFFFF" style={{ textAlign: 'center' }}>
+          <T size={12} weight="semibold" style={{ textAlign: 'center' }}>
             {summary}
           </T>
         </View>
@@ -446,10 +457,11 @@ export function StoryCardPreview({
   composition: { name: string; ofLimit: number | null }[];
   result?: CardResult | null;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const tone = scoreTone(score);
   return (
     <View style={styles.story} accessibilityLabel="Story card">
-      <View style={styles.previewBar} />
       <BrandMark size={22} />
       <T weight="bold" size={28} style={{ letterSpacing: -0.8, lineHeight: 32 }}>
         {stackName}
@@ -457,19 +469,18 @@ export function StoryCardPreview({
       <T size={14} color={theme.muted}>
         {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
       </T>
-      <View style={[styles.storyPanel, { backgroundColor: tone === 'good' ? theme.teal : tint.slate }]}>
-        <View style={[styles.previewGlow, { backgroundColor: tone === 'good' ? tint.tealDeep : tint.slateDeep }]} />
-        <ScoreRing score={score} size={120} stroke={11} color="#FFFFFF" track="rgba(255,255,255,0.2)" textColor="#FFFFFF" subColor="rgba(255,255,255,0.78)" />
-        <T size={13} weight="semibold" color="rgba(255,255,255,0.78)">
-          Dose audit
+      <View style={styles.storyPanel}>
+        <ScoreRing score={score} size={120} stroke={11} color={tone === 'good' ? theme.good : theme.score} track={theme.scoreTrack} textColor={theme.text} subColor={theme.muted} />
+        <T size={13} weight="semibold" color={theme.muted}>
+          Dose score
         </T>
-        <T size={16} weight="bold" color="#FFFFFF" style={{ textAlign: 'center' }}>
+        <T size={16} weight="bold" style={{ textAlign: 'center' }}>
           {summary}
         </T>
       </View>
       {result ? (
         <View style={styles.storyResult}>
-          <T size={13} weight="bold" color={tint.tealDeep}>
+          <T size={13} weight="bold" color={theme.muted}>
             {result.kicker}
           </T>
           <T weight="bold" size={48} style={{ letterSpacing: -1.5, lineHeight: 52 }}>
@@ -512,6 +523,7 @@ export function StoryCardPreview({
 }
 
 export function BrandMark({ size = 18 }: { size?: number }) {
+  const theme = useTheme();
   const line = Math.max(2, Math.round(size * 0.14));
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }} accessibilityLabel="Stack">
@@ -520,7 +532,7 @@ export function BrandMark({ size = 18 }: { size?: number }) {
           width: size,
           height: size,
           borderRadius: Math.round(size * 0.28),
-          backgroundColor: theme.teal,
+          backgroundColor: theme.mark,
           justifyContent: 'center',
           paddingHorizontal: Math.round(size * 0.2),
           gap: Math.max(1, Math.round(size * 0.08)),
@@ -538,6 +550,8 @@ export function BrandMark({ size = 18 }: { size?: number }) {
 }
 
 export function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -553,6 +567,8 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
 }
 
 export function Segmented<K extends string>({ items, value, onChange }: { items: readonly { key: K; label: string }[]; value: K; onChange: (key: K) => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.segmented} accessibilityRole="tablist">
       {items.map((item) => {
@@ -576,6 +592,8 @@ export function Segmented<K extends string>({ items, value, onChange }: { items:
 }
 
 export function Toggle({ label, detail, value, onChange }: { label: string; detail?: string; value: boolean; onChange: (next: boolean) => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable
       accessibilityRole="checkbox"
@@ -599,6 +617,8 @@ export function Toggle({ label, detail, value, onChange }: { label: string; deta
 }
 
 export function IconAction({ icon, label, onPress, active }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; active?: boolean }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -614,35 +634,35 @@ export function IconAction({ icon, label, onPress, active }: { icon: keyof typeo
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
-  hero: { borderRadius: 22, padding: 18, gap: 14, overflow: 'hidden', backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
+  hero: { borderRadius: 12, padding: 18, gap: 14, overflow: 'hidden', backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
   heroGlow: { position: 'absolute', width: 320, height: 320, borderRadius: 160, right: -150, bottom: -170, opacity: 0.55 },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   reasons: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 8 },
   reason: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   dot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
-  outcome: { backgroundColor: theme.tealSoft, borderRadius: 20, padding: 18, gap: 10 },
+  outcome: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line, borderRadius: 12, padding: 18, gap: 10 },
   outcomeRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   outcomeIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.card, alignItems: 'center', justifyContent: 'center' },
   noLimit: { height: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: theme.line },
-  preview: { backgroundColor: theme.card, borderRadius: 22, borderWidth: 1, borderColor: theme.line, padding: 16, paddingTop: 18, gap: 8, overflow: 'hidden' },
-  previewBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: theme.teal },
-  previewPanel: { width: 132, borderRadius: 18, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
+  preview: { backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 16, paddingTop: 18, gap: 8, overflow: 'hidden' },
+  previewPanel: { width: 132, borderRadius: 12, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
   previewGlow: { position: 'absolute', width: 160, height: 160, borderRadius: 80, right: -70, bottom: -80, opacity: 0.55 },
-  previewResult: { backgroundColor: theme.tealSoft, borderRadius: 14, padding: 10, gap: 2 },
-  story: { backgroundColor: theme.bg, borderRadius: 22, borderWidth: 1, borderColor: theme.line, padding: 18, paddingTop: 22, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
-  storyPanel: { borderRadius: 20, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
-  storyResult: { backgroundColor: theme.tealSoft, borderRadius: 18, padding: 14, gap: 2 },
-  storyCta: { backgroundColor: theme.teal, borderRadius: 18, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 12 },
+  previewResult: { backgroundColor: theme.bg, borderRadius: 12, padding: 10, gap: 2 },
+  story: { backgroundColor: theme.bg, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 18, paddingTop: 22, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
+  storyPanel: { borderRadius: 12, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden', backgroundColor: theme.card },
+  storyResult: { backgroundColor: theme.card, borderRadius: 12, padding: 14, gap: 2 },
+  storyCta: { backgroundColor: theme.action, borderRadius: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 12 },
   chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
-  chipOn: { backgroundColor: theme.teal, borderColor: theme.teal },
-  segmented: { flexDirection: 'row', backgroundColor: theme.greyPill, borderRadius: 14, padding: 3, gap: 2 },
+  chipOn: { backgroundColor: theme.action, borderColor: theme.action },
+  segmented: { flexDirection: 'row', backgroundColor: theme.segmentTrack, borderRadius: 12, padding: 3, gap: 2 },
   segment: { flex: 1, minHeight: 38, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 9, justifyContent: 'center' },
-  segmentOn: { backgroundColor: theme.card, shadowColor: '#50321E', shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  segmentOn: { backgroundColor: theme.segmentOn },
   toggle: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', paddingVertical: 4 },
   box: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: theme.line, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  boxOn: { backgroundColor: theme.teal, borderColor: theme.teal },
+  boxOn: { backgroundColor: theme.action, borderColor: theme.action },
   iconAction: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -656,3 +676,5 @@ const styles = StyleSheet.create({
     borderColor: theme.line,
   },
 });
+}
+

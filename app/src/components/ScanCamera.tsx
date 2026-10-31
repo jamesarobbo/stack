@@ -1,11 +1,13 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { theme } from '../theme';
+import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { ScanFrame } from './ScanFrame';
 import { T } from './ui';
 
 export function ScanCamera({ torch, onScan }: { torch: boolean; onScan: (code: string) => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
 
@@ -50,7 +52,8 @@ export function ScanCamera({ torch, onScan }: { torch: boolean; onScan: (code: s
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   allow: {
     backgroundColor: theme.teal,
     borderRadius: 14,
@@ -59,3 +62,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+}
+

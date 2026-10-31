@@ -6,9 +6,10 @@ import { Button, T } from '@/src/components/ui';
 import { SPEND_OPTIONS, type SpendKey } from '@/src/onboarding/answers';
 import { readSpend, writeSpend } from '@/src/onboarding/storage';
 import { track } from '@/src/telemetry';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 export default function SpendStep() {
+  const theme = useTheme();
   const [selected, setSelected] = useState<SpendKey | null>(() => readSpend());
 
   return (

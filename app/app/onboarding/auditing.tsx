@@ -5,9 +5,10 @@ import { View } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
 import { T } from '@/src/components/ui';
 import { AUDIT_CHECKS } from '@/src/onboarding/preview';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 export default function AuditingStep() {
+  const theme = useTheme();
   const [shown, setShown] = useState(1);
 
   useEffect(() => {

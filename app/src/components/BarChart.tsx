@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { bucketMeans } from '../domain/impact';
-import { theme } from '../theme';
+import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 export function BarChart({
@@ -12,6 +12,8 @@ export function BarChart({
   after: number[];
   title: string;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const left = bucketMeans(baseline, 6);
   const right = bucketMeans(after, 6);
   const max = Math.max(1, ...left, ...right);
@@ -27,11 +29,11 @@ export function BarChart({
       </View>
       <View style={styles.plot}>
         {left.map((value, index) => (
-          <View key={`b-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 128), backgroundColor: '#D5D8DE' }]} />
+          <View key={`b-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 128), backgroundColor: theme.scoreTrack }]} />
         ))}
         <View style={{ width: 14 }} />
         {right.map((value, index) => (
-          <View key={`a-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 128), backgroundColor: theme.teal }]} />
+          <View key={`a-${index}`} style={[styles.bar, { height: Math.max(8, (value / max) * 128), backgroundColor: theme.sleep }]} />
         ))}
       </View>
       <View style={styles.labels}>
@@ -46,7 +48,8 @@ export function BarChart({
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   card: {
     backgroundColor: theme.card,
     borderRadius: theme.radius,
@@ -60,3 +63,5 @@ const styles = StyleSheet.create({
   bar: { width: 14, borderRadius: 5 },
   labels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 },
 });
+}
+

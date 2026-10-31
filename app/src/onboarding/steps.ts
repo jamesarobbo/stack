@@ -1,5 +1,5 @@
 export const ONBOARDING_STEPS = [
-  { key: 'welcome', path: '/onboarding', title: 'Set the bottles on the table.' },
+  { key: 'welcome', path: '/onboarding', title: 'Your stack, in one place.' },
   { key: 'goal', path: '/onboarding/goal', title: 'What do you want your stack to do?' },
   { key: 'spend', path: '/onboarding/spend', title: 'Rough monthly supplement spend' },
   { key: 'wearable', path: '/onboarding/wearable', title: 'Choose a wearable' },

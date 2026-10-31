@@ -55,6 +55,8 @@ export type LibraryItem = {
   summary: string;
   productCount: number;
   composition: CardComposition[];
+  productNames?: string[];
+  outcomeLine?: string | null;
   copyCount: number | null;
   saved: boolean;
   updatedOn: string | null;

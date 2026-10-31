@@ -9,9 +9,10 @@ import { localToday } from '@/src/dates';
 import { AGE_RANGES, SEXES, ageRangeFromBirthDate, isAgeRange, isSex, prefillSex, type AgeRange, type Sex } from '@/src/health/demographics';
 import { getSetting, setSetting } from '@/src/settings';
 import { track } from '@/src/telemetry';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 export default function AboutStep() {
+  const theme = useTheme();
   const [initial] = useState(initialAnswers);
   const [age, setAge] = useState<AgeRange | null>(initial.age);
   const [sex, setSex] = useState<Sex | null>(initial.sex);

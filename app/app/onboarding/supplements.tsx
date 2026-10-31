@@ -7,7 +7,7 @@ import { goalEcho } from '@/src/onboarding/answers';
 import { readGoals } from '@/src/onboarding/storage';
 import { SUPPLEMENT_ENTRY } from '@/src/onboarding/steps';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const ICONS = {
   search: 'search-outline',
@@ -16,6 +16,8 @@ const ICONS = {
 } as const;
 
 export default function SupplementStep() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const echo = goalEcho(readGoals());
   const shown = app.products.slice(0, 6);
@@ -87,7 +89,8 @@ export default function SupplementStep() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8 },
   list: { gap: 10 },
   row: {
@@ -111,3 +114,5 @@ const styles = StyleSheet.create({
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });
+}
+

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { coerceUnit, UNIT_OPTIONS, type UnitOption } from '../data/units';
-import { theme } from '../theme';
+import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /**
@@ -17,6 +17,8 @@ export function UnitField({
   value: string;
   onChange: (unit: UnitOption) => void;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const selected = coerceUnit(value);
   const [open, setOpen] = useState(false);
 
@@ -63,7 +65,8 @@ export function UnitField({
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   wrap: { gap: 4 },
   field: {
     backgroundColor: theme.card,
@@ -93,3 +96,5 @@ const styles = StyleSheet.create({
   },
   optionOn: { backgroundColor: theme.tealSoft },
 });
+}
+

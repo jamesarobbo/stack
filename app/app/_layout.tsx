@@ -1,15 +1,8 @@
-import {
-  Nunito_400Regular,
-  Nunito_500Medium,
-  Nunito_600SemiBold,
-  Nunito_700Bold,
-} from '@expo-google-fonts/nunito';
-import { useFonts } from 'expo-font';
 import { router, Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Boot } from '@/src/components/ui';
@@ -19,29 +12,23 @@ import { hideFloatingDevTools } from '@/src/devMenu';
 import { redirectOnLaunch } from '@/src/navigation/exit';
 import { openStackDatabase, migrations, type AppDatabase } from '@/src/db/client';
 import { AppProvider, useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    Nunito_400Regular,
-    Nunito_500Medium,
-    Nunito_600SemiBold,
-    Nunito_700Bold,
-  });
+  const theme = useTheme();
+  const scheme = useColorScheme();
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync().catch(() => undefined);
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
+    SplashScreen.hideAsync().catch(() => undefined);
+  }, []);
 
   return (
     <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: '#E4D5C4' }}>
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
         <View style={{ flex: 1, width: '100%', maxWidth: 480, alignSelf: 'center', backgroundColor: theme.bg }}>
-          <StatusBar style="dark" />
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
           <DatabaseGate />
         </View>
       </View>
@@ -84,6 +71,7 @@ function Migrations({ database }: { database: AppDatabase }) {
 }
 
 function RootNav() {
+  const theme = useTheme();
   const app = useApp();
   const pathname = usePathname();
   const checkedLaunch = useRef(false);

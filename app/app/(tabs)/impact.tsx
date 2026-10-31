@@ -17,9 +17,11 @@ import {
 import { signed } from '@/src/format';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ImpactScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const gaps = freshStartGaps({ products: app.products.length, wearableSamples: app.samples.length });
   const initial = app.products[0]?.id ?? '';
@@ -92,19 +94,19 @@ export default function ImpactScreen() {
       <Pill tone="teal">{ASSOCIATION}</Pill>
 
       <View style={styles.heroStat}>
-        <T size={13} weight="semibold" color={theme.tealDark}>
+        <T size={13} weight="semibold" color={theme.sleep}>
           Deep sleep
         </T>
         <T weight="bold" size={40} style={styles.heroValue}>
           {sleep.after.mean == null ? '-' : formatHours(sleep.after.mean)}
         </T>
-        <T size={15} weight="semibold" color={deltaColor(sleep.delta, 'teal')}>
+        <T size={15} weight="semibold" color={theme.muted}>
           {sleep.delta == null ? 'No days' : `${signed(sleep.delta)} vs baseline`}
         </T>
       </View>
       <View style={styles.stats}>
-        <Stat label="HRV (SDNN)" value={hrv.after.mean == null ? '-' : `${Math.round(hrv.after.mean)} ms`} delta={hrv.delta} deltaLabel={hrv.delta == null ? 'No days' : `${signed(hrv.delta)} ms`} tone="teal" />
-        <Stat label="Resting HR" value={rhr.after.mean == null ? '-' : `${Math.round(rhr.after.mean)}`} delta={rhr.delta == null ? null : -rhr.delta} deltaLabel={rhr.delta == null ? 'No days' : `${signed(rhr.delta)} bpm`} tone="blue" />
+        <Stat label="HRV (SDNN)" value={hrv.after.mean == null ? '-' : `${Math.round(hrv.after.mean)} ms`} delta={hrv.delta} deltaLabel={hrv.delta == null ? 'No days' : `${signed(hrv.delta)} ms`} />
+        <Stat label="Resting HR" value={rhr.after.mean == null ? '-' : `${Math.round(rhr.after.mean)}`} delta={rhr.delta == null ? null : -rhr.delta} deltaLabel={rhr.delta == null ? 'No days' : `${signed(rhr.delta)} bpm`} />
       </View>
 
       <BarChart title="Deep sleep (hrs / night)" baseline={sleep.baseline.series.map((value) => value / 60)} after={sleep.after.series.map((value) => value / 60)} />
@@ -186,26 +188,18 @@ function formatHours(minutes: number): string {
   return `${h}h ${String(m).padStart(2, '0')}m`;
 }
 
-function deltaColor(delta: number | null, tone: 'teal' | 'blue'): string {
-  if (delta == null || delta === 0) return theme.muted;
-  if (delta > 0) return tone === 'blue' ? theme.blue : theme.teal;
-  return theme.muted;
-}
-
 function Stat({
   label,
   value,
-  delta,
   deltaLabel,
-  tone,
 }: {
   label: string;
   value: string;
   delta: number | null;
   deltaLabel: string;
-  tone: 'teal' | 'blue';
 }) {
-  const color = deltaColor(delta, tone);
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.stat}>
       <T size={12} weight="semibold" color={theme.muted}>
@@ -214,7 +208,7 @@ function Stat({
       <T weight="bold" size={22} style={{ letterSpacing: -0.4 }}>
         {value}
       </T>
-      <T size={12} weight="semibold" color={color}>
+      <T size={12} weight="semibold" color={theme.muted}>
         {deltaLabel}
       </T>
     </View>
@@ -222,6 +216,8 @@ function Stat({
 }
 
 function Chip({ label }: { label: string }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.chip}>
       <T size={13} color={theme.text}>
@@ -232,6 +228,8 @@ function Chip({ label }: { label: string }) {
 }
 
 function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.tagButton}>
       <T size={14} weight="semibold" color={theme.teal}>
@@ -241,10 +239,18 @@ function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8, marginTop: 4 },
   link: { minHeight: 44, justifyContent: 'center' },
-  heroStat: { backgroundColor: theme.tealSoft, borderRadius: 20, padding: 18, gap: 4 },
+  heroStat: {
+    backgroundColor: theme.card,
+    borderRadius: theme.radius,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.line,
+    padding: 18,
+    gap: 4,
+  },
   heroValue: { letterSpacing: -1.2, lineHeight: 46 },
   stats: { flexDirection: 'row', gap: 8 },
   stat: {
@@ -270,3 +276,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+}
+

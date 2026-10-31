@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ScanCamera } from '@/src/components/ScanCamera';
 import { BackButton, Button, Screen, T } from '@/src/components/ui';
-import { font, theme } from '@/src/theme';
+import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ScanScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const [torch, setTorch] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +69,8 @@ export default function ScanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.6 },
   torch: {
     alignSelf: 'flex-start',
@@ -89,8 +92,10 @@ const styles = StyleSheet.create({
     borderColor: theme.line,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    fontFamily: font.regular,
+    fontWeight: font.regular,
     fontSize: 16,
     color: theme.text,
   },
 });
+}
+

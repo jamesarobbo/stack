@@ -2,19 +2,19 @@ import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BottleShelf, EmptyBottles } from '@/src/components/illustrations';
 import { ScoreBadge } from '@/src/components/share';
-import { Button, Card, Pill, ProductRow, T } from '@/src/components/ui';
+import { Button, Card, Pill, ProductRow, ShareButton, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
-import { SHARE_STACK_LABEL } from '@/src/copy/sharing';
 import { auditStack } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
 import { formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function StackScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const insets = useSafeAreaInsets();
   const audit = useMemo(() => auditStack(app.products), [app.products]);
@@ -24,25 +24,16 @@ export default function StackScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={{ paddingTop: insets.top }}>
-        <BottleShelf />
-      </View>
-      <View style={styles.header}>
-        <T weight="bold" size={34} style={styles.title}>
-          {title}
-        </T>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.titleRow}>
+          <T weight="bold" size={34} style={styles.title}>
+            {title}
+          </T>
+          {app.products.length > 0 ? <ShareButton onPress={() => router.push('/share')} /> : null}
+        </View>
         <T size={14} color={theme.muted}>
           {APP_NAME} adds up what the labels say you pay.
         </T>
-        {app.products.length > 0 ? (
-          <View style={styles.links}>
-            <Pressable accessibilityRole="button" onPress={() => router.push('/share')} style={styles.link}>
-              <T size={15} weight="semibold" color={theme.teal}>
-                {SHARE_STACK_LABEL}
-              </T>
-            </Pressable>
-          </View>
-        ) : null}
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Card>
@@ -54,7 +45,7 @@ export default function StackScreen() {
           </T>
           {audit.duplicates.length > 0 ? (
             <View style={styles.overlapRow}>
-              <Pill tone="amber">{`${audit.duplicates.length} overlaps`}</Pill>
+              <Pill>{`${audit.duplicates.length} overlaps`}</Pill>
               <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/audit')} style={styles.link}>
                 <T size={14} weight="semibold" color={theme.teal}>
                   View in Audit
@@ -76,18 +67,24 @@ export default function StackScreen() {
         </Card>
         {app.products.length === 0 ? (
           <Card>
-            <EmptyBottles />
             <T weight="semibold" size={18}>
               Nothing in your stack yet
             </T>
             <T size={14} color={theme.muted}>
-              Search the NIH label database, scan a barcode, or add a bottle by hand. The bar below is the way to add one.
+              Search the NIH label database, scan a barcode, or add one by hand. The bar below is the way to add one.
             </T>
           </Card>
         ) : (
-          app.products.map((product) => (
-            <ProductRow key={product.id} product={product} onPress={() => router.push(`/product/${product.id}`)} />
-          ))
+          <View style={styles.group}>
+            {app.products.map((product, index) => (
+              <ProductRow
+                key={product.id}
+                product={product}
+                last={index === app.products.length - 1}
+                onPress={() => router.push(`/product/${product.id}`)}
+              />
+            ))}
+          </View>
         )}
       </ScrollView>
       <View style={styles.footer}>
@@ -97,10 +94,13 @@ export default function StackScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
-  header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 4 },
-  title: { letterSpacing: -0.8 },
+  header: { paddingHorizontal: 20, paddingBottom: 8, gap: 4 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: { letterSpacing: -0.8, flex: 1 },
+  group: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
   links: { flexDirection: 'row', gap: 16 },
   link: { minHeight: 44, justifyContent: 'center' },
   scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20, gap: 14 },
@@ -124,3 +124,5 @@ const styles = StyleSheet.create({
     borderTopColor: theme.line,
   },
 });
+}
+

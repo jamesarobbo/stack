@@ -52,10 +52,10 @@ function document(head: string, body: string): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F6F0E6">
+<meta name="theme-color" content="#F2F2F7">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&amp;display=swap" rel="stylesheet">
 ${head}
 <style>${STYLES}</style>
 </head>
@@ -139,7 +139,6 @@ function pageBody(view: ShareView, context: PageContext): string {
   const store = context.appStoreId ? 'Get Stack on the App Store' : 'Open it in Stack';
   return `<main class="wrap">
 ${brandBar(openHref)}
-<div class="shelf" aria-hidden="true"><svg viewBox="0 0 340 72" width="100%" height="72"><rect width="340" height="72" fill="#F3DDC6"/><rect x="24" y="52" width="292" height="10" rx="5" fill="#E7C4A4"/><rect x="48" y="18" width="18" height="36" rx="7" fill="#D5EBE1" stroke="#2F5D4C" stroke-width="2"/><rect x="52" y="10" width="10" height="10" rx="3" fill="#2F5D4C"/><rect x="86" y="26" width="16" height="28" rx="6" fill="#F4C7B0" stroke="#C46A45" stroke-width="2"/><rect x="89" y="18" width="10" height="10" rx="3" fill="#C46A45"/><rect x="122" y="20" width="18" height="34" rx="7" fill="#FFF7EE" stroke="#8A5A12" stroke-width="2"/><rect x="126" y="12" width="10" height="10" rx="3" fill="#8A5A12"/><circle cx="176" cy="36" r="10" fill="#F0A35A"/><rect x="210" y="22" width="18" height="32" rx="7" fill="#EFE2CF" stroke="#5E5348" stroke-width="2"/></svg></div>
 <section class="hero rise">
   <h1>${escapeHtml(view.stackName)}</h1>
   <p class="byline">${who}, ${view.products.length} ${view.products.length === 1 ? 'product' : 'products'}</p>
@@ -147,7 +146,7 @@ ${brandBar(openHref)}
   ${copies}
 </section>
 <section class="card score-card ${tone} rise d1">
-  <div class="ring" aria-label="Audit score ${view.auditScore} out of 100">
+  <div class="ring" aria-label="Dose score ${view.auditScore} out of 100, from doses and overlaps, not price.">
     <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
       <circle cx="60" cy="60" r="52" class="track"/>
       <circle cx="60" cy="60" r="52" class="arc" style="--dash:${dash};--full:${circumference.toFixed(1)}" transform="rotate(-90 60 60)"/>
@@ -203,13 +202,13 @@ function escapeHtml(value: string): string {
 }
 
 const STYLES = `
-:root { --teal:#2F5D4C; --teal-deep:#245041; --teal-soft:#E5F0EA; --ink:#2C261F; --muted:#5E5348; --line:#EADFD0; --slate:#4A433C; --card:#FFFDF9; --cream:#F6F0E6; --over:#B42318; --over-soft:#FDECEC; --near:#8A5A12; --near-soft:#F8EFD8; }
+:root { --teal:#0066CC; --teal-deep:#0066CC; --teal-soft:#E8F1FB; --ink:#1C1C1E; --muted:#636366; --line:#C6C6C8; --slate:#3A3A3C; --card:#FFFFFF; --cream:#F2F2F7; --over:#B42318; --over-soft:#FDECEC; --near:#D70040; --near-soft:#FFF0F3; --mark:#0E7A45; --good:#1F7A34; }
 * { box-sizing: border-box; }
-body { margin: 0; background: #E4D5C4; color: var(--ink); font-family: Nunito, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: #F2F2F7; color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 480px; margin: 0 auto; padding: 12px 20px 48px; background: var(--cream); min-height: 100vh; }
 .bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 20px; }
 .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
-.mark { width: 28px; height: 28px; border-radius: 8px; background: var(--teal); display: inline-flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 6px; }
+.mark { width: 28px; height: 28px; border-radius: 8px; background: var(--mark); display: inline-flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 6px; }
 .mark i { display: block; height: 4px; border-radius: 2px; background: #fff; }
 .mark i:nth-child(2) { opacity: .8; } .mark i:nth-child(3) { opacity: .6; }
 .open { font-size: 14px; font-weight: 600; color: var(--teal); text-decoration: none; padding: 8px 12px; border-radius: 999px; background: var(--teal-soft); }
@@ -223,7 +222,7 @@ p { margin: 0; line-height: 1.45; }
 .chip { font-size: 13px; font-weight: 600; color: var(--teal-deep); background: var(--teal-soft); border-radius: 999px; padding: 6px 12px; }
 .copies { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--teal); }
 .shelf { margin: 4px 0 8px; border-radius: 18px; overflow: hidden; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 18px; margin: 16px 0; box-shadow: 0 1px 2px rgba(80,50,30,.06); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin: 16px 0; }
 .score-card { position: relative; display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; color: var(--ink); overflow: hidden; background: var(--card); }
 .score-card.neutral { background: var(--card); }
 .score-card > * { position: relative; z-index: 1; }
@@ -232,6 +231,7 @@ p { margin: 0; line-height: 1.45; }
 .ring svg { position: absolute; inset: 0; }
 .track { fill: none; stroke: var(--line); stroke-width: 12; }
 .arc { fill: none; stroke: var(--teal); stroke-width: 12; stroke-linecap: round; stroke-dasharray: var(--dash) var(--full); animation: draw 1.1s cubic-bezier(.2,.7,.2,1) both .15s; }
+.score-card.good .arc { stroke: var(--good); }
 .score-card.neutral .arc { stroke: var(--slate); }
 .score { font-size: 44px; font-weight: 700; letter-spacing: -2px; line-height: 1; margin-top: -10px; color: var(--ink); }
 .of { position: absolute; bottom: 30px; font-size: 12px; color: var(--muted); }
@@ -240,8 +240,8 @@ p { margin: 0; line-height: 1.45; }
 .reasons { grid-column: 1 / -1; list-style: none; padding: 12px 0 0; margin: 0; border-top: 1px solid var(--line); display: grid; gap: 8px; }
 .reason { display: flex; gap: 10px; align-items: baseline; font-size: 14px; line-height: 1.4; }
 .reason .dot { flex: 0 0 8px; height: 8px; border-radius: 4px; background: var(--muted); transform: translateY(-1px); }
-.reason.over .dot { background: var(--over); } .reason.near .dot, .reason.doubled .dot { background: var(--slate); } .reason.overlap_ok .dot { background: var(--teal); }
-.cta { display: block; background: var(--teal); color: #fff; text-align: center; padding: 16px; border-radius: 18px; text-decoration: none; font-weight: 700; font-size: 17px; box-shadow: 0 6px 16px rgba(47,93,76,.22); transition: transform .15s ease; }
+.reason.over .dot { background: var(--over); } .reason.near .dot { background: var(--near); } .reason.doubled .dot { background: var(--slate); } .reason.overlap_ok .dot { background: var(--teal); }
+.cta { display: block; background: var(--teal); color: #fff; text-align: center; padding: 16px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 17px; transition: transform .15s ease; }
 .cta:active { transform: scale(.98); }
 .cta-note { text-align: center; margin: 10px 8px 0; }
 .doses, .products { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
@@ -250,7 +250,7 @@ p { margin: 0; line-height: 1.45; }
 .dose-amount { font-size: 14px; color: var(--muted); text-align: right; }
 .meter { grid-column: 1 / 2; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; align-self: center; }
 .meter span { display: block; height: 100%; border-radius: 4px; background: var(--teal); transform-origin: left; animation: grow .9s cubic-bezier(.2,.7,.2,1) both .3s; }
-.meter.near span { background: #C4922A; } .meter.over span { background: var(--over); }
+.meter.near span { background: var(--near); } .meter.over span { background: var(--over); }
 .pct { font-size: 13px; color: var(--muted); text-align: right; }
 .pct.over { color: var(--over); font-weight: 600; } .pct.near { color: var(--near); font-weight: 600; }
 .nolimit { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }

@@ -1,6 +1,6 @@
 # Three visual directions
 
-Throwaway screens for a direction pick. Open `index.html` in a browser. James picked Kitchen, and the live app now uses that language. These three pages stay as the options that were compared.
+Throwaway screens for a direction pick. Open `index.html` in a browser. James picked Kitchen first. The live app has since moved to Apple minimal, light and dark. These three pages stay as the options that were compared.
 
 Same facts on every screen: Alex's example stack, $175 a month, about $27 of duplicate spend, dose score 79 out of 100. Discover uses the listed stacks already in the library. Kept counts show only from 3.
 
@@ -20,14 +20,14 @@ Bends: dark hero surfaces. A glow behind the ring. Extra chart colours (gold for
 
 ## C. Kitchen
 
-A warmer, more human front door. Illustrated still lifes, a cream ground, sage for the action, and a clay accent in the drawings. This is the direction the live app now uses.
+A warmer, more human front door. Illustrated still lifes, a cream ground, sage for the action, and a clay accent in the drawings. This was the live language until Apple minimal replaced it.
 
 At the time of the pick it bent the old rules: a cream canvas, clay in the drawings, Nunito instead of Inter, and warm charcoal for a score under 80. Money stayed gold.
 
 ## Kitchen, clearer
 
-`kitchen-v2/` holds three static palette trials (Daylight, Orchard, Linen). They are not wired to the app. The live tokens stay on the shipped Kitchen cream until a later pass.
+`kitchen-v2/` holds three static palette trials (Daylight, Orchard, Linen). They are not wired to the app. James rejected them.
 
 ## Apple minimal
 
-`apple-minimal/` holds two later trials, light and dark, after those three were rejected. They are not wired to the app either.
+`apple-minimal/` holds the light and dark trials James picked. The live app now follows the phone with those tokens. The HTML files stay as the reference for that pick.

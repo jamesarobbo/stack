@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { suggestGoals } from '../../shared/goalSuggestions';
 import { Platform, Share, StyleSheet, TextInput, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
 import { Chip, FadeIn, OutcomeHero, ScoreHero, ShareCardPreview, StoryCardPreview, Toggle, type CardResult } from '@/src/components/share';
@@ -19,11 +20,13 @@ import { earliestReady, heroParts, submittedFields, type OutcomeMetric, type Out
 import { formatUsDate } from '@/src/dates';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
-import { font, theme } from '@/src/theme';
+import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 type ResultChoice = 'none' | 'keep' | OutcomeMetric;
 
 export default function ShareScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const scored = useMemo(() => scoreStack(app.products), [app.products]);
   const realHealth = app.healthSource === 'healthkit' && !app.usingSampleData && app.samples.length > 0;
@@ -38,7 +41,7 @@ export default function ShareScreen() {
   const [name, setName] = useState(app.displayName);
   const [listed, setListed] = useState(false);
   const [stackName, setStackName] = useState('');
-  const [goals, setGoals] = useState<LibraryGoalKey[]>([]);
+  const [goals, setGoals] = useState<LibraryGoalKey[] | null>(null);
   const [step, setStep] = useState<'edit' | 'review'>('edit');
   const [confirmUnshare, setConfirmUnshare] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -61,6 +64,20 @@ export default function ShareScreen() {
       .catch(() => undefined)
       .finally(() => setFetched(true));
   }, [app.sessionToken]);
+
+  const suggestions = useMemo(
+    () =>
+      suggestGoals(
+        app.products.map((product) => ({
+          name: product.name,
+          ingredients: product.ingredients.map((ingredient) => ({ key: ingredient.key, name: ingredient.name })),
+        })),
+      ),
+    [app.products],
+  );
+  const waitingForShare = !!app.sessionToken && !fetched;
+  const chosenGoals = goals ?? (waitingForShare || current ? [] : suggestions);
+  const showingSuggestions = !waitingForShare && goals == null && !current && suggestions.length > 0;
 
   const shownName = showName ? name.trim() : '';
   const previewName = stackName.trim() || (shownName ? `${shownName}'s stack` : (app.products[0]?.name ?? 'Shared stack'));
@@ -90,7 +107,7 @@ export default function ShareScreen() {
         body: {
           displayName: shownName || null,
           stackName: stackName.trim() || null,
-          goals,
+          goals: chosenGoals,
           listed,
           products: sharePayloadProducts(app.products),
           result: selected === 'keep' ? 'keep' : chosen ? submittedFields(chosen) : null,
@@ -161,7 +178,7 @@ export default function ShareScreen() {
             label="Personal result"
             value={resultToShow ? `${resultToShow.line}. The page says you tracked a result and the app shows it.` : 'None'}
           />
-          <ReviewRow label="Goals" value={goals.length > 0 ? goals.map(goalLabel).join(', ') : 'None'} />
+          <ReviewRow label="Goals" value={chosenGoals.length > 0 ? chosenGoals.map(goalLabel).join(', ') : 'None'} />
           <ReviewRow
             label="Who can find it"
             value={listed ? 'Listed in Discover and searchable by stack name, ingredient, and your name if shown' : 'Only people you send the link to'}
@@ -223,7 +240,7 @@ export default function ShareScreen() {
                 </T>
               ) : null}
             </View>
-            <T size={14} color={theme.teal} style={{ fontFamily: font.medium }}>
+            <T size={14} color={theme.teal} style={{ fontWeight: font.medium }}>
               {shortLink(current.url)}
             </T>
             <T size={13} color={theme.muted}>
@@ -358,19 +375,25 @@ export default function ShareScreen() {
             <T size={13} color={theme.muted}>
               Up to 3. People can filter Discover by these.
             </T>
+            {showingSuggestions ? (
+              <T size={13} color={theme.muted}>
+                Suggested from your products
+              </T>
+            ) : null}
             <View style={styles.chips}>
               {LIBRARY_GOALS.map((goal) => (
                 <Chip
                   key={goal.key}
                   label={goal.label}
-                  selected={goals.includes(goal.key)}
-                  onPress={() =>
+                  selected={chosenGoals.includes(goal.key)}
+                  onPress={() => {
                     setGoals((list) => {
-                      if (list.includes(goal.key)) return list.filter((item) => item !== goal.key);
-                      if (list.length >= 3) return list;
-                      return [...list, goal.key];
-                    })
-                  }
+                      const base = list ?? chosenGoals;
+                      if (base.includes(goal.key)) return base.filter((item) => item !== goal.key);
+                      if (base.length >= 3) return base;
+                      return [...base, goal.key];
+                    });
+                  }}
                 />
               ))}
             </View>
@@ -406,6 +429,7 @@ function shortLink(url: string): string {
 }
 
 function ReviewRow({ label, value }: { label: string; value: string }) {
+  const theme = useTheme();
   return (
     <View style={{ gap: 2, paddingVertical: 4 }}>
       <T size={13} weight="semibold" color={theme.muted}>
@@ -416,7 +440,8 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.6 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   linkCard: { borderColor: theme.tealSoft, borderWidth: 2 },
@@ -428,7 +453,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    fontFamily: font.regular,
+    fontWeight: font.regular,
     color: theme.text,
   },
 });
+}
+

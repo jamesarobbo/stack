@@ -8,7 +8,7 @@ import { EXPECTATION, type WearableChoice } from '@/src/onboarding/answers';
 import { writeWearable } from '@/src/onboarding/storage';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const COMING = [
   { name: 'Oura', icon: 'ellipse-outline' as const },
@@ -17,6 +17,8 @@ const COMING = [
 ];
 
 export default function WearableStep() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const [message, setMessage] = useState<string | null>(null);
   const [tried, setTried] = useState(false);
@@ -89,7 +91,8 @@ export default function WearableStep() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   wearable: {
@@ -104,3 +107,5 @@ const styles = StyleSheet.create({
   },
   wearableOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
 });
+}
+

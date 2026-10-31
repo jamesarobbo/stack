@@ -2,45 +2,44 @@
 
 Read this before drawing a new screen. Values below are the ones in the code. If a token and this file disagree, the token wins, then fix this file.
 
-Kitchen is the live look: a cream ground, deep green for action, clay inside drawings, gold for money, Nunito, and warm charcoal when a score is under 80.
+Apple minimal is the live look. Light and dark follow the phone (`useTheme` in `app/src/theme.ts`). The system font carries the type. Gold is money. A score under 80 is a neutral ring, never green.
+
+Colours are read at render time. `StyleSheet.create` at module load will not switch with the phone.
 
 ## Colour
 
-Tokens live in `app/src/theme.ts`. The public page repeats them as CSS variables in `server/src/sharePage.ts`. The preview image repeats them in `server/src/og.ts`. Sharing tints that are not in `theme` live in `tint` in `app/src/components/share.tsx`.
+`theme.action` is the filled button in both modes (`#0066CC`, white text 5.57:1). `theme.teal` is the link and icon accent: `#0066CC` in light, `#64B5FF` in dark (7.77:1 on a card). Do not fill a button with the dark link blue. White on it fails.
 
-Contrast below is on the cream canvas `#F6F0E6` unless another surface is named. A sentence needs 4.5:1. Large text (24px, or 19px bold) needs 3:1.
+The mark stays `#0E7A45` with white bars in both modes (white on that green is 5.40:1).
 
-| Role | Token | Hex | Use |
+| Role | Light | Dark | Use |
 |---|---|---|---|
-| Canvas | `theme.bg` | `#F6F0E6` | App screen background. The public page column and both preview images use the same cream. The area outside the phone column is `#E4D5C4`. |
-| Card | `theme.card` | `#FFFDF9` | Cards, product rows, the score hero. Ink on it is 14.7:1. |
-| Ink | `theme.text` | `#2C261F` | Body and titles. 13.2:1 on cream. |
-| Secondary | `theme.muted` | `#5E5348` | Help text. 6.6:1 on cream, 7.4:1 on a card. This is the quietest text that may carry a sentence. |
-| Faint | `theme.faint` | `#B3A79A` | Inactive chrome only. It fails 4.5:1, so it cannot carry a sentence. Tab labels use `theme.muted`. |
-| Line | `theme.line` | `#EADFD0` | Hairlines, card borders, meter tracks. |
-| Green | `theme.teal` | `#2F5D4C` | Primary buttons, links, selected chips, a score of 80 or more. White on this green is 7.5:1. The token name stays `teal` so existing call sites pick up the green. |
-| Green pressed | `theme.tealDark` | `#245041` | Pressed green. White on it is 9.1:1. |
-| Green wash | `theme.tealSoft` | `#E5F0EA` | Result hero, selected row. Green text on it clears 4.5:1. |
-| Charcoal | `tint.slate` | `#4A433C` | Scores under 80, so a low score never looks like a success. White on charcoal is 9.7:1. |
-| Charcoal deep | `tint.slateDeep` | `#2C261F` | The far end of a low-score poster panel. |
-| Gold | `theme.amber` | `#8A5A12` | Savings and prices only. 5.2:1 on cream, 5.2:1 on `amberBg` `#F8EFD8`. |
-| Clay | `theme.clay` | `#C46A45` | Illustration fills and strokes only. Ink on clay is 3.9:1 and white on clay is 3.8:1, so no text sits on it. `theme.claySoft` `#F8E4D8` can hold ink (12.2:1). |
-| Flag | `theme.flagText` | `#B42318` | A dose over the upper limit. 5.8:1 on cream and on `flagBg`. |
-| Near | `tint.nearBar` | `#C4922A` | The meter fill from 90 percent of the limit. A fill, not a text colour. |
+| Canvas | `#F2F2F7` | `#000000` | Screen background. Posted images and the public page use the light canvas. |
+| Card | `#FFFFFF` | `#1C1C1E` | Groups. Ink on white is 17.0:1. White on the dark card is 17.0:1. |
+| Ink | `#1C1C1E` | `#FFFFFF` | Body and titles. |
+| Secondary | `#636366` | `#AEAEB2` | Help text and placeholders. 5.99:1 on white, 7.69:1 on the dark card. This is the quietest text that may carry a sentence. |
+| Line | `#C6C6C8` | `#38383A` | Hairlines and borders. |
+| Good | `#1F7A34` | `#30D158` | A score of 80 or more, and a recovery chip. White on `#1F7A34` is 5.40:1, so a good badge can use that fill in both modes. |
+| Score ring | `#3A3A3C` | `#EBEBF5` | Under 80. The number stays ink, not white on a slab. |
+| Near | `#D70040` | `#FF375F` | A dose from 90 percent of the limit. Not gold. |
+| Gold | `#8A5600` | `#F5C14A` | Prices and savings only. Light gold sits on `#FFF4D4` (5.61:1). Dark gold sits on the card (10.22:1). No pale gold wash on black. |
+| Sleep | `#5856D6` | `#A29BFE` | Sleep data and sleep chips. |
+| Heart rate | `#0A7A8C` | `#5AC8FA` | HRV and energy chips. |
+| Heart | `#D70040` | `#FF375F` | Heart data. |
 
-`scoreTone` in `app/src/components/share.tsx` and `server/src/og.ts` returns green from 80 and charcoal below. Use it. Do not colour a score with gold, clay, or any other hue.
+Chip text on its wash clears 4.5:1 in both modes. The pairs live on `theme.chips`. Longevity names use the neutral chip. Do not invent a hue for them.
 
-Do not put ink or white on the saturated clay, and do not put ink on the gold fill (2.5:1). Gold copy sits on cream or on the gold wash. Clay stays inside `illustrations.tsx` and the matching drawings on the public page and the preview images.
+`#8E8E93` fails as body text on white. Do not use it for a sentence.
 
 ## Type
 
-Nunito, loaded in `app/app/_layout.tsx` with `expo-font` as `font.regular`, `font.medium`, `font.semibold`, `font.bold`. The public page loads the same family. The preview images bundle Nunito Medium and Bold (`server/assets/Nunito-OFL.txt`). One family is a choice: weight and size carry the hierarchy. Do not add a display serif, and do not swap the family.
+The system font. `font.regular` through `font.bold` are weights `400`, `500`, `600`, and `700`. `T` sets `fontWeight` and does not set `fontFamily`. The public page uses the system stack, with Inter as a fallback. Preview images bundle Inter Medium and Bold (`server/assets/Inter-OFL.txt`).
 
-`T` in `ui.tsx` sets `lineHeight` to 1.35 times the size. Default size is 16.
+`T` sets `lineHeight` to 1.35 times the size. Default size is 16.
 
 | Step | Size | Weight | Where |
 |---|---|---|---|
-| Page title | 34 web, about 28 to 34 in the app | bold | One per screen. Tracking about -0.8. |
+| Page title | 34 web, about 28 to 34 in the app | bold | One per screen. Tracking about -0.8. Tab screens have no page title. |
 | Section | 17 to 18 | semibold or bold | A group heading, sentence case. |
 | Body | 16 | regular | |
 | Button | 16 | semibold | |
@@ -48,53 +47,28 @@ Nunito, loaded in `app/app/_layout.tsx` with `expo-font` as `font.regular`, `fon
 | Meta | 12 to 13 | semibold | Pills and reasons. Never all caps. |
 | Score numeral | ring size times 0.36, or 44 on the web | bold | Tracking about -1.5. "out of 100" sits with it, smaller. |
 
-Big numbers get tight tracking. Body text does not. Buttons are sentence case: "Copy to my stack", not "COPY".
-
 ## Space, radius, shadow
 
-- Screen inset 20, content gap 14, bottom padding 28. `Screen` in `ui.tsx`.
-- Card radius 22 (`theme.radius`), padding 16, gap 8, 1px warm border. Small radius 16.
-- The in-app score hero is a warm card with a ring, radius 22, padding 18. Pills and chips are fully rounded.
-- Primary button min height 52, radius 18.
-- Shadows stay soft and warm: `rgba(80, 50, 30, 0.06)` on cards. Do not add a coloured glow.
-
-Group related lines tightly (8) and separate sections generously (14 to 16). Do not use one padding value for every edge.
+- Screen inset 20, content gap 14, bottom padding 28.
+- Card radius 12 (`theme.radius`). Button radius 14. Pills fully rounded.
+- The score hero is a white or dark card with a ring. The number is ink. No filled charcoal slab, and no thick green bar on the card.
+- Product rows sit in one group with hairline separators, not a card per row.
+- My Stack puts the share icon at the top right once the stack has products. Hit target 44. The label is "Share stack". Android uses the share-social outline. It is not an add control.
 
 ## Motion
 
-All of this is skipped when the person has asked to reduce motion (`useReducedMotion` reads `AccessibilityInfo`). The web page should respect `prefers-reduced-motion` the same way.
+Skipped when the person has asked to reduce motion. The web page respects `prefers-reduced-motion`.
 
 - `FadeIn`: opacity and a 10px rise, 420ms, ease out cubic, once.
-- `ScoreRing`: one turn to the score, 1000ms, delay 120ms. Two clipped half rings, no SVG native module, so an over-the-air update can ship it.
+- `ScoreRing`: one turn to the score, 1000ms, delay 120ms. Two clipped half rings, no SVG native module.
 - Dose `Meter`: width grows once, 800ms, delay 200ms.
-- The public page draws the ring in 1.1s and grows meters in 0.9s, with a cubic ease out.
 
-No bounce, no elastic, no loop, no pulsing dot, no marquee. Pressed buttons drop to opacity 0.88. Disabled is 0.45.
+No bounce, no loop, no pulsing dot. Pressed buttons drop to opacity 0.88. Disabled is 0.45.
 
-## Illustrations
+## Discover cards
 
-`app/src/components/illustrations.tsx` is the set: `WindowArt` (welcome), `BottleShelf` (My Stack), `EmptyBottles` (empty audit, impact, and an empty stack), `BottleBanner` (Discover cards), `BottleRow` (a short row for the paywall and a duplicate on Audit). The public page and `server/src/og.ts` draw the same three bottles (green, clay, cream with a gold cap). Clay never carries a label.
+Name, then up to four short product chips and "+N more" if needed, then the dose score ring, then a published result with the real 12 week window, then "Copied by N people" from 3. A flat result says it showed no clear change. The note is "One person's wearable. Not proof it caused the change." Do not paint a small change green.
 
-## Adding pop without breaking the rules
+## Native config
 
-- One hero, then quiet content. In the app and on the public page the score is a ring on a warm card: green from 80, charcoal below, the number in ink, and the reasons in the same card. A low score is never green.
-- Posted images (the share card, the 1200 by 630 preview, the 1080 by 1920 story) keep a filled panel in the same green or charcoal so the number stays readable small. The field around that panel is cream. White on both panel colours clears 4.5:1. The renderer version in `server/src/og.ts` is part of the cache key, so a drawing change generates a new image.
-- The result hero is the green wash, not a second saturated panel. One big value, then the window and the device in muted text.
-- Daily doses are a meter or a composition strip, not a paragraph of numbers.
-- The share cards mirror the images people post. Both sit on cream, with a 4px green line on the top edge, the mark, the name, the dose bars, and a score panel. The wide card is the link preview. The tall card is the story (9:16). That top line belongs to these cards only.
-- A personal result the owner published sits on the card and the public page as a big number, with the window, the device, and "1 person, not a trial". Cohort averages stay off the page and both images.
-- A poster panel may blend green into `#245041`, or charcoal into `#2C261F`. That is the only gradient. No gradient text, no rainbow, no background halo.
-
-## Where the same pieces show up
-
-- Onboarding opens on the welcome screen: the window illustration, "Set the bottles on the table.", and Continue. Progress reads 1 of 10 there, then the goal, spend, wearable, about you, supplements, loader, result, save, and paywall.
-- Audit leads with `ScoreHero`, then the gold savings block, then `DoseMeters`. The dose score is the same `scoreProducts` helper the share screen uses. Price is not an input.
-- My Stack opens with the shelf, then the monthly spend as the largest number. Prices on each row are gold. A `ScoreBadge` sits under the spend and opens Audit. Share stack is a text link in the header when there are products, at least 44 points tall. The only add control is the Add supplement bar, including when the stack is empty.
-- Discover is the second tab (`compass-outline`). It has no page title. It opens on Top. Search, the Top, New, Like you, and Saved segments, and the goal chips sit above poster cards (`BottleBanner`, `ScoreBadge`, `CompositionStrip`). Empty uses `EmptyLead`. When fewer than 3 stacks are listed and nothing is filtered, one quiet line says that is the whole list. Copy counts stay hidden under 3. The words are "Copied by N people". Audit links here only when the dose audit has a gap (a duplicate, a limit flag, or a score under 80). The last onboarding step can open it after Continue with Free.
-- Impact leads with deep sleep on `tealSoft`. The other two metrics sit beside each other. The chart bars are taller, and the tag controls are full chip height.
-- The monthly report is titled "Monthly report" with a Pro pill on the same row. Overlap dollars sit on the gold block. That savings score is the Pro dollar figure, not the dose score, so it does not use the green ring.
-- Onboarding choices that are a sentence stay full-width rows, with a check when selected and a green wash. Age and sex are short, so they use `Chip`. The result step shows `ScoreHero` once there is a product.
-- Selected plans, wearable cards, and choice rows use `theme.tealSoft`, not a one-off pale hex.
-- Empty audit and impact screens use `EmptyLead`: the empty-bottle drawing, one sentence of what is missing, and a link back to My Stack. They do not add a second add button.
-- Sign in and the save step label their fields. Buttons use a minimum height of 52 so larger text can grow.
-- The numeral inside `ScoreRing` and `ScoreBadge` does not scale, because it is sized to the shape. Every other label does.
+`userInterfaceStyle: 'automatic'`, the splash background `#F2F2F7`, and the Android adaptive icon background `#F2F2F7` are native. A shipped binary keeps the old values until a new build. Over the air, dark mode follows the system only where the binary already reports it (web, Expo Go, or a build that includes this config).

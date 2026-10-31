@@ -22,7 +22,7 @@ import { clampStartDate, localToday } from '@/src/dates';
 import type { IngredientInput } from '@/src/domain/types';
 import { ApiError } from '@/src/api';
 import { useApp } from '@/src/state';
-import { font, theme } from '@/src/theme';
+import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 function one(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? '';
@@ -30,6 +30,8 @@ function one(value: string | string[] | undefined): string {
 }
 
 export default function AddScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const params = useLocalSearchParams<{ mode?: string; upc?: string; dsld?: string }>();
   const initialMode = one(params.mode) === 'manual' ? 'manual' : 'search';
@@ -144,6 +146,8 @@ export default function AddScreen() {
 }
 
 function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void; onManual: (ingredient: CommonIngredient | null) => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<LabelHit[]>([]);
   const [attribution, setAttribution] = useState('');
@@ -268,6 +272,7 @@ function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void;
 }
 
 function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }) {
+  const theme = useTheme();
   const app = useApp();
   const [price, setPrice] = useState('');
   const [servings, setServings] = useState(String(label.servingsPerContainer));
@@ -374,6 +379,8 @@ function ManualAdd({
   off: RemoteLabel | null;
   onClearOff: (() => void) | null;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const [name, setName] = useState(off?.name ?? '');
   const [brand, setBrand] = useState(off?.brand ?? '');
@@ -577,6 +584,8 @@ function Field({
   placeholder?: string;
   keyboard?: 'decimal-pad' | 'number-pad';
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={{ gap: 4 }}>
       <T size={12} weight="semibold" color={theme.muted}>
@@ -591,7 +600,8 @@ function slug(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'ingredient';
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.6 },
   switch: { flexDirection: 'row', backgroundColor: theme.greyPill, borderRadius: 14, padding: 4 },
   switchItem: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 10 },
@@ -603,7 +613,7 @@ const styles = StyleSheet.create({
     borderColor: theme.line,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    fontFamily: font.regular,
+    fontWeight: font.regular,
     fontSize: 16,
     color: theme.text,
   },
@@ -618,3 +628,5 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { backgroundColor: theme.card, borderRadius: 999, borderWidth: 1, borderColor: theme.line, paddingHorizontal: 12, paddingVertical: 6 },
 });
+}
+

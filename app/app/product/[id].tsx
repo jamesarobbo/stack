@@ -10,9 +10,11 @@ import { monthlyCostCents } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
 import { formatNumber, formatUsd } from '@/src/format';
 import { useApp } from '@/src/state';
-import { font, theme } from '@/src/theme';
+import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ProductScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const app = useApp();
   const [priceText, setPriceText] = useState('');
@@ -124,7 +126,8 @@ export default function ProductScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8 },
   price: { letterSpacing: -1.2, lineHeight: 42 },
   input: {
@@ -134,7 +137,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    fontFamily: font.regular,
+    fontWeight: font.regular,
     color: theme.text,
   },
 });
+}
+

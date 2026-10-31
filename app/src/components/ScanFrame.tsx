@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { theme } from '../theme';
+import { useThemedStyles, type Theme } from '../theme';
 
 /** Corner brackets for the barcode preview. The camera, when present, sits behind them. */
 export function ScanFrame({ children }: { children?: ReactNode }) {
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.frame}>
       {children}
@@ -17,14 +18,8 @@ export function ScanFrame({ children }: { children?: ReactNode }) {
   );
 }
 
-const corner = {
-  position: 'absolute' as const,
-  width: 28,
-  height: 28,
-  borderColor: theme.teal,
-};
-
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   frame: {
     height: 240,
     borderRadius: 20,
@@ -33,9 +28,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.muted,
   },
-  corner,
+  corner: { position: 'absolute', width: 28, height: 28, borderColor: theme.teal },
   tl: { top: 16, left: 16, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 8 },
   tr: { top: 16, right: 16, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 8 },
   bl: { bottom: 16, left: 16, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 8 },
   br: { bottom: 16, right: 16, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 8 },
 });
+}
+

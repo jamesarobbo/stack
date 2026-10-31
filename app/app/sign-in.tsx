@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { BackButton, Button, Card, LabeledField, Screen, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 /** Back to the screen that asked for sign-in, for example a shared stack waiting to be copied. */
 function returnAfterSignIn() {
@@ -11,6 +11,8 @@ function returnAfterSignIn() {
 }
 
 export default function SignInScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const [email, setEmail] = useState(app.email ?? '');
   const [code, setCode] = useState('');
@@ -118,6 +120,9 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8 },
 });
+}
+

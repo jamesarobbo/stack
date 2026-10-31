@@ -8,9 +8,11 @@ import { CLEAR_ALL_DATA_LABEL, LOAD_EXAMPLE_LABEL } from '@/src/copy/labels';
 import { devToolsInProfile, openDevTools } from '@/src/devMenu';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function MoreScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const latest = useMemo(() => latestMetrics(app.samples), [app.samples]);
   return (
@@ -84,6 +86,7 @@ function latestMetrics(samples: { metric: string; date: string; value: number }[
 }
 
 function DeveloperTools() {
+  const theme = useTheme();
   const app = useApp();
   const [confirmClear, setConfirmClear] = useState(false);
   if (typeof __DEV__ === 'undefined' || !__DEV__) return null;
@@ -125,6 +128,7 @@ function DeveloperTools() {
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.metric}>
       <T size={14}>{label}</T>
@@ -136,6 +140,8 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 function Row({ title, detail, onPress, last = false }: { title: string; detail: string; onPress: () => void; last?: boolean }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={[styles.row, last ? styles.rowLast : null]}>
       <View style={{ flex: 1 }}>
@@ -149,7 +155,8 @@ function Row({ title, detail, onPress, last = false }: { title: string; detail: 
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8, marginTop: 4 },
   menu: { backgroundColor: theme.card, borderRadius: 16, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
   row: {
@@ -165,3 +172,5 @@ const styles = StyleSheet.create({
   rowLast: { borderBottomWidth: 0 },
   metric: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, minHeight: 28 },
 });
+}
+

@@ -4,10 +4,12 @@ import { useEffect, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { previousOnboardingStep, onboardingProgress, type OnboardingStepKey } from '@/src/onboarding/steps';
 import { track } from '@/src/telemetry';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 import { Screen, T } from './ui';
 
 export function OnboardingProgress({ step }: { step: OnboardingStepKey }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const progress = onboardingProgress(step);
   useEffect(() => {
     track('onboarding_step', { step, index: onboardingProgress(step).current });
@@ -35,6 +37,8 @@ export function OnboardingFrame({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const previous = previousOnboardingStep(step);
   return (
     <Screen footer={footer}>
@@ -61,6 +65,8 @@ export function OnboardingFrame({
 }
 
 export function Choice({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -76,7 +82,8 @@ export function Choice({ label, selected, onPress }: { label: string; selected: 
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   wrap: { gap: 8 },
   track: { flexDirection: 'row', gap: 4 },
   segment: { flex: 1, height: 4, borderRadius: 999 },
@@ -97,3 +104,5 @@ const styles = StyleSheet.create({
   },
   choiceOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
 });
+}
+

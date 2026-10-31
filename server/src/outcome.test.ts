@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, computeOutcome, validateOutcomeFields, type DayValue } from '../../shared/outcome';
+import { addDays, computeOutcome, discoverOutcomeLine, validateOutcomeFields, type DayValue } from '../../shared/outcome';
 
 const START = '2026-04-01';
 
@@ -23,12 +23,16 @@ describe('personal outcome', () => {
   it('reports a change bigger than normal variation', () => {
     const result = computeOutcome({ metric: 'resting_hr_bpm', samples: history(56), stackStart: START, device: 'Apple Watch', asOf: addDays(START, 100) });
     expect(result).toMatchObject({ eligible: true, direction: 'down', percent: -7, withinNormal: false });
-    if (result.eligible) expect(result.line).toBe('Resting heart rate down 7% over 12 weeks, measured on Apple Watch');
+    if (result.eligible) {
+      expect(result.line).toBe('Resting heart rate down 7% over 12 weeks, measured on Apple Watch');
+      expect(discoverOutcomeLine(result)).toBe('Resting heart rate down 7% over 12 weeks');
+    }
   });
 
   it('calls a small change normal variation', () => {
     const result = computeOutcome({ metric: 'resting_hr_bpm', samples: history(59), stackStart: START, device: 'Apple Watch', asOf: addDays(START, 100) });
     expect(result).toMatchObject({ eligible: true, withinNormal: true, direction: 'flat' });
+    if (result.eligible) expect(discoverOutcomeLine(result)).toBe('Resting heart rate showed no clear change over 12 weeks');
   });
 
   it('uses the history before the start to set the bar', () => {

@@ -11,9 +11,10 @@ import type { Verdict } from '@/src/domain/types';
 import { formatUsd, signed } from '@/src/format';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ReportScreen() {
+  const theme = useTheme();
   const app = useApp();
   const report = useMemo(
     () => buildMonthlyReport({ today: localToday(), products: app.products, samples: app.samples, tags: app.tags }),
@@ -49,6 +50,8 @@ export default function ReportScreen() {
 }
 
 function ReportEmpty({ products }: { products: number }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <>
       <T weight="bold" size={28} style={styles.title}>
@@ -70,6 +73,8 @@ function ReportEmpty({ products }: { products: number }) {
 }
 
 function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <>
       <T weight="semibold" size={18} color={theme.muted}>
@@ -145,6 +150,7 @@ function ReportBody({ report }: { report: ReturnType<typeof buildMonthlyReport> 
 }
 
 function ReportTitle() {
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.titleRow}>
       <T weight="bold" size={32} style={styles.title}>
@@ -161,7 +167,8 @@ function VerdictPill({ verdict }: { verdict: Verdict }) {
   return <Pill tone={tone}>{label}</Pill>;
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   title: { letterSpacing: -0.8, flex: 1 },
   savings: {
@@ -175,3 +182,5 @@ const styles = StyleSheet.create({
   savingsValue: { letterSpacing: -1.2, lineHeight: 46 },
   line: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 36 },
 });
+}
+

@@ -2,7 +2,7 @@ import DateTimePicker, { type DateTimePickerEvent } from '@react-native-communit
 import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { clampStartDate, formatUsDate, isoFromLocalDate, localDateFromIso, localToday } from '../dates';
-import { font, theme } from '../theme';
+import { font, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /**
@@ -19,6 +19,8 @@ export function DateField({
   value: string;
   onChange: (iso: string) => void;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const today = localToday();
   const iso = clampStartDate(value, today);
   const [open, setOpen] = useState(false);
@@ -72,7 +74,8 @@ export function DateField({
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   wrap: { gap: 4 },
   field: {
     backgroundColor: theme.card,
@@ -81,6 +84,8 @@ const styles = StyleSheet.create({
     borderColor: theme.line,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    fontFamily: font.regular,
+    fontWeight: font.regular,
   },
 });
+}
+

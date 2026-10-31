@@ -103,6 +103,15 @@ export function directionOf(percent: number, withinNormal: boolean): 'up' | 'dow
   return 'flat';
 }
 
+/** Short line for a Discover card. No device, and a flat change is not called an improvement. */
+export function discoverOutcomeLine(fields: Pick<OutcomeFields, 'metric' | 'direction' | 'percent' | 'withinNormal'>): string {
+  const label = OUTCOME_LABELS[fields.metric];
+  if (fields.withinNormal || fields.direction === 'flat') {
+    return `${label} showed no clear change over 12 weeks`;
+  }
+  return `${label} ${fields.direction} ${Math.abs(fields.percent)}% over 12 weeks`;
+}
+
 export function outcomeLine(fields: Pick<OutcomeFields, 'metric' | 'direction' | 'percent' | 'withinNormal' | 'device'>): string {
   const label = OUTCOME_LABELS[fields.metric];
   const device = cleanDevice(fields.device);

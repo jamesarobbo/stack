@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 export default function OnboardingLayout() {
+  const theme = useTheme();
   return (
     <Stack screenOptions={{ headerShown: false, gestureEnabled: true, contentStyle: { backgroundColor: theme.bg } }}>
       <Stack.Screen name="index" />

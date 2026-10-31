@@ -27,7 +27,7 @@ Linked copies, where a copied stack stays tied to the original, and notification
 
 Search runs in D1 with FTS5 over the stack name, the creator's display name, the goal tags, and the ingredient names and keys. A query that starts with "has", such as "has zinc magnesium", searches ingredients only, for every term. The app waits 300 ms after typing before it searches. Results load 20 at a time.
 
-Goal tags are sleep, energy, heart health, recovery, focus, and longevity. The sharer picks up to 3.
+Goal tags are sleep, energy, heart health, recovery, focus, and longevity. The sharer picks up to 3. On the share screen, up to 3 can be suggested from the product and ingredient names (`shared/goalSuggestions.ts`). The line is "Suggested from your products". The sharer can clear or change them before listing. A stack that is already listed with no goals is left blank. The server does not fill tags in. Listing still waits until the sharer chooses List in Discover.
 
 ## Moderation
 

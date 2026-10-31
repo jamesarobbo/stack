@@ -1,8 +1,9 @@
 import { BackButton, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 export default function PrivacyScreen() {
+  const theme = useTheme();
   return (
     <Screen>
       <BackButton />

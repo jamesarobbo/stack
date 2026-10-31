@@ -4,9 +4,11 @@ import { Platform, Pressable, StyleSheet } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
 import { Button, LabeledField, T } from '@/src/components/ui';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function SaveStep() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const [email, setEmail] = useState(app.email ?? '');
   const [code, setCode] = useState('');
@@ -115,7 +117,10 @@ export default function SaveStep() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8 },
   skip: { minHeight: 44, justifyContent: 'center' },
 });
+}
+

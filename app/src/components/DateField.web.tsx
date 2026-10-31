@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { clampStartDate, formatUsDate, localToday } from '../dates';
-import { font, theme } from '../theme';
+import { font, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /**
@@ -17,6 +17,8 @@ export function DateField({
   value: string;
   onChange: (iso: string) => void;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const today = localToday();
   const iso = clampStartDate(value, today);
 
@@ -44,7 +46,7 @@ export function DateField({
             border: 'none',
             background: 'transparent',
             color: theme.text,
-            fontFamily: font.regular,
+            fontWeight: font.regular,
             fontSize: 16,
             padding: 0,
           },
@@ -54,7 +56,8 @@ export function DateField({
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   wrap: { gap: 4 },
   field: {
     backgroundColor: theme.card,
@@ -65,3 +68,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
 });
+}
+

@@ -1,8 +1,8 @@
 # Apple minimal
 
-Two static trials after James rejected the Kitchen v2 palettes. They are not wired to the app. Open `index.html`.
+Two static trials after James rejected the Kitchen v2 palettes. Open `index.html`.
 
-The live tokens stay on the shipped Kitchen cream. These pages try a quieter system: grouped cards, large numbers, hairline separators, and no drawings.
+James picked both. The live app follows the phone: light uses these tokens, dark uses the other set. These pages stay as the reference. Grouped cards, large numbers, hairline separators, and no drawings.
 
 A. Light uses a system grey ground and white cards. B. Dark uses black and `#1C1C1E` cards. Money is gold and nothing else. A score under 80 stays a neutral ring, never green. Category colours are for sleep, heart rate, doses, and a dose near the limit.
 

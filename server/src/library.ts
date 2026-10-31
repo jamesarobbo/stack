@@ -1,3 +1,4 @@
+import { discoverOutcomeLine, isOutcomeMetric } from '../../shared/outcome';
 import { cohortKeyFor, cohortsForShare, type CohortSlice } from './cohorts';
 import { randomId } from './crypto';
 import { AUTO_HIDE_REPORTS, isReportReason } from './moderation';
@@ -62,7 +63,13 @@ const DAY_MS = 86_400_000;
 export type LibrarySegment = 'new' | 'top' | 'saved' | 'like_you';
 
 export type CardComposition = { name: string; ofLimit: number | null };
-export type ShareCard = { productCount: number; summary: string; composition: CardComposition[] };
+export type ShareCard = {
+  productCount: number;
+  summary: string;
+  composition: CardComposition[];
+  productNames?: string[];
+  outcomeLine?: string | null;
+};
 
 export type LibraryItem = {
   slug: string;
@@ -73,6 +80,8 @@ export type LibraryItem = {
   summary: string;
   productCount: number;
   composition: CardComposition[];
+  productNames: string[];
+  outcomeLine: string | null;
   copyCount: number | null;
   saved: boolean;
   updatedOn: string | null;
@@ -257,6 +266,7 @@ type ShareListRow = {
   goals: string;
   audit_score: number;
   card: string;
+  snapshot: string;
   kept_count: number;
   version: number;
   material_version: number;
@@ -290,7 +300,7 @@ export async function searchLibrary(
   }
 
   const params: unknown[] = [];
-  let select = `SELECT s.id, s.slug, s.user_id, s.stack_name, s.creator_name, s.goals, s.audit_score, s.card, s.kept_count,
+  let select = `SELECT s.id, s.slug, s.user_id, s.stack_name, s.creator_name, s.goals, s.audit_score, s.card, s.snapshot, s.kept_count,
     s.version, s.material_version, s.updated_at, s.created_at`;
   let from = 'shares s';
   let where = 's.listed = 1 AND s.discover_ok = 1 AND s.revoked_at IS NULL AND s.hidden_at IS NULL';
@@ -373,16 +383,49 @@ function likeYouLine(metrics: { label: string; slices: CohortSlice[] }[], cohort
   return null;
 }
 
-function parseCard(raw: string): ShareCard {
+function parseCard(raw: string): ShareCard & { outcomeKnown: boolean } {
   try {
     const parsed = JSON.parse(raw) as Partial<ShareCard>;
+    const productNames = Array.isArray(parsed.productNames)
+      ? parsed.productNames.filter((name): name is string => typeof name === 'string' && name.trim().length > 0).slice(0, 12)
+      : [];
     return {
       productCount: typeof parsed.productCount === 'number' ? parsed.productCount : 0,
       summary: typeof parsed.summary === 'string' ? parsed.summary : '',
       composition: Array.isArray(parsed.composition) ? parsed.composition.slice(0, 8) : [],
+      productNames,
+      outcomeLine: typeof parsed.outcomeLine === 'string' && parsed.outcomeLine.trim() ? parsed.outcomeLine : null,
+      outcomeKnown: parsed != null && typeof parsed === 'object' && 'outcomeLine' in parsed,
     };
   } catch {
-    return { productCount: 0, summary: '', composition: [] };
+    return { productCount: 0, summary: '', composition: [], productNames: [], outcomeLine: null, outcomeKnown: false };
+  }
+}
+
+function snapshotCard(raw: string): { names: string[]; outcomeLine: string | null } {
+  try {
+    const parsed = JSON.parse(raw) as { products?: { name?: string }[]; result?: Record<string, unknown> | null };
+    const names = Array.isArray(parsed.products)
+      ? parsed.products.map((product) => (typeof product?.name === 'string' ? product.name.trim() : '')).filter(Boolean).slice(0, 12)
+      : [];
+    const result = parsed.result;
+    const direction = result?.direction;
+    const outcomeLine =
+      result &&
+      isOutcomeMetric(result.metric) &&
+      (direction === 'up' || direction === 'down' || direction === 'flat') &&
+      typeof result.percent === 'number' &&
+      typeof result.withinNormal === 'boolean'
+        ? discoverOutcomeLine({
+            metric: result.metric,
+            direction,
+            percent: result.percent,
+            withinNormal: result.withinNormal,
+          })
+        : null;
+    return { names, outcomeLine };
+  } catch {
+    return { names: [], outcomeLine: null };
   }
 }
 
@@ -392,6 +435,7 @@ function toItem(row: ShareListRow): LibraryItem {
     .filter((key): key is LibraryGoal => (LIBRARY_GOALS as readonly string[]).includes(key))
     .map((key) => ({ key, label: GOAL_LABELS[key] }));
   const card = parseCard(row.card);
+  const snap = snapshotCard(row.snapshot ?? '');
   return {
     slug: row.slug,
     stackName: row.stack_name,
@@ -401,6 +445,8 @@ function toItem(row: ShareListRow): LibraryItem {
     summary: card.summary,
     productCount: card.productCount,
     composition: card.composition,
+    productNames: card.productNames && card.productNames.length > 0 ? card.productNames : snap.names,
+    outcomeLine: card.outcomeKnown ? (card.outcomeLine ?? null) : snap.outcomeLine,
     copyCount: shownCopies(row.kept_count),
     saved: false,
     updatedOn: row.version > 1 ? row.updated_at.slice(0, 10) : null,

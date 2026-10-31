@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { applyScreenExit } from '../navigation/exit';
 import { DISCLAIMER } from '../config';
 import { monthlyCostCents } from '../domain/audit';
 import type { ProductInput } from '../domain/types';
 import { formatUsd } from '../format';
-import { Bottle, EmptyBottles } from './illustrations';
-import { font, theme } from '../theme';
+import { font, useTheme, useThemedStyles, type Theme } from '../theme';
 
 type Weight = keyof typeof font;
 
@@ -17,7 +16,7 @@ export function T({
   children,
   weight = 'regular',
   size = 16,
-  color = theme.text,
+  color,
   scale = true,
   style,
 }: {
@@ -29,8 +28,12 @@ export function T({
   scale?: boolean;
   style?: StyleProp<TextStyle>;
 }) {
+  const theme = useTheme();
   return (
-    <Text allowFontScaling={scale} style={[{ fontFamily: font[weight], fontSize: size, color, lineHeight: Math.round(size * 1.35) }, style]}>
+    <Text
+      allowFontScaling={scale}
+      style={[{ fontWeight: font[weight], fontSize: size, color: color ?? theme.text, lineHeight: Math.round(size * 1.35) }, style]}
+    >
       {children}
     </Text>
   );
@@ -46,6 +49,7 @@ export function Screen({
   scroll?: boolean;
 }) {
   const insets = useSafeAreaInsets();
+  const styles = useThemedStyles(localStyles);
   const body = scroll ? (
     <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
       {children}
@@ -62,6 +66,8 @@ export function Screen({
 }
 
 export function Eyebrow({ left, right }: { left: string; right?: string }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.rowBetween}>
       <T size={13} weight="semibold" color={theme.muted}>
@@ -77,6 +83,8 @@ export function Eyebrow({ left, right }: { left: string; right?: string }) {
 }
 
 export function SectionLabel({ label, badge }: { label: string; badge?: string }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.sectionLabel}>
       <T size={13} weight="semibold" color={theme.muted}>
@@ -88,6 +96,7 @@ export function SectionLabel({ label, badge }: { label: string; badge?: string }
 }
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const styles = useThemedStyles(localStyles);
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
@@ -98,12 +107,14 @@ export function Pill({
   children: ReactNode;
   tone?: 'grey' | 'amber' | 'teal' | 'flag' | 'blue';
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const tones = {
     grey: { bg: theme.greyPill, fg: theme.muted },
     amber: { bg: theme.amberPill, fg: theme.amber },
     teal: { bg: theme.tealSoft, fg: theme.teal },
     flag: { bg: theme.flagBg, fg: theme.flagText },
-    blue: { bg: '#E8F0FE', fg: theme.blue },
+    blue: { bg: theme.tealSoft, fg: theme.teal },
   }[tone];
   return (
     <View style={[styles.pill, { backgroundColor: tones.bg }]}>
@@ -129,6 +140,8 @@ export function LabeledField({
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'decimal-pad';
   autoCapitalize?: 'none' | 'sentences';
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={{ gap: 6 }}>
       <T size={13} weight="semibold">
@@ -149,9 +162,9 @@ export function LabeledField({
 }
 
 export function EmptyLead({ title, body }: { title: string; body: string }) {
+  const theme = useTheme();
   return (
     <View style={{ gap: 10 }}>
-      <EmptyBottles />
       <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
         {title}
       </T>
@@ -173,6 +186,8 @@ export function Button({
   tone?: 'teal' | 'ghost';
   disabled?: boolean;
 }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -192,7 +207,25 @@ export function Button({
   );
 }
 
+export function ShareButton({ onPress }: { onPress: () => void }) {
+  const theme = useTheme();
+  const name = Platform.OS === 'android' ? 'share-social-outline' : 'share-outline';
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Share stack"
+      onPress={onPress}
+      hitSlop={8}
+      style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+    >
+      <Ionicons name={name} size={22} color={theme.teal} />
+    </Pressable>
+  );
+}
+
 export function Disclaimer({ text = DISCLAIMER }: { text?: string }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.disclaimer}>
       <T size={13} color={theme.muted}>
@@ -203,6 +236,8 @@ export function Disclaimer({ text = DISCLAIMER }: { text?: string }) {
 }
 
 export function BackButton({ label = 'Back', fallback = '/(tabs)/stack' }: { label?: string; fallback?: string }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -218,27 +253,35 @@ export function BackButton({ label = 'Back', fallback = '/(tabs)/stack' }: { lab
   );
 }
 
-const BOTTLES = [
-  { body: '#D5EBE1', stroke: theme.teal, cap: theme.teal },
-  { body: '#F4C7B0', stroke: theme.clay, cap: theme.clay },
-  { body: '#FFF7EE', stroke: theme.amber, cap: theme.amber },
-  { body: '#EFE2CF', stroke: theme.muted, cap: theme.muted },
-] as const;
-
-function bottleFor(name: string) {
-  let hash = 0;
-  for (const char of name) hash = (hash + char.charCodeAt(0)) % BOTTLES.length;
-  return BOTTLES[hash] ?? BOTTLES[0];
+function Capsule({ color }: { color: string }) {
+  return (
+    <View
+      style={{
+        width: 18,
+        height: 26,
+        borderRadius: 9,
+        borderWidth: 1.7,
+        borderColor: color,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <View style={{ width: 8, height: 1.7, borderRadius: 1, backgroundColor: color }} />
+    </View>
+  );
 }
 
-export function ProductRow({ product, onPress }: { product: ProductInput; onPress?: () => void }) {
+export function ProductRow({ product, onPress, last = false }: { product: ProductInput; onPress?: () => void; last?: boolean }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const monthly = monthlyCostCents(product.priceCents, product.servingsPerContainer, product.servingsPerDay);
-  const bottle = bottleFor(product.name);
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.product, pressed ? { opacity: 0.85 } : null]}>
-      <View style={styles.iconBubble}>
-        <Bottle width={14} height={22} body={bottle.body} stroke={bottle.stroke} cap={bottle.cap} />
-      </View>
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.product, last ? styles.productLast : null, pressed ? { opacity: 0.85 } : null]}
+    >
+      <Capsule color={theme.muted} />
       <View style={{ flex: 1 }}>
         <T weight="semibold" size={16}>
           {product.name}
@@ -263,6 +306,8 @@ export function ProductRow({ product, onPress }: { product: ProductInput; onPres
 }
 
 export function Boot({ message }: { message: string }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.boot}>
       <T weight="semibold" size={18}>
@@ -275,61 +320,55 @@ export function Boot({ message }: { message: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.bg },
-  scroll: { paddingHorizontal: 20, paddingBottom: 28, gap: 14 },
-  footer: { paddingHorizontal: 20, paddingTop: 8, backgroundColor: theme.bg, gap: 8 },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  card: {
-    backgroundColor: theme.card,
-    borderRadius: theme.radius,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: theme.line,
-    gap: 8,
-  },
-  pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
-  button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  field: {
-    minHeight: 48,
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: theme.line,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontFamily: font.regular,
-    fontSize: 16,
-    color: theme.text,
-  },
-  buttonTeal: { backgroundColor: theme.teal },
-  buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
-  disclaimer: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: theme.line,
-    backgroundColor: theme.card,
-    padding: 14,
-  },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
-  product: {
-    backgroundColor: theme.card,
-    borderRadius: theme.radius,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: theme.line,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconBubble: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    backgroundColor: theme.greyPill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  boot: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
-});
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: theme.bg },
+    scroll: { paddingHorizontal: 20, paddingBottom: 28, gap: 14 },
+    footer: { paddingHorizontal: 20, paddingTop: 8, backgroundColor: theme.bg, gap: 8 },
+    rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    card: {
+      backgroundColor: theme.card,
+      borderRadius: theme.radius,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: theme.line,
+      gap: 8,
+    },
+    pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
+    button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    field: {
+      minHeight: 48,
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.line,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 16,
+      color: theme.text,
+    },
+    buttonTeal: { backgroundColor: theme.action },
+    buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
+    disclaimer: {
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.line,
+      backgroundColor: theme.card,
+      padding: 14,
+    },
+    back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', minHeight: 44 },
+    product: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.line,
+      minHeight: 56,
+    },
+    productLast: { borderBottomWidth: 0 },
+    boot: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
+  });
+}

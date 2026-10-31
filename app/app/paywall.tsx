@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import { BottleRow } from '@/src/components/illustrations';
 import { OnboardingProgress } from '@/src/components/OnboardingProgress';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { PRO_ANNUAL_CENTS, PRO_ANNUAL_SAVINGS_CENTS, PRO_MONTHLY_CENTS } from '@/src/config';
@@ -13,7 +12,7 @@ import { EXPECTATION, goalEcho, wearableLine } from '@/src/onboarding/answers';
 import { readGoals, readWearable } from '@/src/onboarding/storage';
 import { purchasesAvailable } from '@/src/purchases';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const ROWS: { label: string; free: boolean; pro: boolean }[] = [
   { label: 'Stack log + duplicates', free: true, pro: true },
@@ -24,6 +23,8 @@ const ROWS: { label: string; free: boolean; pro: boolean }[] = [
 ];
 
 export default function PaywallScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const params = useLocalSearchParams<{ onboarding?: string }>();
   const fromOnboarding = (Array.isArray(params.onboarding) ? params.onboarding[0] : params.onboarding) === '1';
@@ -75,7 +76,6 @@ export default function PaywallScreen() {
     <Screen>
       {fromOnboarding ? <OnboardingProgress step="paywall" /> : null}
       <BackButton fallback={fromOnboarding ? '/onboarding/save' : '/(tabs)/more'} />
-      <BottleRow />
       <T weight="bold" size={32} style={styles.title}>
         {fromOnboarding ? 'Keep this audit, and the weeks after' : 'See every dollar and every signal'}
       </T>
@@ -192,6 +192,8 @@ export default function PaywallScreen() {
 }
 
 function Mark({ on }: { on: boolean }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.col}>
       <Ionicons name={on ? 'checkmark' : 'remove'} size={16} color={on ? theme.teal : theme.muted} />
@@ -199,7 +201,8 @@ function Mark({ on }: { on: boolean }) {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.8 },
   plan: {
     backgroundColor: theme.card,
@@ -220,3 +223,5 @@ const styles = StyleSheet.create({
   col: { width: 44, textAlign: 'center', alignItems: 'center' },
   link: { minHeight: 44, justifyContent: 'center' },
 });
+}
+

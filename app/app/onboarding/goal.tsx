@@ -6,9 +6,10 @@ import { Button, T } from '@/src/components/ui';
 import { GOALS, toggleGoal } from '@/src/onboarding/answers';
 import { readGoals, writeGoals } from '@/src/onboarding/storage';
 import { track } from '@/src/telemetry';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 export default function GoalStep() {
+  const theme = useTheme();
   const [selected, setSelected] = useState<string[]>(() => readGoals());
 
   return (

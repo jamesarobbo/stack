@@ -4,6 +4,7 @@ import {
   PERSONAL_DISCLAIMER,
   PERSONAL_FRAMING,
   READY_AFTER_DAYS,
+  discoverOutcomeLine,
   outcomeLine,
   validateOutcomeFields,
   type OutcomeFields,
@@ -21,8 +22,8 @@ import {
   parseLibraryGoals,
   refreshShareCopyCount,
   shownCopies,
-  type CardComposition,
   type LibraryGoal,
+  type ShareCard,
 } from './library';
 import { hasDiseaseWord, nameProblem, problemMessage, productNameProblem } from './moderation';
 
@@ -170,7 +171,7 @@ export async function upsertShare(
   if (payload.length > 80_000) return { ok: false, error: 'That stack is too large to share.' };
   const listed = input.listed === true || input.publicIndex === true;
   const discoverOk = !scored.overTwiceLimit && !products.some((product) => hasDiseaseWord(product.name));
-  const card = cardFor(products, scored);
+  const card = cardFor(products, scored, result);
   const now = new Date().toISOString();
 
   if (existing && previous) {
@@ -245,7 +246,7 @@ function presentResult(fields: OutcomeFields): SharedResult {
   };
 }
 
-function cardFor(products: StoredProduct[], scored: ScoreResult): { productCount: number; summary: string; composition: CardComposition[] } {
+function cardFor(products: StoredProduct[], scored: ScoreResult, result: OutcomeFields | null): ShareCard {
   return {
     productCount: products.length,
     summary: scored.summary,
@@ -253,6 +254,8 @@ function cardFor(products: StoredProduct[], scored: ScoreResult): { productCount
       name: total.name,
       ofLimit: total.ofLimit == null ? null : Math.round(total.ofLimit * 100) / 100,
     })),
+    productNames: products.map((product) => product.name.trim()).filter(Boolean).slice(0, 12),
+    outcomeLine: result ? discoverOutcomeLine(result) : null,
   };
 }
 

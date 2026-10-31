@@ -8,9 +8,10 @@ import { EXPECTATION } from '@/src/onboarding/answers';
 import { readGoals, readSpend, readWearable } from '@/src/onboarding/storage';
 import { buildOnboardingPreview } from '@/src/onboarding/preview';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme';
 
 export default function ResultStep() {
+  const theme = useTheme();
   const app = useApp();
   const preview = buildOnboardingPreview(app.products, readGoals(), readSpend(), readWearable());
   const scored = scoreProducts(app.products);

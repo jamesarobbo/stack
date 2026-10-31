@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
+import { ProductChips } from '@/src/components/ProductChips';
 import { BrandMark, DoseMeters, FadeIn, IconAction, OutcomeHero, ScoreBadge, ScoreHero, Toggle } from '@/src/components/share';
 import { BackButton, Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
@@ -14,11 +15,13 @@ import { applyPlan, choicesFor, copiedProducts, planMerge, scoreAfter, shareCata
 import { formatDose } from '../../../shared/doses';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
-import { theme } from '@/src/theme';
+import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const CHOICE_LABEL: Record<MergeChoice, string> = { add: 'Add', skip: 'Skip', replace: 'Replace mine' };
 
 export default function SharedStackScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const app = useApp();
   const [stack, setStack] = useState<PublicShare | null>(null);
@@ -237,6 +240,7 @@ export default function SharedStackScreen() {
           <T size={15} color={theme.muted}>
             {`${who}, ${stack.products.length} ${stack.products.length === 1 ? 'product' : 'products'}`}
           </T>
+          <ProductChips names={stack.products.map((product) => product.name)} />
           {stack.goals.length > 0 || kept ? (
             <View style={styles.pills}>
               {stack.goals.map((goal) => (
@@ -483,7 +487,8 @@ function sentence(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.6 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
@@ -500,3 +505,5 @@ const styles = StyleSheet.create({
   sliceYou: { backgroundColor: theme.tealSoft },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });
+}
+

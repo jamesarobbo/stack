@@ -11,9 +11,11 @@ import { AGE_RANGES, SEXES, isAgeRange, isSex } from '@/src/health/demographics'
 import { DSLD_ATTRIBUTION, DSLD_URL, OFF_ATTRIBUTION, OFF_URL } from '@/src/data/labels';
 import { useApp } from '@/src/state';
 import { getSetting, setSetting, settingsDriverKind } from '@/src/settings';
-import { font, theme } from '@/src/theme';
+import { font, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function SettingsScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const app = useApp();
   const [name, setName] = useState(app.displayName);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -225,7 +227,8 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function localStyles(theme: Theme) {
+  return StyleSheet.create({
   title: { letterSpacing: -0.6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   input: {
@@ -233,8 +236,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    fontFamily: font.regular,
+    fontWeight: font.regular,
     fontSize: 16,
     color: theme.text,
   },
 });
+}
+
