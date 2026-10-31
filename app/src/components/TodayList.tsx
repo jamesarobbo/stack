@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { dayHeading, dayIsEditable, loggedStreak, streakLine, type IntakeLog } from '../../../shared/reminders';
+import { dayHeading, dayIsEditable, type IntakeLog } from '../../../shared/reminders';
 import { localToday } from '../dates';
 import { useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
@@ -26,7 +26,6 @@ export function TodayList({
   const shown = day ?? today;
   const editable = dayIsEditable(shown, today);
   const taken = new Set(logs.filter((log) => log.day === shown).map((log) => log.productId));
-  const streak = shown === today ? streakLine(loggedStreak(logs, today)) : null;
   const pending = products.some((product) => !taken.has(product.id));
   const visible = editable ? products : products.filter((product) => taken.has(product.id));
 
@@ -35,14 +34,7 @@ export function TodayList({
       <T weight="semibold" size={17}>
         {dayHeading(shown, today)}
       </T>
-      <View style={styles.headingSide}>
-        {streak ? (
-          <T size={13} color={theme.muted}>
-            {streak}
-          </T>
-        ) : null}
-        {onOpen ? <Ionicons name="chevron-forward" size={18} color={theme.muted} /> : null}
-      </View>
+      {onOpen ? <Ionicons name="chevron-forward" size={18} color={theme.muted} /> : null}
     </View>
   );
 
@@ -118,7 +110,6 @@ export function TodayList({
 function localStyles(theme: Theme) {
   return StyleSheet.create({
     heading: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-    headingSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     all: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
     row: {
       minHeight: 44,
