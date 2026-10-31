@@ -32,6 +32,9 @@ export default function StackScreen() {
   const scored = useMemo(() => scoreProducts(app.products), [app.products]);
   const title = stackHeading(app.displayName);
   const openAdd = () => router.push(ADD_SUPPLEMENT_ROUTE);
+  const showOffer = app.reminderOffer && app.products.length > 0 && !app.usingSampleData;
+  const showCheckIn = app.products.length > 0 && (app.dailyReminder || app.logs.length > 0);
+  const showLogToday = app.products.length > 0 && !showCheckIn && !showOffer && !app.logTodayDismissed;
 
   return (
     <View style={styles.screen}>
@@ -47,17 +50,40 @@ export default function StackScreen() {
         </T>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {app.products.length > 0 ? (
+        {showCheckIn ? (
           <Card>
             <TodayList
               products={app.products}
               logs={app.logs}
+              onOpen={() => router.push('/today')}
               onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
               onAllTaken={(day) => void app.markAllTaken(day)}
             />
           </Card>
         ) : null}
-        {app.reminderOffer && app.products.length > 0 && !app.usingSampleData ? (
+        {showLogToday ? (
+          <Card>
+            <View style={styles.logRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Log today"
+                onPress={() => router.push('/today')}
+                style={({ pressed }) => [styles.logMain, pressed ? { opacity: 0.88 } : null]}
+              >
+                <T weight="semibold">Log today</T>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss"
+                onPress={() => void app.dismissLogToday()}
+                style={({ pressed }) => [styles.logDismiss, pressed ? { opacity: 0.88 } : null]}
+              >
+                <Ionicons name="close" size={18} color={theme.muted} />
+              </Pressable>
+            </View>
+          </Card>
+        ) : null}
+        {showOffer ? (
           <ReminderOffer
             onContinue={() => {
               void (async () => {
@@ -158,6 +184,9 @@ function localStyles(theme: Theme) {
   links: { flexDirection: 'row', gap: 16 },
   link: { minHeight: 44, justifyContent: 'center' },
   scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20, gap: 14 },
+  logRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
+  logMain: { flex: 1, minHeight: 44, justifyContent: 'center' },
+  logDismiss: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   spend: { letterSpacing: -1.5, lineHeight: 50 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   scoreRow: {

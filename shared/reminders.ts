@@ -59,3 +59,75 @@ export function streakLine(count: number): string | null {
   if (count === 1) return '1 day logged in a row';
   return `${count} days logged in a row`;
 }
+
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const;
+
+/** Short weekday names, Sunday first. Sentence case, not tracked out. */
+export const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+
+export function monthParts(day: string): { year: number; month: number; date: number } {
+  const [year, month, date] = day.split('-').map(Number);
+  return { year: year ?? 1970, month: month ?? 1, date: date ?? 1 };
+}
+
+export function monthTitle(year: number, month: number): string {
+  return `${MONTHS[(month - 1 + 12) % 12]} ${year}`;
+}
+
+export function shiftMonth(year: number, month: number, by: number): { year: number; month: number } {
+  const value = new Date(year, month - 1 + by, 1);
+  return { year: value.getFullYear(), month: value.getMonth() + 1 };
+}
+
+/** False when the month is the current one or later. The calendar does not open the future. */
+export function canAdvanceMonth(year: number, month: number, today: string): boolean {
+  const parts = monthParts(today);
+  return year < parts.year || (year === parts.year && month < parts.month);
+}
+
+export type MonthCell = { day: string | null };
+
+/** Sunday-first cells for one month. Blank cells pad the first and last week. */
+export function monthGrid(year: number, month: number): MonthCell[] {
+  const first = new Date(year, month - 1, 1).getDay();
+  const count = new Date(year, month, 0).getDate();
+  const cells: MonthCell[] = [];
+  for (let index = 0; index < first; index += 1) cells.push({ day: null });
+  for (let date = 1; date <= count; date += 1) {
+    cells.push({ day: `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}` });
+  }
+  while (cells.length % 7 !== 0) cells.push({ day: null });
+  return cells;
+}
+
+/** Today and the six days before it can be changed. Older days are only a record. */
+export function dayIsEditable(day: string, today: string): boolean {
+  return day <= today && day >= shiftDay(today, -6);
+}
+
+export function dayHeading(day: string, today: string): string {
+  if (day === today) return 'Today';
+  const parts = monthParts(day);
+  const name = `${MONTHS[parts.month - 1]} ${parts.date}`;
+  return parts.year === monthParts(today).year ? name : `${name}, ${parts.year}`;
+}
+
+export function dayAccessibilityLabel(day: string, today: string, logged: boolean): string {
+  const parts = monthParts(day);
+  const date = `${MONTHS[parts.month - 1]} ${parts.date}`;
+  const when = day === today ? `Today, ${date}` : date;
+  return logged ? `${when}, logged` : when;
+}

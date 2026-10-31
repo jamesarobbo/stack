@@ -80,6 +80,8 @@ type AppState = {
   setDailyReminder: (on: boolean, time?: string) => Promise<void>;
   setDailyReminderTime: (time: string) => Promise<void>;
   dismissReminderOffer: () => Promise<void>;
+  logTodayDismissed: boolean;
+  dismissLogToday: () => Promise<void>;
   toggleTaken: (productId: string, day: string, taken: boolean) => Promise<void>;
   markAllTaken: (day: string) => Promise<void>;
   setCurrency: (code: string) => Promise<void>;
@@ -122,6 +124,7 @@ function readFlags() {
     dailyReminderTime: getSetting('dailyReminderTime'),
     reminderOffer:
       getSetting('dailyReminderOffer') === '1' && getSetting('dailyReminderOfferSeen') !== '1' && getSetting('dailyReminder') !== '1',
+    logTodayDismissed: getSetting('logTodayDismissed') === '1',
   };
 }
 
@@ -313,6 +316,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dismissReminderOffer: async () => {
         await setSetting('dailyReminderOfferSeen', '1');
         await setSetting('dailyReminderOffer', '0');
+        await applySnapshot();
+      },
+      dismissLogToday: async () => {
+        await setSetting('logTodayDismissed', '1');
         await applySnapshot();
       },
       toggleTaken: async (productId, day, taken) => {
