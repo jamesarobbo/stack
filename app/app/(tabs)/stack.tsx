@@ -1,9 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreBadge } from '@/src/components/share';
-import { Button, Card, Pill, ProductRow, ShareButton, T } from '@/src/components/ui';
+import { Card, Pill, ProductRow, ShareButton, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
 import { auditStack } from '@/src/domain/audit';
@@ -89,7 +90,27 @@ export default function StackScreen() {
         )}
       </ScrollView>
       <View style={styles.footer}>
-        <Button label={ADD_SUPPLEMENT_LABEL} onPress={openAdd} />
+        <View style={styles.addBar}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ADD_SUPPLEMENT_LABEL}
+            onPress={openAdd}
+            style={({ pressed }) => [styles.addMain, pressed ? { opacity: 0.88 } : null]}
+          >
+            <T weight="semibold" size={16} color="#FFFFFF">
+              {ADD_SUPPLEMENT_LABEL}
+            </T>
+          </Pressable>
+          <View style={styles.addSplit} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Scan a barcode"
+            onPress={() => router.push('/scan')}
+            style={({ pressed }) => [styles.addScan, pressed ? { opacity: 0.88 } : null]}
+          >
+            <Ionicons name="barcode-outline" size={22} color="#FFFFFF" />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -124,6 +145,17 @@ function localStyles(theme: Theme) {
     borderTopWidth: 1,
     borderTopColor: theme.line,
   },
+  addBar: {
+    minHeight: 52,
+    borderRadius: 14,
+    backgroundColor: theme.action,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    overflow: 'hidden',
+  },
+  addMain: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, paddingHorizontal: 16 },
+  addSplit: { width: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.35)', marginVertical: 12 },
+  addScan: { width: 52, alignItems: 'center', justifyContent: 'center' },
 });
 }
 

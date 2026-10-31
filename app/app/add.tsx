@@ -107,14 +107,25 @@ export default function AddScreen() {
         <ManualAdd barcode={barcode} onBarcode={setBarcode} seed={null} off={offDraft} onClearOff={() => setOffDraft(null)} />
       ) : (
         <>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Scan a barcode"
+            onPress={() => router.push('/scan')}
+            style={({ pressed }) => [styles.scan, pressed ? { opacity: 0.88 } : null]}
+          >
+            <Ionicons name="barcode-outline" size={22} color="#FFFFFF" />
+            <T weight="semibold" size={16} color="#FFFFFF">
+              Scan a barcode
+            </T>
+          </Pressable>
           <View style={styles.switch}>
             <Pressable accessibilityRole="button" onPress={() => setMode('search')} style={[styles.switchItem, mode === 'search' && styles.switchOn]}>
-              <T weight="semibold" size={14} color={mode === 'search' ? '#fff' : theme.text}>
+              <T weight="semibold" size={14} color={mode === 'search' ? theme.text : theme.muted}>
                 Search
               </T>
             </Pressable>
             <Pressable accessibilityRole="button" onPress={() => setMode('manual')} style={[styles.switchItem, mode === 'manual' && styles.switchOn]}>
-              <T weight="semibold" size={14} color={mode === 'manual' ? '#fff' : theme.text}>
+              <T weight="semibold" size={14} color={mode === 'manual' ? theme.text : theme.muted}>
                 Manual
               </T>
             </Pressable>
@@ -201,12 +212,6 @@ function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void;
         style={styles.input}
         autoCapitalize="none"
       />
-      <Pressable accessibilityRole="button" onPress={() => router.push('/scan')} style={styles.scanLink}>
-        <Ionicons name="barcode-outline" size={18} color={theme.teal} />
-        <T weight="semibold" color={theme.teal}>
-          Scan a barcode
-        </T>
-      </Pressable>
       <T size={12} color={theme.muted}>
         Search uses the NIH Dietary Supplement Label Database. You still enter the price and the start date. Amounts are what the label says, not a suggestion.
       </T>
@@ -604,9 +609,20 @@ function slug(value: string): string {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.6 },
+  scan: {
+    minHeight: 52,
+    borderRadius: 14,
+    backgroundColor: theme.action,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
   switch: { flexDirection: 'row', backgroundColor: theme.greyPill, borderRadius: 14, padding: 4 },
-  switchItem: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 10 },
-  switchOn: { backgroundColor: theme.teal },
+  switchItem: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 44, borderRadius: 10 },
+  switchOn: { backgroundColor: theme.card },
   input: {
     backgroundColor: theme.card,
     borderRadius: 12,
@@ -625,7 +641,6 @@ function localStyles(theme: Theme) {
     borderRadius: 12,
     padding: 12,
   },
-  scanLink: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { backgroundColor: theme.card, borderRadius: 999, borderWidth: 1, borderColor: theme.line, paddingHorizontal: 12, paddingVertical: 6 },
 });

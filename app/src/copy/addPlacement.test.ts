@@ -16,7 +16,11 @@ describe('where add controls live', () => {
     expect(stack).toContain('ADD_SUPPLEMENT_ROUTE');
     expect(stack).not.toContain('Add a supplement');
     expect(stack).not.toContain('ADD_BUTTON_LABEL');
-    expect(stack.match(/<Button/g)).toHaveLength(1);
+    expect(stack).not.toContain('<Button');
+    expect(stack.match(/router\.push\(ADD_SUPPLEMENT_ROUTE\)/g)).toHaveLength(1);
+    expect(stack).toContain("router.push('/scan')");
+    expect(stack).toContain('barcode-outline');
+    expect(stack).toContain('Scan a barcode');
   });
 
   it('does not repeat the tab name in a header eyebrow', () => {
