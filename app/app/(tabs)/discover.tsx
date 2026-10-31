@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { EngagementStats, engagementPhrase } from '@/src/components/EngagementStats';
 import { ProductChips } from '@/src/components/ProductChips';
-import { Chip, FadeIn, ScoreRing, scoreTone, Segmented } from '@/src/components/share';
+import { Chip, FadeIn, ResultLine, ScoreRing, scoreTone, Segmented } from '@/src/components/share';
 import { Button, Card, EmptyLead, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import {
@@ -166,16 +166,6 @@ export default function DiscoverScreen() {
         <EmptyLead title={DISCOVER_EMPTY_TITLE} body={DISCOVER_EMPTY_BODY} />
       ) : null}
       {nextOffset != null ? <Button label="Load more" tone="ghost" onPress={() => void loadMore()} /> : null}
-      {items.some((item) => item.outcomeLine) ? (
-        <T size={12} color={theme.muted}>
-          {`* ${PERSONAL_RESULT_NOTE}`}
-        </T>
-      ) : null}
-      {items.some((item) => item.likeYou) ? (
-        <T size={12} color={theme.muted}>
-          {`* ${GROUP_RESULT_NOTE}`}
-        </T>
-      ) : null}
     </Screen>
   );
 }
@@ -189,38 +179,43 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
   return (
     <View style={styles.card}>
       <View style={[styles.cardTop, styles.pad]}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={[`${item.stackName}, dose score ${item.auditScore}`, phrase, item.outcomeLine ? `${item.outcomeLine}*` : null].filter(Boolean).join(', ')}
-          accessibilityHint={item.outcomeLine ? PERSONAL_RESULT_NOTE : undefined}
-          onPress={open}
-          style={({ pressed }) => [styles.cardMain, pressed ? { opacity: 0.92 } : null]}
-        >
-          <View style={{ flex: 1, gap: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <ScoreRing
-                score={item.auditScore}
-                size={72}
-                stroke={8}
-                color={tone === 'good' ? theme.good : theme.score}
-                track={theme.scoreTrack}
-                textColor={theme.text}
-                subColor={theme.muted}
-              />
-              <View style={{ flex: 1, gap: 4 }}>
-                <T weight="bold" size={18} style={{ letterSpacing: -0.3 }}>
-                  {item.stackName}
-                </T>
-                <T size={13} color={theme.muted}>
-                  {`${sharerName(item.creatorName)}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
-                </T>
+        <View style={{ flex: 1, gap: 10 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={[`${item.stackName}, dose score ${item.auditScore}`, phrase].filter(Boolean).join(', ')}
+            onPress={open}
+            style={({ pressed }) => [pressed ? { opacity: 0.92 } : null]}
+          >
+            <View style={{ gap: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <ScoreRing
+                  score={item.auditScore}
+                  size={72}
+                  stroke={8}
+                  color={tone === 'good' ? theme.good : theme.score}
+                  track={theme.scoreTrack}
+                  textColor={theme.text}
+                  subColor={theme.muted}
+                />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <T weight="bold" size={18} style={{ letterSpacing: -0.3 }}>
+                    {item.stackName}
+                  </T>
+                  <T size={13} color={theme.muted}>
+                    {`${sharerName(item.creatorName)}, ${item.productCount} ${item.productCount === 1 ? 'product' : 'products'}`}
+                  </T>
+                </View>
               </View>
+              <ProductChips names={item.productNames ?? []} />
             </View>
-            <ProductChips names={item.productNames ?? []} />
-            {item.outcomeLine ? <T size={14}>{`${item.outcomeLine}*`}</T> : null}
-            <EngagementStats copies={item.copyCount} views={item.viewCount} />
-          </View>
-        </Pressable>
+          </Pressable>
+          {item.outcomeLine ? <ResultLine line={item.outcomeLine} hint={PERSONAL_RESULT_NOTE} /> : null}
+          {phrase ? (
+            <Pressable accessibilityRole="button" accessibilityLabel={phrase} onPress={open} style={({ pressed }) => [pressed ? { opacity: 0.92 } : null]}>
+              <EngagementStats copies={item.copyCount} views={item.viewCount} />
+            </Pressable>
+          ) : null}
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={item.saved ? 'Remove from saved' : 'Save'}
@@ -238,9 +233,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
               <T size={13} weight="semibold" color={theme.teal}>
                 {item.likeYou.label}
               </T>
-              <View accessible accessibilityHint={GROUP_RESULT_NOTE}>
-                <T size={13}>{`${item.likeYou.line}*`}</T>
-              </View>
+              <ResultLine line={item.likeYou.line} hint={GROUP_RESULT_NOTE} size={13} />
             </View>
           ) : null}
           {item.goals.length > 0 || item.updatedOn ? (
@@ -274,7 +267,6 @@ function localStyles(theme: Theme) {
   pad: { paddingHorizontal: 16 },
   padBottom: { paddingHorizontal: 16, paddingBottom: 16 },
   cardTop: { flexDirection: 'row', gap: 4, alignItems: 'flex-start' },
-  cardMain: { flex: 1, flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   save: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   likeYou: { backgroundColor: theme.tealSoft, borderRadius: 12, padding: 10, gap: 2 },
 });

@@ -117,6 +117,7 @@ function RootNav() {
       <Stack.Screen name="settings" />
       <Stack.Screen name="sign-in" />
       <Stack.Screen name="privacy" />
+      <Stack.Screen name="results" />
       <Stack.Screen name="product/[id]" />
       <Stack.Screen name="share" />
       <Stack.Screen name="s/[slug]" />

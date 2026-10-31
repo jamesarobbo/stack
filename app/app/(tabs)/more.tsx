@@ -31,6 +31,7 @@ export default function MoreScreen() {
         <Row title="Monthly report" detail={app.isPro ? 'Keep, drop, or unclear' : 'Pro'} onPress={() => router.push('/report')} />
         <Row title={app.sessionToken ? 'Signed in' : 'Sign in'} detail={app.email || 'Syncs your supplement list only'} onPress={() => router.push('/sign-in')} />
         <Row title="Settings" detail="Username, export, and delete" onPress={() => router.push('/settings')} />
+        <Row title="About results" detail="What a star on a result means" onPress={() => router.push('/results')} />
         <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} last />
       </View>
       <DeveloperTools />

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
 import { ProductChips } from '@/src/components/ProductChips';
-import { BrandMark, DoseMeters, FadeIn, IconAction, OutcomeHero, ScoreBadge, ScoreHero, Toggle } from '@/src/components/share';
+import { BrandMark, DoseMeters, FadeIn, IconAction, OutcomeHero, ResultLine, ScoreBadge, ScoreHero, Toggle } from '@/src/components/share';
 import { BackButton, Button, Card, Disclaimer, Pill, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { REPORT_REASONS, goalLabel, type ReportReasonKey } from '@/src/copy/library';
@@ -423,18 +423,13 @@ export default function SharedStackScreen() {
                         {slice.people}
                       </T>
                     </View>
-                    <View accessible accessibilityHint={cohorts.disclaimer} style={{ maxWidth: '50%' }}>
-                      <T size={14} weight="semibold" color={theme.text} style={{ textAlign: 'right' }}>
-                        {`${sentence(slice.band)}*`}
-                      </T>
+                    <View style={{ maxWidth: '50%' }}>
+                      <ResultLine line={sentence(slice.band)} hint={cohorts.disclaimer} size={14} weight="semibold" align="right" />
                     </View>
                   </View>
                 ))}
               </View>
             ))}
-          <T size={12} color={theme.muted}>
-            {`* ${cohorts.disclaimer}. Updated daily.`}
-          </T>
         </Card>
       ) : null}
 

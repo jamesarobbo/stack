@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { DailyTotal, ScoreReason } from '../domain/auditScore';
@@ -200,6 +201,45 @@ export function ScoreHero({
   );
 }
 
+/** A result line marked with a star. The star opens About results. The hint still speaks the caveat. */
+export function ResultLine({
+  line,
+  hint,
+  size = 14,
+  weight = 'regular',
+  color,
+  align = 'left',
+}: {
+  line: string;
+  hint: string;
+  size?: number;
+  weight?: 'regular' | 'medium' | 'semibold' | 'bold';
+  color?: string;
+  align?: 'left' | 'right';
+}) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${line}. About results`}
+      accessibilityHint={hint}
+      onPress={() => router.push('/results')}
+      hitSlop={4}
+      style={({ pressed }) => [
+        { minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: align === 'right' ? 'flex-end' : 'flex-start' },
+        pressed ? { opacity: 0.88 } : null,
+      ]}
+    >
+      <T size={size} weight={weight} color={color ?? theme.text} style={align === 'right' ? { textAlign: 'right' } : undefined}>
+        {line}
+        <T size={size} weight={weight} color={theme.teal}>
+          *
+        </T>
+      </T>
+    </Pressable>
+  );
+}
+
 /** Personal before and after result. Neutral colours: a lower number is not called better. */
 export function OutcomeHero({
   result,
@@ -217,32 +257,22 @@ export function OutcomeHero({
       <T size={13} weight="semibold" color={theme.muted}>
         {who ? `What changed for ${who}` : (result.framing ?? 'What changed for me')}
       </T>
-      <View
-        accessible
-        accessibilityLabel={`${parts.value}. ${result.label} ${parts.word}`}
-        accessibilityHint={PERSONAL_RESULT_NOTE}
-        style={{ gap: 10 }}
-      >
+      <View style={{ gap: 10 }}>
         <View style={styles.outcomeRow}>
           <View style={styles.outcomeIcon}>
             <Ionicons name={icon} size={22} color={theme.teal} />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, gap: 2 }}>
             <T weight="bold" size={parts.value.length > 5 ? 36 : 52} color={theme.text} style={{ letterSpacing: -1.5, lineHeight: 58 }}>
               {parts.value}
             </T>
-            <T size={15} weight="semibold" color={theme.text}>
-              {`${result.label} ${parts.word}*`}
-            </T>
+            <ResultLine line={`${result.label} ${parts.word}`} hint={PERSONAL_RESULT_NOTE} size={15} weight="semibold" />
           </View>
         </View>
         <T size={13} color={theme.muted}>
           {`12 weeks before against 12 weeks after, measured on ${result.device}.`}
         </T>
       </View>
-      <T size={13} color={theme.muted}>
-        {`* ${PERSONAL_RESULT_NOTE}`}
-      </T>
     </View>
   );
 }
