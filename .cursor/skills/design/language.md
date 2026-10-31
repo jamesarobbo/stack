@@ -54,7 +54,7 @@ The system font. `font.regular` through `font.bold` are weights `400`, `500`, `6
 - The score hero is a white or dark card with a ring. The number is ink. No filled charcoal slab, and no thick green bar on the card.
 - Product rows sit in one group with hairline separators, not a card per row.
 - My Stack puts the share icon at the top right once the stack has products. Hit target 44. The label is "Share stack". Android uses the share-social outline. It is not an add control.
-- The Add supplement bar is the only add control. A barcode icon on its trailing edge opens the scanner in one tap. On the add screen, Scan a barcode is the filled button, above search and manual entry.
+- The Add supplement bar is the only add control. A barcode icon on its trailing edge opens the scanner in one tap. On the add screen, Scan a barcode is the filled button, above search and manual entry. Common ingredients are tinted pills with an add icon. They wrap under that search, and they stay quieter than the scan button.
 
 ## Motion
 

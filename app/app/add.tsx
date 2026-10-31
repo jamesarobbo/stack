@@ -266,11 +266,7 @@ function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void;
       </T>
       <View style={styles.chips}>
         {COMMON_INGREDIENTS.map((ingredient) => (
-          <Pressable key={ingredient.key} accessibilityRole="button" onPress={() => onManual(ingredient)} style={styles.chip}>
-            <T size={13} weight="semibold">
-              {ingredient.name}
-            </T>
-          </Pressable>
+          <IngredientChip key={ingredient.key} name={ingredient.name} onPress={() => onManual(ingredient)} />
         ))}
       </View>
     </View>
@@ -444,11 +440,7 @@ function ManualAdd({
       <T weight="semibold">Ingredients on the label</T>
       <View style={styles.chips}>
         {COMMON_INGREDIENTS.map((ingredient) => (
-          <Pressable key={ingredient.key} accessibilityRole="button" onPress={() => addCommon(ingredient)} style={styles.chip}>
-            <T size={13} weight="semibold">
-              {ingredient.name}
-            </T>
-          </Pressable>
+          <IngredientChip key={ingredient.key} name={ingredient.name} onPress={() => addCommon(ingredient)} />
         ))}
       </View>
       {ingredients.map((ingredient, index) => (
@@ -602,6 +594,24 @@ function Field({
   );
 }
 
+function IngredientChip({ name, onPress }: { name: string; onPress: () => void }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Add ${name}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.chip, pressed ? { opacity: 0.88 } : null]}
+    >
+      <Ionicons name="add" size={16} color={theme.teal} />
+      <T size={15} weight="semibold" color={theme.teal}>
+        {name}
+      </T>
+    </Pressable>
+  );
+}
+
 function slug(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'ingredient';
 }
@@ -642,7 +652,18 @@ function localStyles(theme: Theme) {
     padding: 12,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { backgroundColor: theme.card, borderRadius: 999, borderWidth: 1, borderColor: theme.line, paddingHorizontal: 12, paddingVertical: 6 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 44,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: theme.tealSoft,
+    borderWidth: 1,
+    borderColor: theme.teal,
+  },
 });
 }
 
