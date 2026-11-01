@@ -5,7 +5,7 @@ import { DateField } from '@/src/components/DateField';
 import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { DoseMeters } from '@/src/components/share';
 import { DoseRow } from '@/src/primitives';
-import type { UnitOption } from '@/src/data/units';
+import { unitDisplayLabel, type UnitOption } from '@/src/data/units';
 import { BackButton, Button, Card, Disclaimer, Screen, T } from '@/src/components/ui';
 import { applyScreenExit } from '@/src/navigation/exit';
 import { monthlyCostCents } from '@/src/domain/audit';
@@ -97,7 +97,7 @@ export default function ProductScreen() {
                     {ingredient.name}
                   </T>
                   <T size={16} weight="semibold" color={theme.muted}>
-                    {ingredient.amount ? `${ingredient.amount} ${ingredient.unit}` : ingredient.unit}
+                    {ingredient.amount ? `${ingredient.amount} ${unitDisplayLabel(ingredient.unit)}` : unitDisplayLabel(ingredient.unit)}
                   </T>
                 </View>
               ))}

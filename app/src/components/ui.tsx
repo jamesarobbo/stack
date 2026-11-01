@@ -126,9 +126,11 @@ export function Card({
 export function Pill({
   children,
   tone = 'grey',
+  style,
 }: {
   children: ReactNode;
   tone?: 'grey' | 'amber' | 'teal' | 'flag' | 'blue';
+  style?: StyleProp<ViewStyle>;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
@@ -140,7 +142,7 @@ export function Pill({
     blue: { bg: theme.tealSoft, fg: theme.teal },
   }[tone];
   return (
-    <View style={[styles.pill, { backgroundColor: tones.bg }]}>
+    <View style={[styles.pill, { backgroundColor: tones.bg }, style]}>
       <T size={12} weight="semibold" color={tones.fg}>
         {children}
       </T>

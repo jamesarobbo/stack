@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { Platform, StyleSheet, View } from 'react-native';
-import { coerceUnit, UNIT_OPTIONS, type UnitOption } from '../data/units';
+import { coerceUnit, UNIT_OPTIONS, unitDisplayLabel, type UnitOption } from '../data/units';
 import { control, radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { CompactMenuPickerShell, NativeMenuPicker } from './NativeMenuPicker';
 import { T } from './ui';
@@ -38,7 +38,7 @@ export function UnitField({
             style={styles.compactAndroidPicker}
           >
             {UNIT_OPTIONS.map((option) => (
-              <Picker.Item key={option} label={option} value={option} color={theme.text} />
+              <Picker.Item key={option} label={unitDisplayLabel(option)} value={option} color={theme.text} />
             ))}
           </Picker>
         </View>
@@ -59,7 +59,7 @@ export function UnitField({
             style={styles.androidPicker}
           >
             {UNIT_OPTIONS.map((option) => (
-              <Picker.Item key={option} label={option} value={option} color={theme.text} />
+              <Picker.Item key={option} label={unitDisplayLabel(option)} value={option} color={theme.text} />
             ))}
           </Picker>
         </View>
@@ -73,7 +73,8 @@ export function UnitField({
         options={UNIT_OPTIONS}
         value={selected}
         onChange={onChange}
-        accessibilityLabel={compact ? `Unit, ${selected}` : `${label}, ${selected}`}
+        labelFor={unitDisplayLabel}
+        accessibilityLabel={compact ? `Unit, ${unitDisplayLabel(selected)}` : `${label}, ${unitDisplayLabel(selected)}`}
       />
     );
     if (compact) {
@@ -102,7 +103,7 @@ export function UnitField({
         </T>
       )}
       <View style={compact ? styles.compact : styles.field}>
-        <T weight="semibold">{selected}</T>
+        <T weight="semibold">{unitDisplayLabel(selected)}</T>
         <Ionicons name="chevron-down" size={16} color={theme.muted} />
       </View>
     </View>

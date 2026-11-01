@@ -1,4 +1,5 @@
-import { router, Stack, usePathname } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider, router, Stack, usePathname } from 'expo-router';
+import * as SystemUI from 'expo-system-ui';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
@@ -24,6 +25,10 @@ export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(theme.bg);
+  }, [theme.bg]);
 
   return (
     <SafeAreaProvider>
@@ -111,25 +116,48 @@ function RootNav() {
 
   if (app.bootError) return <Boot message={app.bootError} />;
   if (!app.ready) return <Boot message="Loading your stack…" />;
+
+  const base = theme.bg === '#16130F' ? DarkTheme : DefaultTheme;
+  const navigationTheme = {
+    ...base,
+    colors: {
+      ...base.colors,
+      primary: theme.action,
+      background: theme.bg,
+      card: theme.card,
+      text: theme.text,
+      border: theme.line,
+      notification: theme.action,
+    },
+  };
+
   return (
-    <Stack screenOptions={{ headerShown: false, gestureEnabled: true, contentStyle: { backgroundColor: theme.bg } }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="onboarding" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="add" />
-      <Stack.Screen name="scan" />
-      <Stack.Screen name="paywall" />
-      <Stack.Screen name="report" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="currency" />
-      <Stack.Screen name="sign-in" />
-      <Stack.Screen name="privacy" />
-      <Stack.Screen name="results" />
-      <Stack.Screen name="product/[id]" />
-      <Stack.Screen name="today" />
-      <Stack.Screen name="history" />
-      <Stack.Screen name="share" />
-      <Stack.Screen name="s/[slug]" />
-    </Stack>
+    <ThemeProvider value={navigationTheme}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          gestureEnabled: true,
+          contentStyle: { backgroundColor: theme.bg },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="add" />
+        <Stack.Screen name="scan" />
+        <Stack.Screen name="paywall" />
+        <Stack.Screen name="report" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="currency" />
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="privacy" />
+        <Stack.Screen name="results" />
+        <Stack.Screen name="product/[id]" />
+        <Stack.Screen name="today" />
+        <Stack.Screen name="history" />
+        <Stack.Screen name="share" />
+        <Stack.Screen name="s/[slug]" />
+      </Stack>
+    </ThemeProvider>
   );
 }

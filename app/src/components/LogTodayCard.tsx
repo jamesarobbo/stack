@@ -142,7 +142,9 @@ function localStyles(theme: Theme) {
       alignItems: 'center',
       gap: space.md,
       paddingVertical: space.md,
-      paddingHorizontal: space.md,
+      paddingLeft: space.md,
+      // Keep the chevron clear of Expo Go's floating gear on the right edge.
+      paddingRight: space.xxl,
       borderRadius: theme.radius,
       borderWidth: 1,
       borderColor: theme.line,

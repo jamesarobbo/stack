@@ -23,12 +23,15 @@ export function NativeMenuPicker<T extends string>({
   onChange,
   accessibilityLabel,
   style,
+  labelFor,
 }: {
   options: readonly T[];
   value: T;
   onChange: (next: T) => void;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
+  /** Short display label; selection value stays the option string. */
+  labelFor?: (option: T) => string;
 }) {
   const theme = useTheme();
   if (Platform.OS !== 'ios') return null;
@@ -64,7 +67,7 @@ export function NativeMenuPicker<T extends string>({
         >
           {options.map((option) => (
             <Text key={option} modifiers={[tag(option), lineLimit(1), truncationMode('tail')]}>
-              {option}
+              {labelFor ? labelFor(option) : option}
             </Text>
           ))}
         </Picker>

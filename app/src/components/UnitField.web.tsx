@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { coerceUnit, UNIT_OPTIONS, type UnitOption } from '../data/units';
+import { coerceUnit, UNIT_OPTIONS, unitDisplayLabel, type UnitOption } from '../data/units';
 import { control, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
@@ -49,7 +49,7 @@ export function UnitField({
             overflow: 'hidden',
           },
         },
-        UNIT_OPTIONS.map((option) => createElement('option', { key: option, value: option }, option)),
+        UNIT_OPTIONS.map((option) => createElement('option', { key: option, value: option }, unitDisplayLabel(option))),
       )}
     </View>
   );

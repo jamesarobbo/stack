@@ -76,13 +76,19 @@ export default function StackScreen() {
           <T size={13} color={theme.muted}>
             Estimated monthly spend
           </T>
-          <T weight="bold" size={44} color={theme.amber} style={styles.spend}>
+          <T weight="bold" size={56} color={theme.amber} style={styles.spend}>
             {joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.monthlyCents }))) ?? formatMoney(0, app.currency)}
           </T>
           {audit.duplicates.length > 0 ? (
             <View style={styles.overlapRow}>
-              <Pill>{`${audit.duplicates.length} overlaps`}</Pill>
-              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/audit')} style={styles.link}>
+              <Pill style={styles.overlapChip}>
+                {`${audit.duplicates.length} overlap${audit.duplicates.length === 1 ? '' : 's'}`}
+              </Pill>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/(tabs)/audit')}
+                style={styles.overlapLink}
+              >
                 <T size={14} weight="semibold" color={theme.action}>
                   View in Audit
                 </T>
@@ -91,8 +97,8 @@ export default function StackScreen() {
           ) : null}
           {app.products.length > 0 ? (
             <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/audit')} style={styles.scoreRow}>
-              <ScoreBadge score={scored.score} size={52} />
-              <View style={{ flex: 1, gap: space.xxs }}>
+              <ScoreBadge score={scored.score} size={44} />
+              <View style={{ flex: 1, gap: 0 }}>
                 <T weight="semibold">Dose audit</T>
                 <T size={13} color={theme.muted}>
                   {scored.summary}
@@ -160,17 +166,25 @@ function localStyles(theme: Theme) {
   links: { flexDirection: 'row', gap: space.lg },
   link: { minHeight: control.height, justifyContent: 'center' },
   scroll: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.xxl, gap: space.xl },
-  hero: { gap: space.xl },
-  spend: { letterSpacing: -1.5, lineHeight: 50 },
-  overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  hero: { gap: space.sm, paddingVertical: space.lg, paddingHorizontal: space.lg },
+  spend: { letterSpacing: -2, lineHeight: 60, marginTop: -space.xs },
+  overlapRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space.md,
+    minHeight: control.compact,
+  },
+  overlapChip: { alignSelf: 'center' },
+  overlapLink: { justifyContent: 'center', alignSelf: 'center', paddingVertical: space.xs },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.md,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: theme.line,
-    paddingTop: 12,
-    marginTop: 4,
+    paddingTop: space.sm,
+    marginTop: space.xs,
   },
   footer: {
     paddingHorizontal: space.xl,

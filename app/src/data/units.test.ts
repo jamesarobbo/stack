@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { COMMON_INGREDIENTS } from './commonIngredients';
 import { buildExample } from './example';
-import { UNIT_OPTIONS, coerceUnit } from './units';
+import { UNIT_OPTIONS, coerceUnit, unitDisplayLabel } from './units';
 
 describe('ingredient unit options', () => {
   it('defaults to mg and maps aliases onto the picker', () => {
@@ -23,5 +23,14 @@ describe('ingredient unit options', () => {
     for (const unit of units) expect(UNIT_OPTIONS).toContain(unit);
     expect(units).toContain('other');
     expect(units).not.toContain('blend');
+  });
+});
+
+describe('unit display labels', () => {
+  it('shortens long units for the picker while keeping the stored value', () => {
+    expect(unitDisplayLabel('CFU (billion)')).toBe('B CFU');
+    expect(coerceUnit('CFU')).toBe('CFU (billion)');
+    expect(unitDisplayLabel('mg')).toBe('mg');
+    expect(unitDisplayLabel('mcg DFE')).toBe('mcg DFE');
   });
 });
