@@ -54,9 +54,10 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const styles = useThemedStyles(localStyles);
+  const bottomPad = footer ? space.xxl + 72 : space.xxl;
   const body = scroll ? (
     <ScrollView
-      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + space.lg }]}
+      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + space.lg, paddingBottom: bottomPad }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
@@ -65,7 +66,7 @@ export function Screen({
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.scroll, { paddingTop: insets.top + space.lg, flex: 1 }]}>{children}</View>
+    <View style={[styles.scroll, { paddingTop: insets.top + space.lg, paddingBottom: bottomPad, flex: 1 }]}>{children}</View>
   );
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

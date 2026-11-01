@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { suggestGoals } from '../../shared/goalSuggestions';
 import { Platform, Share, StyleSheet, TextInput, View } from 'react-native';
 import { Choice } from '@/src/components/OnboardingProgress';
-import { Chip, FadeIn, OutcomeHero, ScoreHero, ShareCardPreview, StoryCardPreview, type CardResult } from '@/src/components/share';
+import { Chip, FadeIn, OutcomeHero, ScoreHero } from '@/src/components/share';
 import { UsernameField } from '@/src/components/UsernameField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
@@ -21,7 +21,7 @@ import { creatorResults, sharePayloadProducts, type OwnShare, type ShareView } f
 import { auditStack } from '@/src/domain/audit';
 import { scoreStack } from '@/src/domain/auditScore';
 import { spendSentence } from '../../shared/money';
-import { earliestReady, heroParts, submittedFields, type OutcomeMetric, type OutcomeResult } from '@/src/domain/outcome';
+import { earliestReady, submittedFields, type OutcomeMetric, type OutcomeResult } from '@/src/domain/outcome';
 import { formatUsDate } from '@/src/dates';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
@@ -99,15 +99,6 @@ export default function ShareScreen() {
   const previewName = stackName.trim() || app.products[0]?.name || 'Shared stack';
   const chosen: OutcomeResult | null = selected !== 'none' && selected !== 'keep' ? (eligible.find((item) => item.metric === selected) ?? null) : null;
   const resultToShow = selected === 'keep' ? current?.result : chosen;
-  const previewResult: CardResult | null = resultToShow
-    ? {
-        ...heroParts(resultToShow),
-        label: resultToShow.label,
-        device: resultToShow.device,
-        disclaimer: resultToShow.disclaimer ?? '1 person, not a trial',
-        kicker: handle ? `What changed for ${handle}` : (resultToShow.framing ?? 'What changed for me'),
-      }
-    : null;
   const blocked = app.usingSampleData;
   const loaded = !app.sessionToken || fetched;
 
@@ -121,7 +112,7 @@ export default function ShareScreen() {
         token: app.sessionToken,
         body: {
           stackName: stackName.trim() || null,
-          goals: chosenGoals,
+          goals: listed ? chosenGoals : [],
           listed,
           products: sharePayloadProducts(app.products),
           spend,
@@ -212,35 +203,29 @@ export default function ShareScreen() {
         }
       >
         <T weight="bold" size={30} style={styles.title}>
-          This will be public
+          Ready to share
         </T>
         <T size={15} color={theme.muted}>
-          Anyone with the link can see this page, even without the app.
+          Anyone with the link can open the page, even without the app.
         </T>
         <Card>
+          <ReviewRow label="Who can see it" value={listed ? 'Listed in Discover' : 'Only people with the link'} />
           <ReviewRow label="Stack name" value={previewName} />
-          <ReviewRow label="Username" value={handle ?? 'Not set. The page says A Stack user.'} />
+          <ReviewRow label="Username" value={handle ?? 'A Stack user'} />
           <ReviewRow
             label="Products"
             value={
               spendLabel
-                ? `${app.products.length}, with their doses and brands. The monthly total (${spendLabel}) is on the page. Individual prices, notes, and start dates stay on your phone.`
-                : `${app.products.length}, with their doses and brands. Individual prices, notes, and start dates stay on your phone.`
+                ? `${app.products.length}, doses and brands. Monthly total ${spendLabel} on the page.`
+                : `${app.products.length}, doses and brands. Prices and notes stay on your phone.`
             }
           />
-          <ReviewRow label="Audit score" value={`${scored.score} out of 100, with the reasons`} />
-          <ReviewRow
-            label="Personal result"
-            value={resultToShow ? `${resultToShow.line}. The page says you tracked a result and the app shows it.` : 'None'}
-          />
-          <ReviewRow label="Goals" value={chosenGoals.length > 0 ? chosenGoals.map(goalLabel).join(', ') : 'None'} />
-          <ReviewRow
-            label="Who can find it"
-            value={listed ? 'Listed in Discover and searchable by stack name, ingredient, and username' : 'Only people you send the link to'}
-          />
+          <ReviewRow label="Dose score" value={`${scored.score} out of 100`} />
+          <ReviewRow label="Personal result" value={resultToShow ? resultToShow.line : 'None'} />
+          {listed ? <ReviewRow label="Goals" value={chosenGoals.length > 0 ? chosenGoals.map(goalLabel).join(', ') : 'None'} /> : null}
         </Card>
         <T size={13} color={theme.muted}>
-          No wearable samples are sent. A personal result is worked out on this phone and only its headline is published. You can unshare at any time.
+          No wearable samples are sent. You can unshare at any time.
         </T>
         {notice ? (
           <T size={14} color={theme.flagText}>
@@ -273,9 +258,6 @@ export default function ShareScreen() {
       <BackButton />
       <T weight="bold" size={32} style={styles.title}>
         {SHARE_STACK_LABEL}
-      </T>
-      <T size={15} color={theme.muted}>
-        The tall card is for a story. The wide card is the link preview. Anyone with the link can open the page, and people with the app can copy it.
       </T>
 
       {app.products.length === 0 ? (
@@ -311,7 +293,7 @@ export default function ShareScreen() {
             </T>
             <T size={13} color={theme.muted}>
               {[
-                current.listed ? 'Listed in Discover' : 'Link only',
+                current.listed ? 'Listed in Discover' : 'Only people with the link',
                 copyCountLabel(current.copyCount),
                 current.viewCount != null ? `${groupedCount(current.viewCount)} views` : null,
                 current.updatedOn ? `Updated on ${formatUsDate(current.updatedOn)}` : `Shared on ${formatUsDate(current.createdOn)}`,
@@ -350,43 +332,89 @@ export default function ShareScreen() {
       ) : null}
 
       {app.products.length > 0 && !blocked ? (
-        <>
-          <FadeIn delay={40}>
-            <StoryCardPreview
-              stackName={previewName}
-              creator={handle || 'A Stack user'}
-              productCount={app.products.length}
-              score={scored.score}
-              summary={scored.summary}
-              composition={scored.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit }))}
-              result={previewResult}
-              spend={spendLabel}
-            />
-          </FadeIn>
-          <FadeIn delay={60}>
-            <ShareCardPreview
-              stackName={previewName}
-              creator={handle || 'A Stack user'}
-              productCount={app.products.length}
-              score={scored.score}
-              summary={scored.summary}
-              composition={scored.totals.map((total) => ({ name: total.name, ofLimit: total.ofLimit }))}
-              result={previewResult}
-              spend={spendLabel}
-            />
-          </FadeIn>
-          <FadeIn delay={80}>
-            <ScoreHero score={scored.score} summary={scored.summary} reasons={scored.reasons} />
-          </FadeIn>
-        </>
+        <FadeIn delay={40}>
+          <ScoreHero score={scored.score} summary={scored.summary} reasons={scored.reasons} />
+        </FadeIn>
       ) : null}
 
       {app.sessionToken && app.products.length > 0 && !blocked ? (
         <>
           <Card>
+            <T weight="semibold">Who can see it</T>
+            <Choice label="Only people with the link" selected={!listed} onPress={() => setListed(false)} />
+            <T size={13} color={theme.muted}>
+              Only people you send it to.
+            </T>
+            <Choice
+              label="Listed in Discover"
+              selected={listed}
+              onPress={() => {
+                if (!username) {
+                  setAfterUsername('list');
+                  setStep('username');
+                  return;
+                }
+                setListed(true);
+              }}
+            />
+            <T size={13} color={theme.muted}>
+              People in the app can find and copy it.
+            </T>
+          </Card>
+
+          {listed ? (
+            <Card>
+              <T weight="semibold">Goals</T>
+              <T size={13} color={theme.muted}>
+                Up to 3. Used to filter Discover.
+              </T>
+              {showingSuggestions ? (
+                <T size={13} color={theme.muted}>
+                  Suggested from your products
+                </T>
+              ) : null}
+              <View style={styles.chips}>
+                {LIBRARY_GOALS.map((goal) => (
+                  <Chip
+                    key={goal.key}
+                    label={goal.label}
+                    selected={chosenGoals.includes(goal.key)}
+                    onPress={() => {
+                      setGoals((list) => {
+                        const base = list ?? chosenGoals;
+                        if (base.includes(goal.key)) return base.filter((item) => item !== goal.key);
+                        if (base.length >= 3) return base;
+                        return [...base, goal.key];
+                      });
+                    }}
+                  />
+                ))}
+              </View>
+            </Card>
+          ) : null}
+
+          <Card>
+            <T weight="semibold">Stack name</T>
+            <TextInput
+              value={stackName}
+              onChangeText={setStackName}
+              placeholder={app.products[0]?.name ?? 'Evening magnesium'}
+              placeholderTextColor={theme.faint}
+              accessibilityLabel="Stack name"
+              autoCapitalize="sentences"
+              returnKeyType="done"
+              clearButtonMode="while-editing"
+              style={styles.input}
+            />
+            <T size={13} color={theme.muted}>
+              No links, contact details, or medical claims.
+            </T>
+          </Card>
+
+          <Card>
             <T weight="semibold">Personal result</T>
             <T size={13} color={theme.muted}>
-              Optional. Worked out on this phone from Apple Health. Only the headline is published, never your samples.
+              Optional. Only the headline is published.
             </T>
             {!realHealth ? (
               <T size={14} color={theme.muted}>
@@ -405,76 +433,6 @@ export default function ShareScreen() {
               <Choice key={item.metric} label={item.line} selected={selected === item.metric} onPress={() => setSelected(item.metric)} />
             ))}
             {resultToShow ? <OutcomeHero result={resultToShow} /> : null}
-          </Card>
-
-          <Card>
-            <T weight="semibold">Stack name</T>
-            <TextInput
-              value={stackName}
-              onChangeText={setStackName}
-              placeholder={app.products[0]?.name ?? 'Evening magnesium'}
-              placeholderTextColor={theme.faint}
-              accessibilityLabel="Stack name"
-              autoCapitalize="sentences"
-              returnKeyType="done"
-              clearButtonMode="while-editing"
-              style={styles.input}
-            />
-            <T size={13} color={theme.muted}>
-              Names with links, contact details, or words like cure or treat are not accepted.
-            </T>
-          </Card>
-
-          <Card>
-            <T weight="semibold">Goals</T>
-            <T size={13} color={theme.muted}>
-              Up to 3. People can filter Discover by these.
-            </T>
-            {showingSuggestions ? (
-              <T size={13} color={theme.muted}>
-                Suggested from your products
-              </T>
-            ) : null}
-            <View style={styles.chips}>
-              {LIBRARY_GOALS.map((goal) => (
-                <Chip
-                  key={goal.key}
-                  label={goal.label}
-                  selected={chosenGoals.includes(goal.key)}
-                  onPress={() => {
-                    setGoals((list) => {
-                      const base = list ?? chosenGoals;
-                      if (base.includes(goal.key)) return base.filter((item) => item !== goal.key);
-                      if (base.length >= 3) return base;
-                      return [...base, goal.key];
-                    });
-                  }}
-                />
-              ))}
-            </View>
-          </Card>
-
-          <Card>
-            <T weight="semibold">Who can find this</T>
-            <Choice label="Link only" selected={!listed} onPress={() => setListed(false)} />
-            <T size={13} color={theme.muted}>
-              Only people with the link. The page stays out of search engines.
-            </T>
-            <Choice
-              label="List in Discover"
-              selected={listed}
-              onPress={() => {
-                if (!username) {
-                  setAfterUsername('list');
-                  setStep('username');
-                  return;
-                }
-                setListed(true);
-              }}
-            />
-            <T size={13} color={theme.muted}>
-              People in the app can find and copy it. The page can be indexed. Stacks with a dose above twice the upper limit are not listed.
-            </T>
           </Card>
         </>
       ) : null}

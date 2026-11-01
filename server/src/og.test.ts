@@ -37,8 +37,8 @@ describe('link preview image', () => {
     expect(priced).toContain('£175 a month');
     expect(priced).toContain('#8A5600');
     expect(storySvg({ ...input, spendLabel: '£40 a month and $12 a month' })).toContain('£40 a month and $12 a month');
-    expect(ogImageVersion(1)).toBe(6_000_001);
-    expect(storyImageVersion(1)).toBe(6_500_001);
+    expect(ogImageVersion(1)).toBe(7_000_001);
+    expect(storyImageVersion(1)).toBe(7_500_001);
     const counted = ogSvg({ ...input, copyLabel: 'Copied by 24 people' });
     expect(counted).toContain('Copied by 24 people');
     expect(counted).not.toContain('Kept by');

@@ -495,7 +495,7 @@ export function ShareCardPreview({
           </T>
         </View>
       </View>
-      <T weight="bold" size={14} color={theme.teal}>
+      <T weight="bold" size={14} color={theme.action}>
         Check your stack against this one
       </T>
     </View>
@@ -584,11 +584,9 @@ export function StoryCardPreview({
           );
         })}
       </View>
-      <View style={styles.storyCta}>
-        <T weight="bold" size={15} color="#FFFFFF" style={{ textAlign: 'center' }}>
-          Check your stack against this one
-        </T>
-      </View>
+      <T weight="bold" size={15} color={theme.action} style={{ textAlign: 'center' }}>
+        Check your stack against this one
+      </T>
     </View>
   );
 }
@@ -699,14 +697,13 @@ function localStyles(theme: Theme) {
   outcomeRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   outcomeIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.card, alignItems: 'center', justifyContent: 'center' },
   noLimit: { height: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: theme.line },
-  preview: { backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 16, paddingTop: 18, gap: 8, overflow: 'hidden' },
+  preview: { backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 16, paddingTop: 18, paddingBottom: 22, gap: 8, overflow: 'hidden' },
   previewPanel: { width: 132, borderRadius: 12, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
   previewGlow: { position: 'absolute', width: 160, height: 160, borderRadius: 80, right: -70, bottom: -80, opacity: 0.55 },
   previewResult: { backgroundColor: theme.bg, borderRadius: 12, padding: 10, gap: 2 },
-  story: { backgroundColor: theme.bg, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 18, paddingTop: 22, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
+  story: { backgroundColor: theme.bg, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 18, paddingTop: 22, paddingBottom: 28, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
   storyPanel: { borderRadius: 12, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden', backgroundColor: theme.card },
   storyResult: { backgroundColor: theme.card, borderRadius: 12, padding: 14, gap: 2 },
-  storyCta: { backgroundColor: theme.action, borderRadius: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 12 },
   chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
   chipOn: { backgroundColor: theme.action, borderColor: theme.action },
   segmented: { flexDirection: 'row', backgroundColor: theme.segmentTrack, borderRadius: 12, padding: 3, gap: 2 },
