@@ -4,7 +4,7 @@
  * Copier averages never appear. The owner's published headline can, with its window and device.
  */
 
-export const OG_CACHE_VERSION = 6;
+export const OG_CACHE_VERSION = 7;
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const STORY_WIDTH = 1080;
@@ -138,8 +138,7 @@ ${titleText}
 ${copyLine}
 ${result}
 ${composition}
-<rect x="64" y="${ctaY}" width="520" height="48" rx="14" fill="${TEAL}"/>
-<text x="324" y="${ctaY + 31}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="20" fill="#FFFFFF">Check your stack against this one</text>
+<text x="64" y="${ctaY + 28}" font-family="Inter" font-weight="700" font-size="22" fill="${TEAL}">Check your stack against this one</text>
 <rect x="720" y="70" width="420" height="490" rx="28" fill="${CARD}"/>
 <circle cx="932" cy="250" r="112" fill="none" stroke="${TRACK}" stroke-width="18"/>
 <circle cx="932" cy="250" r="112" fill="none" stroke="${ring}" stroke-width="18" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${circumference.toFixed(1)}" transform="rotate(-90 932 250)"/>
@@ -227,8 +226,7 @@ ${storySpend ? `${spendLine}\n` : ''}<rect x="${pad}" y="${panelTop}" width="${i
 ${summary}
 ${result}
 ${composition}
-<rect x="${pad}" y="${ctaY}" width="${inner}" height="84" rx="16" fill="${TEAL}"/>
-<text x="${STORY_WIDTH / 2}" y="${ctaY + 52}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="30" fill="#FFFFFF">Check your stack against this one</text>
+<text x="${STORY_WIDTH / 2}" y="${ctaY + 48}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="30" fill="${TEAL}">Check your stack against this one</text>
 </svg>`;
 }
 

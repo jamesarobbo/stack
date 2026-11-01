@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingProgress } from '@/src/components/OnboardingProgress';
 import { Button, T } from '@/src/components/ui';
-import { useTheme } from '@/src/theme';
+import { space, useTheme } from '@/src/theme';
 
 export default function WelcomeStep() {
   const theme = useTheme();
@@ -14,14 +14,14 @@ export default function WelcomeStep() {
         style={{
           flex: 1,
           backgroundColor: theme.bg,
-          paddingHorizontal: 24,
+          paddingHorizontal: space.xl,
           paddingTop: insets.top + 24,
           paddingBottom: Math.max(insets.bottom, 16),
-          gap: 10,
+          gap: space.md,
         }}
       >
         <OnboardingProgress step="welcome" />
-        <T weight="bold" size={34} style={{ letterSpacing: -0.7 }}>
+        <T weight="semibold" size={34} style={{ letterSpacing: -0.7 }}>
           Your stack, in one place.
         </T>
         <T size={16} color={theme.muted}>

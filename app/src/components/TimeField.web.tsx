@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { StyleSheet, View, useColorScheme } from 'react-native';
 import { isValidTime } from '../../../shared/reminders';
-import { useTheme } from '../theme';
+import { fontFamily, control, radius, space, typeSize, useTheme } from '../theme';
 import { T } from './ui';
 
 /** Web stand-in. The time input on the right opens the browser picker when tapped. */
@@ -27,11 +27,11 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
           color: theme.text,
           colorScheme: scheme === 'dark' ? 'dark' : 'light',
           border: 'none',
-          borderRadius: 8,
-          minHeight: 36,
+          borderRadius: radius.sm,
+          minHeight: control.compact,
           padding: '8px 12px',
-          fontSize: 16,
-          fontWeight: '600',
+          fontSize: typeSize.body,
+          fontFamily, fontWeight: '600',
         },
       })}
     </View>
@@ -39,5 +39,5 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
 }
 
 const rowStyle = StyleSheet.create({
-  row: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  row: { minHeight: control.height, flexDirection: 'row', alignItems: 'center', gap: space.md },
 }).row;

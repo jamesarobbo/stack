@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { StyleSheet, View, useColorScheme } from 'react-native';
 import { clampStartDate, localToday } from '../dates';
-import { font, useTheme } from '../theme';
+import { fontFamily, control, font, radius, space, typeSize, useTheme } from '../theme';
 import { T } from './ui';
 
 /**
@@ -41,11 +41,11 @@ export function DateField({
           color: theme.text,
           backgroundColor: theme.greyPill,
           colorScheme: scheme === 'dark' ? 'dark' : 'light',
-          fontWeight: font.semibold,
-          fontSize: 16,
+          fontFamily, fontWeight: font.semibold,
+          fontSize: typeSize.body,
           border: 'none',
-          borderRadius: 8,
-          minHeight: 36,
+          borderRadius: radius.sm,
+          minHeight: control.compact,
           padding: '8px 12px',
         },
       })}
@@ -55,10 +55,10 @@ export function DateField({
 
 const rowStyle = StyleSheet.create({
   row: {
-    minHeight: 44,
+    minHeight: control.height,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: space.md,
   },
 }).row;

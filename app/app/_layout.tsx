@@ -1,4 +1,5 @@
-import { router, Stack, usePathname } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider, router, Stack, usePathname } from 'expo-router';
+import * as SystemUI from 'expo-system-ui';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
@@ -13,7 +14,7 @@ import { hideFloatingDevTools } from '@/src/devMenu';
 import { redirectOnLaunch } from '@/src/navigation/exit';
 import { openStackDatabase, migrations, type AppDatabase } from '@/src/db/client';
 import { AppProvider, useApp } from '@/src/state';
-import { useTheme } from '@/src/theme';
+import { backgroundForScheme, resolvedColorScheme, useTheme } from '@/src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -25,11 +26,23 @@ export default function RootLayout() {
     SplashScreen.hideAsync().catch(() => undefined);
   }, []);
 
+  // Root window colour must follow the live scheme so dark never flashes cream.
+  useEffect(() => {
+    const apply = () => {
+      void SystemUI.setBackgroundColorAsync(backgroundForScheme(scheme));
+    };
+    apply();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') apply();
+    });
+    return () => sub.remove();
+  }, [scheme]);
+
   return (
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         <View style={{ flex: 1, width: '100%', maxWidth: 480, alignSelf: 'center', backgroundColor: theme.bg }}>
-          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+          <StatusBar style={resolvedColorScheme(scheme) === 'dark' ? 'light' : 'dark'} />
           <DatabaseGate />
           <NumberPadAccessory />
         </View>
@@ -74,6 +87,7 @@ function Migrations({ database }: { database: AppDatabase }) {
 
 function RootNav() {
   const theme = useTheme();
+  const scheme = resolvedColorScheme(useColorScheme());
   const app = useApp();
   const pathname = usePathname();
   const checkedLaunch = useRef(false);
@@ -111,25 +125,48 @@ function RootNav() {
 
   if (app.bootError) return <Boot message={app.bootError} />;
   if (!app.ready) return <Boot message="Loading your stack…" />;
+
+  const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+  const navigationTheme = {
+    ...base,
+    colors: {
+      ...base.colors,
+      primary: theme.action,
+      background: theme.bg,
+      card: theme.card,
+      text: theme.text,
+      border: theme.line,
+      notification: theme.action,
+    },
+  };
+
   return (
-    <Stack screenOptions={{ headerShown: false, gestureEnabled: true, contentStyle: { backgroundColor: theme.bg } }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="onboarding" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="add" />
-      <Stack.Screen name="scan" />
-      <Stack.Screen name="paywall" />
-      <Stack.Screen name="report" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="currency" />
-      <Stack.Screen name="sign-in" />
-      <Stack.Screen name="privacy" />
-      <Stack.Screen name="results" />
-      <Stack.Screen name="product/[id]" />
-      <Stack.Screen name="today" />
-      <Stack.Screen name="history" />
-      <Stack.Screen name="share" />
-      <Stack.Screen name="s/[slug]" />
-    </Stack>
+    <ThemeProvider value={navigationTheme}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          gestureEnabled: true,
+          contentStyle: { backgroundColor: theme.bg },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="add" />
+        <Stack.Screen name="scan" />
+        <Stack.Screen name="paywall" />
+        <Stack.Screen name="report" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="currency" />
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="privacy" />
+        <Stack.Screen name="results" />
+        <Stack.Screen name="product/[id]" />
+        <Stack.Screen name="today" />
+        <Stack.Screen name="history" />
+        <Stack.Screen name="share" />
+        <Stack.Screen name="s/[slug]" />
+      </Stack>
+    </ThemeProvider>
   );
 }

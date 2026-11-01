@@ -32,7 +32,7 @@ export default function HistoryScreen() {
   return (
     <Screen>
       <BackButton />
-      <T weight="bold" size={30} style={styles.title}>
+      <T weight="semibold" size={30} style={styles.title}>
         History
       </T>
       {streak ? (

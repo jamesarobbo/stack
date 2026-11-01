@@ -10,7 +10,7 @@ import { scoreProducts } from '@/src/domain/auditScore';
 import { AUDIT_EMPTY } from '@/src/domain/emptyStates';
 import { joinMoney } from '../../../shared/money';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function AuditScreen() {
   const theme = useTheme();
@@ -27,7 +27,7 @@ export default function AuditScreen() {
       <Screen>
         <EmptyLead title={AUDIT_EMPTY.title} body={AUDIT_EMPTY.body} />
         <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)} style={styles.link}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             {GO_TO_STACK_LABEL}
           </T>
         </Pressable>
@@ -43,14 +43,13 @@ export default function AuditScreen() {
       </FadeIn>
       {hasGaps ? (
         <Pressable accessibilityRole="link" onPress={() => router.navigate(DISCOVER_TAB_HREF)} style={styles.link}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             {BROWSE_LISTED}
           </T>
         </Pressable>
       ) : null}
       <View style={styles.savings}>
-        <Pill tone="amber">Possible savings</Pill>
-        <T weight="bold" size={32} color={theme.amber} style={styles.savingsTitle}>
+        <T weight="semibold" size={32} color={theme.amber} style={styles.savingsTitle}>
           {savings ? `You could save ${savings} a month` : 'No duplicate spend found'}
         </T>
         <T size={14} color={theme.muted}>
@@ -112,7 +111,7 @@ export default function AuditScreen() {
           </T>
         ) : (
           audit.limits.map((finding) => (
-            <View key={finding.key} style={{ gap: 4 }}>
+            <View key={finding.key} style={{ gap: space.xs }}>
               <T size={14}>{finding.message}</T>
               <T size={13} color={theme.muted}>
                 {finding.citation}
@@ -160,19 +159,19 @@ export default function AuditScreen() {
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  link: { minHeight: 44, justifyContent: 'center' },
+  link: { minHeight: control.height, justifyContent: 'center' },
   savings: {
     backgroundColor: theme.amberBg,
     borderColor: theme.amberBorder,
     borderWidth: 1,
-    borderRadius: 20,
-    padding: 18,
-    gap: 8,
+    borderRadius: radius.lg,
+    padding: space.lg,
+    gap: space.sm,
   },
   savingsTitle: { letterSpacing: -0.6 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
-  lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  moneyPill: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm },
+  lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm },
+  moneyPill: { backgroundColor: theme.amberPill, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.sm },
 });
 }
 

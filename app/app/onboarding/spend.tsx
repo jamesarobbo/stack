@@ -7,7 +7,7 @@ import { getCurrency } from '@/src/money';
 import { spendChoices, type SpendKey } from '@/src/onboarding/answers';
 import { readSpend, writeSpend } from '@/src/onboarding/storage';
 import { track } from '@/src/telemetry';
-import { useTheme } from '@/src/theme';
+import { space, useTheme } from '@/src/theme';
 
 export default function SpendStep() {
   const theme = useTheme();
@@ -18,13 +18,13 @@ export default function SpendStep() {
       step="spend"
       footer={<Button label="Use this spend" disabled={selected == null} onPress={() => void go(selected)} />}
     >
-      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+      <T weight="semibold" size={32} style={{ letterSpacing: -0.8 }}>
         Rough monthly supplement spend
       </T>
       <T size={15} color={theme.muted}>
         Most people underestimate this, and that is fine.
       </T>
-      <View style={{ gap: 10 }}>
+      <View style={{ gap: space.md }}>
         {spendChoices(getCurrency()).map((option) => (
           <Choice key={option.key} label={option.label} selected={selected === option.key} onPress={() => setSelected(option.key)} />
         ))}

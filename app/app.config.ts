@@ -33,6 +33,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './assets/images/icon.png',
   scheme: APP_SCHEME,
   userInterfaceStyle: 'automatic',
+  // Splash / pre-JS shell only. Runtime sets light #F6F3EC or dark #16130F via expo-system-ui.
+  backgroundColor: '#F6F3EC',
   ios: {
     supportsTablet: false,
     bundleIdentifier: IOS_BUNDLE_ID,
@@ -49,7 +51,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: ANDROID_PACKAGE,
     adaptiveIcon: {
-      backgroundColor: '#F2F2F7',
+      backgroundColor: '#F6F3EC',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -78,7 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
-        backgroundColor: '#F2F2F7',
+        backgroundColor: '#F6F3EC',
       },
     ],
     [

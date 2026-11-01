@@ -1,7 +1,9 @@
 import RNSegmentedControl from '@react-native-segmented-control/segmented-control';
 import type { ComponentType } from 'react';
+import { Host, Picker, Text } from '@expo/ui/swift-ui';
+import { frame, labelsHidden, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
 import { Platform, Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-native';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 type ChangeEvent = NativeSyntheticEvent<{ selectedSegmentIndex: number }>;
@@ -11,7 +13,6 @@ type SegmentedProps = {
   selectedIndex: number;
   onChange: (event: ChangeEvent) => void;
   tintColor?: string;
-  backgroundColor?: string;
   fontStyle?: { color?: string; fontWeight?: string };
   activeFontStyle?: { color?: string; fontWeight?: string };
   appearance?: 'light' | 'dark';
@@ -23,9 +24,9 @@ const SegmentedControl = RNSegmentedControl as unknown as ComponentType<Segmente
 
 /**
  * Short exclusive choice set.
- * Uses the system segmented control on iOS and Android (Expo Go).
- * No outer grey container - only the native control's own track.
- * Web keeps a simple row of buttons with the same API.
+ * iOS: SwiftUI segmented Picker inside a transparent Host (no outer square fill).
+ * Android: system segmented control with no wrapper background.
+ * Web: simple row of buttons with the same API.
  */
 export function NativeSegmented<K extends string>({
   items,
@@ -42,7 +43,7 @@ export function NativeSegmented<K extends string>({
     0,
     items.findIndex((item) => item.key === value),
   );
-  const dark = theme.bg === '#000000';
+  const dark = theme.bg === '#16130F';
 
   if (Platform.OS === 'web') {
     return (
@@ -67,6 +68,37 @@ export function NativeSegmented<K extends string>({
     );
   }
 
+  if (Platform.OS === 'ios') {
+    return (
+      <Host
+        matchContents={false}
+        colorScheme={dark ? 'dark' : 'light'}
+        style={styles.host}
+      >
+        <Picker
+          selection={value}
+          onSelectionChange={(selection) => {
+            if (selection == null) return;
+            const next = String(selection) as K;
+            if (items.some((item) => item.key === next)) onChange(next);
+          }}
+          modifiers={[
+            pickerStyle('segmented'),
+            labelsHidden(),
+            frame({ maxWidth: 9999, alignment: 'center' }),
+          ]}
+        >
+          {items.map((item) => (
+            <Text key={item.key} modifiers={[tag(item.key)]}>
+              {item.label}
+            </Text>
+          ))}
+        </Picker>
+      </Host>
+    );
+  }
+
+  // Android: native control. Do not wrap in a coloured View.
   return (
     <SegmentedControl
       values={items.map((item) => item.label)}
@@ -76,8 +108,7 @@ export function NativeSegmented<K extends string>({
         if (next) onChange(next.key);
       }}
       tintColor={theme.segmentOn}
-      backgroundColor={theme.segmentTrack}
-      fontStyle={{ color: theme.muted, fontWeight: '500' }}
+      fontStyle={{ color: theme.muted, fontWeight: '400' }}
       activeFontStyle={{ color: dark ? '#FFFFFF' : theme.text, fontWeight: '600' }}
       appearance={dark ? 'dark' : 'light'}
       style={styles.control}
@@ -87,18 +118,31 @@ export function NativeSegmented<K extends string>({
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-    // No outer wrapper. Stretch only - track color comes from backgroundColor prop.
+    // Transparent host only - no backgroundColor, no padding box.
+    host: {
+      alignSelf: 'stretch',
+      backgroundColor: 'transparent',
+      minHeight: 32,
+    },
     control: {
       alignSelf: 'stretch',
+      backgroundColor: 'transparent',
     },
     web: {
       flexDirection: 'row',
       backgroundColor: theme.segmentTrack,
-      borderRadius: 10,
+      borderRadius: radius.sm,
       padding: 3,
-      gap: 3,
+      gap: space.xxs,
     },
-    webItem: { flex: 1, minHeight: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+    webItem: {
+      flex: 1,
+      minHeight: control.compact,
+      borderRadius: radius.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: space.sm,
+    },
     webItemOn: { backgroundColor: theme.segmentOn },
   });
 }

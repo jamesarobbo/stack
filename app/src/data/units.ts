@@ -62,3 +62,23 @@ export function coerceUnit(value: string | null | undefined): UnitOption {
   if (direct) return direct;
   return ALIASES[normalizeUnit(raw)] ?? 'other';
 }
+
+/** Short label for pickers and readouts. Stored value stays the UnitOption string. */
+const UNIT_DISPLAY_LABELS: Record<UnitOption, string> = {
+  mg: 'mg',
+  mcg: 'mcg',
+  g: 'g',
+  IU: 'IU',
+  'mcg DFE': 'mcg DFE',
+  'mcg RAE': 'mcg RAE',
+  'mg NE': 'mg NE',
+  'CFU (billion)': 'B CFU',
+  mL: 'mL',
+  other: 'other',
+};
+
+export function unitDisplayLabel(unit: string): string {
+  const option = coerceUnit(unit);
+  return UNIT_DISPLAY_LABELS[option] ?? option;
+}
+

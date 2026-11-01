@@ -5,19 +5,18 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScoreBadge } from '@/src/components/share';
 import { ReminderOffer } from '@/src/components/DailyReminderCard';
-import { TodayList } from '@/src/components/TodayList';
+import { LogTodayCard } from '@/src/components/LogTodayCard';
 import { Card, Pill, ProductRow, ShareButton, T } from '@/src/components/ui';
 import { APP_NAME } from '@/src/config';
 import { ADD_SUPPLEMENT_LABEL, ADD_SUPPLEMENT_ROUTE, stackHeading } from '@/src/copy/labels';
 import { auditStack } from '@/src/domain/audit';
 import { scoreProducts } from '@/src/domain/auditScore';
-import { localToday } from '@/src/dates';
 import { formatMoney } from '@/src/format';
 import { joinMoney } from '../../../shared/money';
 import { isValidTime } from '../../../shared/reminders';
 import { requestReminderAccess } from '@/src/reminders/notify';
 import { useApp } from '@/src/state';
-import { space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 function nowTime(): string {
   const now = new Date();
@@ -36,21 +35,11 @@ export default function StackScreen() {
   const showOffer = app.reminderOffer && app.products.length > 0 && !app.usingSampleData;
   const showCheckIn = app.products.length > 0 && (app.dailyReminder || app.logs.length > 0);
   const showLogToday = app.products.length > 0 && !showCheckIn && !showOffer;
-  const todayKey = localToday();
-  const takenToday = new Set(app.logs.filter((log) => log.day === todayKey).map((log) => log.productId));
-  const takenCount = app.products.reduce((count, product) => count + (takenToday.has(product.id) ? 1 : 0), 0);
-  const logStatus =
-    takenCount === 0
-      ? 'Nothing logged yet today'
-      : takenCount >= app.products.length
-        ? 'All taken today'
-        : `${takenCount} of ${app.products.length} taken today`;
-
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + space.sm }]}>
         <View style={styles.titleRow}>
-          <T weight="bold" size={34} style={styles.title}>
+          <T weight="semibold" size={34} style={styles.title}>
             {title}
           </T>
           {app.products.length > 0 ? <ShareButton onPress={() => router.push('/share')} /> : null}
@@ -60,36 +49,15 @@ export default function StackScreen() {
         </T>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {showCheckIn ? (
-          <Card>
-            <TodayList
-              products={app.products}
-              logs={app.logs}
-              onOpen={() => router.push('/today')}
-              onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
-              onAllTaken={(day) => void app.markAllTaken(day)}
-            />
-          </Card>
-        ) : null}
-        {showLogToday ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Log today. ${logStatus}`}
-            onPress={() => router.push('/today')}
-            style={({ pressed }) => [styles.logCard, pressed ? { opacity: 0.92 } : null]}
-          >
-            <View style={styles.logAccent} />
-            <Ionicons name="checkmark-circle" size={28} color={theme.action} />
-            <View style={styles.logCopy}>
-              <T weight="semibold" size={17}>
-                Log today
-              </T>
-              <T size={14} color={theme.muted}>
-                {logStatus}
-              </T>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.muted} />
-          </Pressable>
+        {showCheckIn || showLogToday ? (
+          <LogTodayCard
+            mode={showCheckIn ? 'checkIn' : 'promo'}
+            products={app.products}
+            logs={app.logs}
+            onOpen={() => router.push('/today')}
+            onToggle={(productId, day, taken) => void app.toggleTaken(productId, day, taken)}
+            onAllTaken={(day) => void app.markAllTaken(day)}
+          />
         ) : null}
         {showOffer ? (
           <ReminderOffer
@@ -104,18 +72,24 @@ export default function StackScreen() {
             onDismiss={() => void app.dismissReminderOffer()}
           />
         ) : null}
-        <Card>
+        <Card style={styles.hero}>
           <T size={13} color={theme.muted}>
             Estimated monthly spend
           </T>
-          <T weight="bold" size={44} style={styles.spend}>
+          <T weight="semibold" size={56} color={theme.amber} style={styles.spend}>
             {joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.monthlyCents }))) ?? formatMoney(0, app.currency)}
           </T>
           {audit.duplicates.length > 0 ? (
             <View style={styles.overlapRow}>
-              <Pill>{`${audit.duplicates.length} overlaps`}</Pill>
-              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/audit')} style={styles.link}>
-                <T size={14} weight="semibold" color={theme.teal}>
+              <Pill style={styles.overlapChip}>
+                {`${audit.duplicates.length} overlap${audit.duplicates.length === 1 ? '' : 's'}`}
+              </Pill>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/(tabs)/audit')}
+                style={styles.overlapLink}
+              >
+                <T size={14} weight="semibold" color={theme.action}>
                   View in Audit
                 </T>
               </Pressable>
@@ -123,8 +97,8 @@ export default function StackScreen() {
           ) : null}
           {app.products.length > 0 ? (
             <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/audit')} style={styles.scoreRow}>
-              <ScoreBadge score={scored.score} size={52} />
-              <View style={{ flex: 1, gap: 2 }}>
+              <ScoreBadge score={scored.score} size={44} />
+              <View style={{ flex: 1, gap: 0 }}>
                 <T weight="semibold">Dose audit</T>
                 <T size={13} color={theme.muted}>
                   {scored.summary}
@@ -134,7 +108,7 @@ export default function StackScreen() {
           ) : null}
         </Card>
         {app.products.length === 0 ? (
-          <Card>
+          <Card tone="sand">
             <T weight="semibold" size={18}>
               Nothing in your stack yet
             </T>
@@ -185,46 +159,32 @@ export default function StackScreen() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
-  header: { paddingHorizontal: 20, paddingBottom: 8, gap: 4 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  header: { paddingHorizontal: space.xl, paddingBottom: 8, gap: space.xs },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   title: { letterSpacing: -0.8, flex: 1 },
-  group: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
-  links: { flexDirection: 'row', gap: 16 },
-  link: { minHeight: 44, justifyContent: 'center' },
-  scroll: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, gap: 14 },
-  logCard: {
-    minHeight: 64,
+  group: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line, overflow: 'hidden' },
+  links: { flexDirection: 'row', gap: space.lg },
+  link: { minHeight: control.height, justifyContent: 'center' },
+  scroll: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.xxl, gap: space.xl },
+  hero: { gap: space.sm, paddingVertical: space.lg, paddingHorizontal: space.lg },
+  spend: { letterSpacing: -2, lineHeight: 60, marginTop: -space.xs },
+  overlapRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    paddingLeft: 12,
-    borderRadius: theme.radius,
-    borderWidth: 1,
-    borderColor: theme.bg === '#000000' ? '#2A3A4A' : '#C5D8EF',
-    backgroundColor: theme.tealSoft,
-    overflow: 'hidden',
+    justifyContent: 'space-between',
+    gap: space.md,
+    minHeight: control.compact,
   },
-  logAccent: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
-    backgroundColor: theme.action,
-  },
-  logCopy: { flex: 1, gap: 2 },
-  spend: { letterSpacing: -1.5, lineHeight: 50 },
-  overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  overlapChip: { alignSelf: 'center' },
+  overlapLink: { justifyContent: 'center', alignSelf: 'center', paddingVertical: space.xs },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    borderTopWidth: 1,
+    gap: space.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: theme.line,
-    paddingTop: 12,
-    marginTop: 4,
+    paddingTop: space.sm,
+    marginTop: space.xs,
   },
   footer: {
     paddingHorizontal: space.xl,
@@ -235,14 +195,14 @@ function localStyles(theme: Theme) {
     borderTopColor: theme.line,
   },
   addBar: {
-    minHeight: 52,
-    borderRadius: 14,
+    minHeight: control.button,
+    borderRadius: radius.pill,
     backgroundColor: theme.action,
     flexDirection: 'row',
     alignItems: 'stretch',
     overflow: 'hidden',
   },
-  addMain: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, paddingHorizontal: 16 },
+  addMain: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: space.md, paddingHorizontal: space.lg },
   addSplit: { width: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.35)', marginVertical: 12 },
   addScan: { width: 52, alignItems: 'center', justifyContent: 'center' },
 });

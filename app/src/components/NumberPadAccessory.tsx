@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /** Shared nativeID for number and decimal pads. Replaces RN's lone Done pill. */
@@ -50,7 +50,7 @@ function NumberPadAccessoryBar() {
   const index = padFields.findIndex((field) => field.id === activePadId);
   const prev = index > 0 ? padFields[index - 1] : null;
   const next = index >= 0 && index < padFields.length - 1 ? padFields[index + 1] : null;
-  const dark = theme.bg === '#000000';
+  const dark = theme.bg === '#16130F';
 
   return (
     <InputAccessoryView nativeID={NUMBER_PAD_ACCESSORY_ID} backgroundColor={dark ? '#2C2C2E' : '#F2F2F7'}>
@@ -64,7 +64,7 @@ function NumberPadAccessoryBar() {
             hitSlop={8}
             style={({ pressed }) => [styles.navBtn, pressed && prev ? { opacity: 0.7 } : null, !prev ? styles.navDisabled : null]}
           >
-            <T size={16} weight="semibold" color={prev ? theme.teal : theme.faint}>
+            <T size={16} weight="semibold" color={prev ? theme.action : theme.faint}>
               Previous
             </T>
           </Pressable>
@@ -76,7 +76,7 @@ function NumberPadAccessoryBar() {
             hitSlop={8}
             style={({ pressed }) => [styles.navBtn, pressed && next ? { opacity: 0.7 } : null, !next ? styles.navDisabled : null]}
           >
-            <T size={16} weight="semibold" color={next ? theme.teal : theme.faint}>
+            <T size={16} weight="semibold" color={next ? theme.action : theme.faint}>
               Next
             </T>
           </Pressable>
@@ -88,7 +88,7 @@ function NumberPadAccessoryBar() {
           hitSlop={8}
           style={({ pressed }) => [styles.done, pressed ? { opacity: 0.7 } : null]}
         >
-          <T size={16} weight="semibold" color={theme.teal}>
+          <T size={16} weight="semibold" color={theme.action}>
             Done
           </T>
         </Pressable>
@@ -151,18 +151,18 @@ export function useNumberPadField(id: string, enabled = true): [RefObject<TextIn
 function localStyles(_theme: Theme) {
   return StyleSheet.create({
     bar: {
-      minHeight: 44,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      minHeight: control.height,
+      paddingHorizontal: space.md,
+      paddingVertical: space.sm,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       borderTopWidth: StyleSheet.hairlineWidth,
       width: '100%',
     },
-    nav: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-    navBtn: { minHeight: 44, justifyContent: 'center' },
+    nav: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+    navBtn: { minHeight: control.height, justifyContent: 'center' },
     navDisabled: { opacity: 0.45 },
-    done: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
+    done: { minHeight: control.height, justifyContent: 'center', paddingHorizontal: 4 },
   });
 }

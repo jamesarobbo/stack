@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Platform, Pressable, StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { OnboardingFrame } from '@/src/components/OnboardingProgress';
 import { NUMBER_PAD_ACCESSORY_ID } from '@/src/components/NumberPadAccessory';
 import { Button, LabeledField, T } from '@/src/components/ui';
@@ -24,15 +24,9 @@ export default function SaveStep() {
   return (
     <OnboardingFrame
       step="save"
-      footer={
-        <Pressable accessibilityRole="button" onPress={next} style={styles.skip}>
-          <T size={15} weight="semibold" color={theme.muted} style={{ textAlign: 'center' }}>
-            Not now
-          </T>
-        </Pressable>
-      }
+      footer={<Button label="Not now" kind="plain" onPress={next} />}
     >
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         Save your stack and audit
       </T>
       <T size={15} color={theme.muted}>
@@ -91,7 +85,7 @@ export default function SaveStep() {
           {Platform.OS === 'ios' ? (
             <Button
               label="Sign in with Apple"
-              tone="ghost"
+              kind="secondary"
               onPress={async () => {
                 setError(null);
                 try {
@@ -121,7 +115,6 @@ export default function SaveStep() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8 },
-  skip: { minHeight: 44, justifyContent: 'center' },
 });
 }
 
