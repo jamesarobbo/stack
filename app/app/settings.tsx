@@ -16,7 +16,7 @@ import { AGE_RANGES, SEXES, isAgeRange, isSex } from '@/src/health/demographics'
 import { DSLD_ATTRIBUTION, DSLD_URL, OFF_ATTRIBUTION, OFF_URL } from '@/src/data/labels';
 import { useApp } from '@/src/state';
 import { getSetting, setSetting, settingsDriverKind } from '@/src/settings';
-import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { fontFamily, control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -81,7 +81,7 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <BackButton />
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         Settings
       </T>
       <DailyReminderCard />
@@ -248,7 +248,7 @@ function localStyles(theme: Theme) {
     borderRadius: radius.md,
     paddingHorizontal: space.md,
     paddingVertical: space.md,
-    fontWeight: font.regular,
+    fontFamily, fontWeight: font.regular,
     fontSize: typeSize.body,
     color: theme.text,
   },

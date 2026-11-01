@@ -12,7 +12,7 @@ export default function CurrencyScreen() {
   return (
     <Screen>
       <BackButton />
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         Currency
       </T>
       <T size={15} color={theme.muted}>
@@ -34,7 +34,7 @@ export default function CurrencyScreen() {
               <T weight={selected ? 'semibold' : 'regular'} style={{ flex: 1 }}>
                 {item.name}
               </T>
-              {selected ? <Ionicons name="checkmark" size={20} color={theme.teal} /> : null}
+              {selected ? <Ionicons name="checkmark" size={20} color={theme.action} /> : null}
             </Pressable>
           );
         })}

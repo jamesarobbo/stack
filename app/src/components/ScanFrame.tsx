@@ -28,7 +28,7 @@ function localStyles(theme: Theme) {
     borderWidth: 1,
     borderColor: theme.muted,
   },
-  corner: { position: 'absolute', width: 28, height: 28, borderColor: theme.teal },
+  corner: { position: 'absolute', width: 28, height: 28, borderColor: theme.text },
   tl: { top: 16, left: 16, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 8 },
   tr: { top: 16, right: 16, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 8 },
   bl: { bottom: 16, left: 16, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 8 },

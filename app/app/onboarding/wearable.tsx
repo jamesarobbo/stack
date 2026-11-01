@@ -41,7 +41,7 @@ export default function WearableStep() {
         </View>
       }
     >
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         Choose a wearable
       </T>
       <T size={15} color={theme.muted}>
@@ -59,9 +59,9 @@ export default function WearableStep() {
           }}
           style={[styles.wearable, selected ? styles.wearableOn : null]}
         >
-          <Ionicons name="phone-portrait-outline" size={18} color={theme.teal} />
+          <Ionicons name="phone-portrait-outline" size={18} color={theme.action} />
           <T weight="semibold">Apple Health</T>
-          <T size={12} color={selected ? theme.teal : theme.muted}>
+          <T size={12} color={selected ? theme.action : theme.muted}>
             {linked ? 'Connected' : tried ? 'Not connected' : 'Tap to connect'}
           </T>
         </Pressable>
@@ -105,7 +105,7 @@ function localStyles(theme: Theme) {
     padding: space.md,
     gap: space.xs,
   },
-  wearableOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
+  wearableOn: { borderColor: theme.action, backgroundColor: theme.sand },
 });
 }
 

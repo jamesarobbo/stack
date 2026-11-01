@@ -15,7 +15,7 @@ export function Card({
   padded?: boolean;
 }) {
   const theme = useTheme();
-  const bg = tone === 'sand' ? theme.sand : tone === 'accent' ? theme.tealSoft : theme.card;
+  const bg = tone === 'sand' ? theme.sand : tone === 'accent' ? theme.sand : theme.card;
   const bordered = tone === 'surface';
   return (
     <View

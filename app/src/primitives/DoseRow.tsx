@@ -1,6 +1,6 @@
 import type { ReactNode, Ref } from 'react';
 import { TextInput, View, type StyleProp, type TextStyle } from 'react-native';
-import { control, font, radius, space, useTheme } from '../theme';
+import { control, font, fontFamily, radius, space, useTheme } from '../theme';
 import { UnitField } from '../components/UnitField';
 import type { UnitOption } from '../data/units';
 
@@ -42,6 +42,7 @@ export function DoseRow({
     borderColor: theme.line,
     paddingHorizontal: space.md,
     fontSize: 16,
+    fontFamily,
     fontWeight: font.semibold,
     color: theme.text,
     textAlignVertical: 'center',

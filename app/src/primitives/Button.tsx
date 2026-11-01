@@ -1,5 +1,5 @@
 import { ActivityIndicator, Pressable, type StyleProp, type ViewStyle } from 'react-native';
-import { control, font, radius, space, typeSize, useTheme } from '../theme';
+import { control, font, fontFamily, radius, space, typeSize, useTheme } from '../theme';
 import { Text } from './Text';
 
 export type ButtonKind = 'primary' | 'secondary' | 'plain' | 'destructive';
@@ -74,7 +74,7 @@ export function Button({
         <Text
           v="subheading"
           color={color}
-          style={{ fontWeight: font.semibold, fontSize: typeSize.body, lineHeight: 22 }}
+          style={{ fontFamily, fontWeight: font.semibold, fontSize: typeSize.body, lineHeight: 22 }}
         >
           {label}
         </Text>

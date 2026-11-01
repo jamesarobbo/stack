@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { normalizeUsername, usernameFormatError } from '../../../shared/username';
 import { api, ApiError } from '../api';
-import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
+import { fontFamily, control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
 import { Button, T } from './ui';
 
 type Check = { name: string; available: boolean; error?: string };
@@ -103,7 +103,7 @@ export function UsernameField({
       </T>
       {status ? (
         <View accessibilityLiveRegion="polite">
-          <T size={14} weight="semibold" color={problem ? theme.flagText : ok ? theme.teal : theme.muted}>
+          <T size={14} weight="semibold" color={problem ? theme.flagText : ok ? theme.action : theme.muted}>
             {status}
           </T>
         </View>
@@ -128,7 +128,7 @@ function localStyles(theme: Theme) {
       minHeight: control.height,
       paddingHorizontal: space.md,
       paddingVertical: space.md,
-      fontWeight: font.regular,
+      fontFamily, fontWeight: font.regular,
       fontSize: typeSize.body,
       color: theme.text,
     },

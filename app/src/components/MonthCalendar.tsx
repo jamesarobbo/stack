@@ -62,7 +62,7 @@ export function MonthCalendar({
           onPress={onPrevious}
           style={({ pressed }) => [styles.arrow, pressed ? { opacity: 0.88 } : null]}
         >
-          <Ionicons name="chevron-back" size={22} color={theme.teal} />
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <T weight="semibold" size={17} style={styles.title}>
           {monthTitle(year, month)}
@@ -75,7 +75,7 @@ export function MonthCalendar({
           onPress={canNext ? onNext : undefined}
           style={({ pressed }) => [styles.arrow, !canNext ? { opacity: 0.35 } : null, pressed && canNext ? { opacity: 0.88 } : null]}
         >
-          <Ionicons name="chevron-forward" size={22} color={canNext ? theme.teal : theme.muted} />
+          <Ionicons name="chevron-forward" size={22} color={canNext ? theme.text : theme.muted} />
         </Pressable>
       </View>
       <View style={styles.week}>

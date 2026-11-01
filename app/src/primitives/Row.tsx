@@ -56,7 +56,7 @@ export function Row({
       accessibilityRole="button"
       accessibilityLabel={title}
       onPress={onPress}
-      style={({ pressed }) => (pressed ? { backgroundColor: theme.tealSoft } : null)}
+      style={({ pressed }) => (pressed ? { backgroundColor: theme.sand } : null)}
     >
       {body}
     </Pressable>

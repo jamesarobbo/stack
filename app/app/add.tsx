@@ -26,7 +26,7 @@ import type { IngredientInput } from '@/src/domain/types';
 import { ApiError } from '@/src/api';
 import { priceFieldLabel } from '../../shared/money';
 import { useApp } from '@/src/state';
-import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { fontFamily, control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 function one(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? '';
@@ -101,7 +101,7 @@ export default function AddScreen() {
   return (
     <Screen>
       <BackButton />
-      <T weight="bold" size={30} style={styles.title}>
+      <T weight="semibold" size={30} style={styles.title}>
         Add a product
       </T>
       {prefill ? (
@@ -235,7 +235,7 @@ function SearchAdd({ onPick, onManual }: { onPick: (label: RemoteLabel) => void;
               {hit.keyIngredients.length > 0 ? ` · ${hit.keyIngredients.join(', ')}` : ''}
             </T>
             {opening === hit.dsldId ? (
-              <T size={12} color={theme.teal}>
+              <T size={12} color={theme.action}>
                 Opening label...
               </T>
             ) : null}
@@ -348,7 +348,7 @@ function Prefill({ label, onClear }: { label: RemoteLabel; onClear: () => void }
         }}
       />
       <Pressable accessibilityRole="button" onPress={onClear}>
-        <T weight="semibold" color={theme.teal}>
+        <T weight="semibold" color={theme.action}>
           Choose a different label
         </T>
       </Pressable>
@@ -447,7 +447,7 @@ function ManualAdd({
         accessibilityRole="button"
         onPress={() => setIngredients((current) => [...current, { key: '', name: '', amount: 0, unit: DEFAULT_UNIT, costWeight: 1 }])}
       >
-        <T weight="semibold" color={theme.teal}>
+        <T weight="semibold" color={theme.action}>
           Add another ingredient
         </T>
       </Pressable>
@@ -522,7 +522,7 @@ function ManualAdd({
       />
       {off && onClearOff ? (
         <Pressable accessibilityRole="button" onPress={onClearOff}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             Clear this lookup
           </T>
         </Pressable>
@@ -637,8 +637,8 @@ function IngredientChip({ name, onPress }: { name: string; onPress: () => void }
       onPress={onPress}
       style={({ pressed }) => [styles.chip, pressed ? { opacity: 0.88 } : null]}
     >
-      <Ionicons name="add" size={16} color={theme.teal} />
-      <T size={15} weight="semibold" color={theme.teal}>
+      <Ionicons name="add" size={16} color={theme.action} />
+      <T size={15} weight="semibold" color={theme.action}>
         {name}
       </T>
     </Pressable>
@@ -661,7 +661,7 @@ function localStyles(theme: Theme) {
     borderColor: theme.line,
     paddingHorizontal: space.md,
     fontSize: typeSize.body,
-    fontWeight: font.regular,
+    fontFamily, fontWeight: font.regular,
     color: theme.text,
   },
   notice: {
@@ -680,9 +680,9 @@ function localStyles(theme: Theme) {
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
     borderRadius: radius.pill,
-    backgroundColor: theme.tealSoft,
+    backgroundColor: theme.sand,
     borderWidth: 1,
-    borderColor: theme.teal,
+    borderColor: theme.action,
   },
 });
 }

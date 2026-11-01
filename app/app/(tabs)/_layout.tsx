@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { DISCOVER_LABEL } from '@/src/copy/library';
-import { font, useTheme } from '@/src/theme';
+import { fontFamily, font, useTheme } from '@/src/theme';
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -10,7 +10,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: theme.bg },
-        tabBarActiveTintColor: theme.teal,
+        tabBarActiveTintColor: theme.action,
         tabBarInactiveTintColor: theme.muted,
         tabBarStyle: {
           backgroundColor: theme.card,
@@ -19,7 +19,7 @@ export default function TabLayout() {
           paddingTop: 6,
           paddingBottom: 8,
         },
-        tabBarLabelStyle: { fontWeight: font.medium, fontSize: 11, lineHeight: 14 },
+        tabBarLabelStyle: { fontFamily, fontWeight: font.regular, fontSize: 11, lineHeight: 14 },
       }}
     >
       <Tabs.Screen

@@ -33,10 +33,10 @@ export default function SupplementStep() {
         />
       }
     >
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         Add your supplements
       </T>
-      <T size={15} weight="semibold" color={theme.teal}>
+      <T size={15} weight="semibold" color={theme.action}>
         {echo}
       </T>
       <T size={16} color={theme.muted}>
@@ -54,7 +54,7 @@ export default function SupplementStep() {
             style={styles.row}
           >
             <View style={styles.icon}>
-              <Ionicons name={ICONS[entry.key]} size={18} color={theme.teal} />
+              <Ionicons name={ICONS[entry.key]} size={18} color={theme.muted} />
             </View>
             <View style={{ flex: 1 }}>
               <T weight="semibold">{entry.title}</T>
@@ -108,7 +108,7 @@ function localStyles(theme: Theme) {
     width: 36,
     height: 36,
     borderRadius: radius.lg,
-    backgroundColor: theme.tealSoft,
+    backgroundColor: theme.sand,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -18,7 +18,7 @@ export default function MoreScreen() {
   const latest = useMemo(() => latestMetrics(app.samples), [app.samples]);
   return (
     <Screen>
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {APP_NAME}
       </T>
       <T size={16} color={theme.muted}>
@@ -101,7 +101,7 @@ function DeveloperTools() {
         Example data is off unless you load it. Loading replaces the stack, wearable days, and tags on this device.
       </T>
       <Pressable accessibilityRole="button" onPress={() => void app.restoreExample()}>
-        <T weight="semibold" color={theme.teal}>
+        <T weight="semibold" color={theme.action}>
           {LOAD_EXAMPLE_LABEL}
         </T>
       </Pressable>
@@ -122,7 +122,7 @@ function DeveloperTools() {
       </Pressable>
       {devToolsInProfile() ? (
         <Pressable accessibilityRole="button" onPress={openDevTools}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             Expo tools
           </T>
         </Pressable>

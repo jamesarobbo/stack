@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Appearance, useColorScheme, type ColorSchemeName, type TextStyle } from 'react-native';
+import { Appearance, Platform, useColorScheme, type ColorSchemeName, type TextStyle } from 'react-native';
 
 /**
  * Stack theme, structured like Spanish Out Loud: one spacing scale, radii,
@@ -98,11 +98,11 @@ export const lightTheme: Theme = {
   segmentOn: '#FFFFFF',
   mark: '#0E7A45',
   chips: {
-    sleep: { bg: '#EEEDFE', fg: '#5856D6' },
-    heart: { bg: '#FFF0F3', fg: '#D70040' },
-    recovery: { bg: '#E7F6EB', fg: '#1F7A34' },
-    focus: { bg: '#E8F1FB', fg: '#0066CC' },
-    energy: { bg: '#E6F6F8', fg: '#0A7A8C' },
+    sleep: { bg: '#ECE8DF', fg: '#4F5B72' },
+    heart: { bg: '#ECE8DF', fg: '#4F5B72' },
+    recovery: { bg: '#ECE8DF', fg: '#4F5B72' },
+    focus: { bg: '#ECE8DF', fg: '#4F5B72' },
+    energy: { bg: '#ECE8DF', fg: '#4F5B72' },
     neutral: { bg: '#ECE8DF', fg: '#4F5B72' },
   },
 };
@@ -146,11 +146,11 @@ export const darkTheme: Theme = {
   segmentOn: '#3A342C',
   mark: '#0E7A45',
   chips: {
-    sleep: { bg: '#2A2848', fg: '#A29BFE' },
-    heart: { bg: '#3A1520', fg: '#FF375F' },
-    recovery: { bg: '#12301C', fg: '#30D158' },
-    focus: { bg: '#1C2C3A', fg: '#64B5FF' },
-    energy: { bg: '#12323C', fg: '#5AC8FA' },
+    sleep: { bg: '#2E2822', fg: '#A89F90' },
+    heart: { bg: '#2E2822', fg: '#A89F90' },
+    recovery: { bg: '#2E2822', fg: '#A89F90' },
+    focus: { bg: '#2E2822', fg: '#A89F90' },
+    energy: { bg: '#2E2822', fg: '#A89F90' },
     neutral: { bg: '#2E2822', fg: '#A89F90' },
   },
 };
@@ -172,13 +172,22 @@ export const control = {
   backHeader: 48,
 } as const;
 
-/** System text weights (SF on iOS). */
+/**
+ * SF Pro Rounded on iOS via the system UI rounded face. No custom font file;
+ * Expo Go picks it up. Android and web keep the platform UI font.
+ */
+export const fontFamily = Platform.OS === 'ios' ? 'ui-rounded' : undefined;
+
+/** Two weights only. medium and bold are aliases kept for older call sites. */
 export const font = {
   regular: '400' as const,
-  medium: '500' as const,
   semibold: '600' as const,
-  bold: '700' as const,
+  /** Alias of regular. Prefer regular. */
+  medium: '400' as const,
+  /** Alias of semibold. Prefer semibold. */
+  bold: '600' as const,
 };
+
 
 export type TypeVariant = 'hero' | 'title' | 'heading' | 'subheading' | 'body' | 'bodySmall' | 'label' | 'caption' | 'money';
 
@@ -196,29 +205,40 @@ export const typeSize = {
   tab: 11,
 } as const;
 
-/** Type ramp aligned with SOL sizes; Stack keeps system faces and money gold. */
+/** Shared text face + weight for TextInput and native-ish fields. */
+export function fieldTextStyle(theme: Theme): TextStyle {
+  return {
+    fontFamily,
+    fontWeight: font.regular,
+    fontSize: typeSize.body,
+    color: theme.text,
+  };
+}
+
+/** Type ramp: size and tone carry hierarchy; only regular and semibold. */
 export function typeStyle(variant: TypeVariant, theme: Theme): TextStyle {
+  const face = { fontFamily };
   switch (variant) {
     case 'hero':
-      return { fontWeight: font.bold, fontSize: 34, lineHeight: 38, letterSpacing: -1, color: theme.text };
+      return { ...face, fontWeight: font.semibold, fontSize: 34, lineHeight: 38, letterSpacing: -1, color: theme.text };
     case 'title':
-      return { fontWeight: font.bold, fontSize: 28, lineHeight: 32, letterSpacing: -0.7, color: theme.text };
+      return { ...face, fontWeight: font.semibold, fontSize: 28, lineHeight: 32, letterSpacing: -0.7, color: theme.text };
     case 'heading':
-      return { fontWeight: font.bold, fontSize: 20, lineHeight: 25, letterSpacing: -0.3, color: theme.text };
+      return { ...face, fontWeight: font.semibold, fontSize: 20, lineHeight: 25, letterSpacing: -0.3, color: theme.text };
     case 'subheading':
-      return { fontWeight: font.semibold, fontSize: 16, lineHeight: 22, color: theme.text };
+      return { ...face, fontWeight: font.semibold, fontSize: 16, lineHeight: 22, color: theme.text };
     case 'body':
-      return { fontWeight: font.regular, fontSize: 16, lineHeight: 24, color: theme.text };
+      return { ...face, fontWeight: font.regular, fontSize: 16, lineHeight: 24, color: theme.text };
     case 'bodySmall':
-      return { fontWeight: font.regular, fontSize: 14, lineHeight: 20, color: theme.muted };
+      return { ...face, fontWeight: font.regular, fontSize: 14, lineHeight: 20, color: theme.muted };
     case 'label':
-      return { fontWeight: font.semibold, fontSize: 13, lineHeight: 18, color: theme.muted };
+      return { ...face, fontWeight: font.semibold, fontSize: 13, lineHeight: 18, color: theme.muted };
     case 'caption':
-      return { fontWeight: font.medium, fontSize: 12, lineHeight: 16, color: theme.faint };
+      return { ...face, fontWeight: font.regular, fontSize: 12, lineHeight: 16, color: theme.faint };
     case 'money':
-      return { fontWeight: font.bold, fontSize: 34, lineHeight: 38, letterSpacing: -1, color: theme.amber };
+      return { ...face, fontWeight: font.semibold, fontSize: 34, lineHeight: 38, letterSpacing: -1, color: theme.amber };
     default:
-      return { fontWeight: font.regular, fontSize: 16, lineHeight: 24, color: theme.text };
+      return { ...face, fontWeight: font.regular, fontSize: 16, lineHeight: 24, color: theme.text };
   }
 }
 

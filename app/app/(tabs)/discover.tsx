@@ -21,7 +21,7 @@ import { GROUP_RESULT_NOTE, PERSONAL_RESULT_NOTE } from '../../../shared/outcome
 import type { LibraryItem, LibraryPage } from '@/src/data/sharing';
 import { formatUsDate } from '@/src/dates';
 import { useApp } from '@/src/state';
-import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { fontFamily, control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const PAGE = 20;
 
@@ -200,7 +200,7 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
                   subColor={theme.muted}
                 />
                 <View style={{ flex: 1, gap: space.xs }}>
-                  <T weight="bold" size={18} style={{ letterSpacing: -0.3 }}>
+                  <T weight="semibold" size={18} style={{ letterSpacing: -0.3 }}>
                     {item.stackName}
                   </T>
                   <T size={13} color={theme.muted}>
@@ -225,14 +225,14 @@ function StackCard({ item, onSave }: { item: LibraryItem; onSave: () => void }) 
           hitSlop={6}
           style={styles.save}
         >
-          <Ionicons name={item.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={theme.teal} />
+          <Ionicons name={item.saved ? 'bookmark' : 'bookmark-outline'} size={20} color={item.saved ? theme.action : theme.muted} />
         </Pressable>
       </View>
       {item.likeYou || item.goals.length > 0 || item.updatedOn ? (
         <View style={[styles.padBottom, { gap: space.sm }]}>
           {item.likeYou ? (
             <View style={styles.likeYou}>
-              <T size={13} weight="semibold" color={theme.teal}>
+              <T size={13} weight="semibold" color={theme.text}>
                 {item.likeYou.label}
               </T>
               <ResultLine line={item.likeYou.line} note={GROUP_RESULT_NOTE} size={13} />
@@ -262,7 +262,7 @@ function localStyles(theme: Theme) {
     borderColor: theme.line,
     paddingHorizontal: space.md,
   },
-  searchInput: { flex: 1, minHeight: control.height, paddingVertical: space.md, fontWeight: font.regular, fontSize: typeSize.body, color: theme.text },
+  searchInput: { flex: 1, minHeight: control.height, paddingVertical: space.md, fontFamily, fontWeight: font.regular, fontSize: typeSize.body, color: theme.text },
   clear: { minWidth: 44, minHeight: control.height, alignItems: 'center', justifyContent: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   card: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, gap: space.md, overflow: 'hidden', paddingTop: 16 },
@@ -270,7 +270,7 @@ function localStyles(theme: Theme) {
   padBottom: { paddingHorizontal: space.lg, paddingBottom: 16 },
   cardTop: { flexDirection: 'row', gap: space.xs, alignItems: 'flex-start' },
   save: { minWidth: 44, minHeight: control.height, alignItems: 'center', justifyContent: 'center' },
-  likeYou: { backgroundColor: theme.tealSoft, borderRadius: radius.md, padding: space.md, gap: space.xxs },
+  likeYou: { backgroundColor: theme.sand, borderRadius: radius.md, padding: space.md, gap: space.xxs },
 });
 }
 

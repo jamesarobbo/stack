@@ -10,7 +10,7 @@ import type { ProductInput } from '../domain/types';
 import { formatMoney } from '../format';
 import { productSubtitle } from '../productSubtitle';
 import { currencyOf } from '../../../shared/money';
-import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, font, fontFamily, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
 import { Button as PrimitiveButton } from '../primitives/Button';
 export { DoseRow, Field as PrimField, SectionHeader, Group, Row } from '../primitives';
 
@@ -36,7 +36,7 @@ export function T({
   return (
     <Text
       allowFontScaling={scale}
-      style={[{ fontWeight: font[weight], fontSize: size, color: color ?? theme.text, lineHeight: Math.round(size * 1.35) }, style]}
+      style={[{ fontFamily, fontWeight: font[weight], fontSize: size, color: color ?? theme.text, lineHeight: Math.round(size * 1.35) }, style]}
     >
       {children}
     </Text>
@@ -85,7 +85,7 @@ export function Eyebrow({ left, right }: { left: string; right?: string }) {
         {left}
       </T>
       {right ? (
-        <T size={13} weight="medium" color={theme.muted}>
+        <T size={13} weight="regular" color={theme.muted}>
           {right}
         </T>
       ) : null}
@@ -117,7 +117,7 @@ export function Card({
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
-  const bg = tone === 'sand' ? theme.sand : tone === 'accent' ? theme.tealSoft : theme.card;
+  const bg = tone === 'sand' ? theme.sand : tone === 'accent' ? theme.sand : theme.card;
   const borderW = tone === 'surface' ? StyleSheet.hairlineWidth : 0;
   return (
     <View style={[styles.card, { backgroundColor: bg, borderWidth: borderW }, style]}>{children}</View>
@@ -138,9 +138,9 @@ export function Pill({
   const tones = {
     grey: { bg: theme.greyPill, fg: theme.muted },
     amber: { bg: theme.amberPill, fg: theme.amber },
-    teal: { bg: theme.tealSoft, fg: theme.teal },
+    teal: { bg: theme.sand, fg: theme.muted },
     flag: { bg: theme.flagBg, fg: theme.flagText },
-    blue: { bg: theme.tealSoft, fg: theme.teal },
+    blue: { bg: theme.sand, fg: theme.muted },
   }[tone];
   return (
     <View style={[styles.pill, { backgroundColor: tones.bg }, style]}>
@@ -214,7 +214,7 @@ export function EmptyLead({ title, body }: { title: string; body: string }) {
   const theme = useTheme();
   return (
     <View style={{ gap: space.md }}>
-      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+      <T weight="semibold" size={32} style={{ letterSpacing: -0.8 }}>
         {title}
       </T>
       <T size={16} color={theme.muted}>
@@ -272,7 +272,7 @@ export function ShareButton({ onPress }: { onPress: () => void }) {
       hitSlop={8}
       style={{ width: 44, height: control.height, alignItems: 'center', justifyContent: 'center' }}
     >
-      <Ionicons name={name} size={22} color={theme.teal} />
+      <Ionicons name={name} size={22} color={theme.text} />
     </Pressable>
   );
 }
@@ -299,8 +299,8 @@ export function BackButton({ label = 'Back', fallback = '/(tabs)/stack' }: { lab
       style={styles.back}
       hitSlop={8}
     >
-      <Ionicons name="chevron-back" size={18} color={theme.teal} />
-      <T size={15} weight="medium" color={theme.teal}>
+      <Ionicons name="chevron-back" size={18} color={theme.text} />
+      <T size={15} weight="regular" color={theme.action}>
         {label}
       </T>
     </Pressable>
@@ -349,7 +349,7 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
           Add price
         </T>
       ) : (
-        <T weight="bold" size={16} color={theme.amber}>
+        <T weight="semibold" size={16} color={theme.amber}>
           {formatMoney(monthly, currencyOf(product))}
         </T>
       )}

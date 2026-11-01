@@ -10,11 +10,11 @@ export default function NotFoundScreen() {
     <>
       <Stack.Screen options={{ title: 'Not found', headerShown: false }} />
       <View style={styles.container}>
-        <T weight="bold" size={22}>
+        <T weight="semibold" size={22}>
           That screen is not in the app.
         </T>
         <Link href="/" style={styles.link}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             Go back
           </T>
         </Link>

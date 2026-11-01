@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useNumberPadField } from '@/src/components/NumberPadAccessory';
 import { ScanCamera } from '@/src/components/ScanCamera';
 import { BackButton, Button, Screen, T } from '@/src/components/ui';
-import { font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { fontFamily, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ScanScreen() {
   const theme = useTheme();
@@ -27,7 +27,7 @@ export default function ScanScreen() {
   return (
     <Screen>
       <BackButton />
-      <T weight="bold" size={30} style={styles.title}>
+      <T weight="semibold" size={30} style={styles.title}>
         Scan a barcode
       </T>
       <T size={14} color={theme.muted}>
@@ -40,8 +40,8 @@ export default function ScanScreen() {
         onPress={() => setTorch((current) => !current)}
         style={[styles.torch, torch && styles.torchOn]}
       >
-        <Ionicons name={torch ? 'flashlight' : 'flashlight-outline'} size={18} color={torch ? theme.teal : theme.text} />
-        <T weight="semibold" color={torch ? theme.teal : theme.text}>
+        <Ionicons name={torch ? 'flashlight' : 'flashlight-outline'} size={18} color={torch ? theme.action : theme.text} />
+        <T weight="semibold" color={torch ? theme.action : theme.text}>
           {torch ? 'Torch on' : 'Torch'}
         </T>
       </Pressable>
@@ -92,7 +92,7 @@ function localStyles(theme: Theme) {
     paddingHorizontal: space.md,
     paddingVertical: space.md,
   },
-  torchOn: { backgroundColor: theme.tealSoft, borderColor: theme.teal },
+  torchOn: { backgroundColor: theme.sand, borderColor: theme.action },
   input: {
     backgroundColor: theme.card,
     borderRadius: radius.md,
@@ -100,7 +100,7 @@ function localStyles(theme: Theme) {
     borderColor: theme.line,
     paddingHorizontal: space.md,
     paddingVertical: space.md,
-    fontWeight: font.regular,
+    fontFamily, fontWeight: font.regular,
     fontSize: typeSize.body,
     color: theme.text,
   },

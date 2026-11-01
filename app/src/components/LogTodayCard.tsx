@@ -73,7 +73,7 @@ export function LogTodayCard({
             style={({ pressed }) => [styles.doneRow, pressed ? { opacity: 0.88 } : null]}
           >
             <Ionicons name="checkmark-circle" size={22} color={theme.action} />
-            <T size={15} weight="medium" color={theme.muted} style={{ flex: 1 }}>
+            <T size={15} weight="regular" color={theme.muted} style={{ flex: 1 }}>
               All taken today
             </T>
             <Ionicons name="chevron-forward" size={18} color={theme.muted} />
@@ -124,7 +124,7 @@ function localStyles(theme: Theme) {
       borderRadius: theme.radius,
       borderWidth: 1,
       borderColor: theme.bg === '#16130F' ? '#2A3A4A' : '#C5D8EF',
-      backgroundColor: theme.tealSoft,
+      backgroundColor: theme.sand,
       overflow: 'hidden',
     },
     promoAccent: {

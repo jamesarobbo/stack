@@ -22,7 +22,7 @@ export default function AboutStep() {
       step="about"
       footer={<Button label="Continue" disabled={age == null || sex == null} onPress={() => void go(age, sex)} />}
     >
-      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+      <T weight="semibold" size={32} style={{ letterSpacing: -0.8 }}>
         About you
       </T>
       <T size={16} color={theme.muted}>

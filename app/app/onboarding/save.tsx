@@ -26,7 +26,7 @@ export default function SaveStep() {
       step="save"
       footer={<Button label="Not now" kind="plain" onPress={next} />}
     >
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         Save your stack and audit
       </T>
       <T size={15} color={theme.muted}>

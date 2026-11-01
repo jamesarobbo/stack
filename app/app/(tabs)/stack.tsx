@@ -39,7 +39,7 @@ export default function StackScreen() {
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + space.sm }]}>
         <View style={styles.titleRow}>
-          <T weight="bold" size={34} style={styles.title}>
+          <T weight="semibold" size={34} style={styles.title}>
             {title}
           </T>
           {app.products.length > 0 ? <ShareButton onPress={() => router.push('/share')} /> : null}
@@ -76,7 +76,7 @@ export default function StackScreen() {
           <T size={13} color={theme.muted}>
             Estimated monthly spend
           </T>
-          <T weight="bold" size={56} color={theme.amber} style={styles.spend}>
+          <T weight="semibold" size={56} color={theme.amber} style={styles.spend}>
             {joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.monthlyCents }))) ?? formatMoney(0, app.currency)}
           </T>
           {audit.duplicates.length > 0 ? (

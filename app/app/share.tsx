@@ -25,7 +25,7 @@ import { earliestReady, submittedFields, type OutcomeMetric, type OutcomeResult 
 import { formatUsDate } from '@/src/dates';
 import { track } from '@/src/telemetry';
 import { useApp } from '@/src/state';
-import { font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { fontFamily, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 type ResultChoice = 'none' | 'keep' | OutcomeMetric;
 
@@ -162,7 +162,7 @@ export default function ShareScreen() {
   if (step === 'username' && app.sessionToken) {
     return (
       <Screen>
-        <T weight="bold" size={30} style={styles.title}>
+        <T weight="semibold" size={30} style={styles.title}>
           Choose a username
         </T>
         <T size={15} color={theme.muted}>
@@ -202,7 +202,7 @@ export default function ShareScreen() {
           </View>
         }
       >
-        <T weight="bold" size={30} style={styles.title}>
+        <T weight="semibold" size={30} style={styles.title}>
           Ready to share
         </T>
         <T size={15} color={theme.muted}>
@@ -256,7 +256,7 @@ export default function ShareScreen() {
       }
     >
       <BackButton />
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {SHARE_STACK_LABEL}
       </T>
 
@@ -288,7 +288,7 @@ export default function ShareScreen() {
                 </T>
               ) : null}
             </View>
-            <T size={14} color={theme.teal} style={{ fontWeight: font.medium }}>
+            <T size={14} color={theme.action}>
               {shortLink(current.url)}
             </T>
             <T size={13} color={theme.muted}>
@@ -468,7 +468,7 @@ function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.6 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  linkCard: { borderColor: theme.tealSoft, borderWidth: 2 },
+  linkCard: { borderColor: theme.lineStrong, borderWidth: 1 },
   confirm: { backgroundColor: theme.bg, borderRadius: radius.md, padding: space.md, gap: space.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   input: {
@@ -477,7 +477,7 @@ function localStyles(theme: Theme) {
     paddingHorizontal: space.md,
     paddingVertical: space.md,
     fontSize: typeSize.body,
-    fontWeight: font.regular,
+    fontFamily, fontWeight: font.regular,
     color: theme.text,
   },
 });

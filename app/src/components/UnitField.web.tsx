@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { coerceUnit, UNIT_OPTIONS, unitDisplayLabel, type UnitOption } from '../data/units';
-import { control, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
+import { fontFamily, control, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 /** Web uses a native select. compact hides the Unit label for amount rows. */
@@ -41,7 +41,7 @@ export function UnitField({
             minHeight: control.height,
             padding: compact ? '10px 12px' : '10px 12px',
             fontSize: typeSize.body,
-            fontWeight: 600,
+            fontFamily, fontWeight: 600,
             width: compact ? '100%' : '100%',
             maxWidth: '100%',
             textOverflow: 'ellipsis',

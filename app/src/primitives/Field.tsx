@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { TextInput, View, type StyleProp, type TextStyle, type TextInputProps } from 'react-native';
-import { control, font, radius, space, useTheme } from '../theme';
+import { control, fieldTextStyle, radius, space, useTheme } from '../theme';
 import { Text } from './Text';
 
 /** Labeled text field with the shared control height. */
@@ -61,9 +61,7 @@ export function Field({
             borderWidth: 1,
             borderColor: theme.line,
             paddingHorizontal: space.md,
-            fontSize: 16,
-            fontWeight: font.regular,
-            color: theme.text,
+            ...fieldTextStyle(theme),
           },
           style,
         ]}

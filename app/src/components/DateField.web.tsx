@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { StyleSheet, View, useColorScheme } from 'react-native';
 import { clampStartDate, localToday } from '../dates';
-import { control, font, radius, space, typeSize, useTheme } from '../theme';
+import { fontFamily, control, font, radius, space, typeSize, useTheme } from '../theme';
 import { T } from './ui';
 
 /**
@@ -41,7 +41,7 @@ export function DateField({
           color: theme.text,
           backgroundColor: theme.greyPill,
           colorScheme: scheme === 'dark' ? 'dark' : 'light',
-          fontWeight: font.semibold,
+          fontFamily, fontWeight: font.semibold,
           fontSize: typeSize.body,
           border: 'none',
           borderRadius: radius.sm,

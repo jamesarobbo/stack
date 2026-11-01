@@ -64,7 +64,7 @@ function NumberPadAccessoryBar() {
             hitSlop={8}
             style={({ pressed }) => [styles.navBtn, pressed && prev ? { opacity: 0.7 } : null, !prev ? styles.navDisabled : null]}
           >
-            <T size={16} weight="semibold" color={prev ? theme.teal : theme.faint}>
+            <T size={16} weight="semibold" color={prev ? theme.action : theme.faint}>
               Previous
             </T>
           </Pressable>
@@ -76,7 +76,7 @@ function NumberPadAccessoryBar() {
             hitSlop={8}
             style={({ pressed }) => [styles.navBtn, pressed && next ? { opacity: 0.7 } : null, !next ? styles.navDisabled : null]}
           >
-            <T size={16} weight="semibold" color={next ? theme.teal : theme.faint}>
+            <T size={16} weight="semibold" color={next ? theme.action : theme.faint}>
               Next
             </T>
           </Pressable>
@@ -88,7 +88,7 @@ function NumberPadAccessoryBar() {
           hitSlop={8}
           style={({ pressed }) => [styles.done, pressed ? { opacity: 0.7 } : null]}
         >
-          <T size={16} weight="semibold" color={theme.teal}>
+          <T size={16} weight="semibold" color={theme.action}>
             Done
           </T>
         </Pressable>

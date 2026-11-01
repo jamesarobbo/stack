@@ -73,7 +73,7 @@ export default function SharedStackScreen() {
     return (
       <Screen>
         <BackButton />
-        <T weight="bold" size={28} style={styles.title}>
+        <T weight="semibold" size={28} style={styles.title}>
           This stack is no longer shared
         </T>
         <T color={theme.muted}>The person who shared it turned the link off, or it is hidden while reports are reviewed.</T>
@@ -236,14 +236,14 @@ export default function SharedStackScreen() {
       <FadeIn>
         <View style={{ gap: 8 }}>
           <BrandMark />
-          <T weight="bold" size={32} style={styles.title}>
+          <T weight="semibold" size={32} style={styles.title}>
             {stack.stackName}
           </T>
           <T size={15} color={theme.muted}>
             {`${who}, ${stack.products.length} ${stack.products.length === 1 ? 'product' : 'products'}`}
           </T>
           {spendSentence(stack.spend ?? []) ? (
-            <T size={17} weight="bold" color={theme.amber}>
+            <T size={17} weight="semibold" color={theme.amber}>
               {spendSentence(stack.spend ?? [])}
             </T>
           ) : null}
@@ -274,7 +274,7 @@ export default function SharedStackScreen() {
       {rows && preview ? (
         <FadeIn>
           <Card style={styles.merge}>
-            <T weight="bold" size={20} style={styles.title}>
+            <T weight="semibold" size={20} style={styles.title}>
               Before you copy
             </T>
             <View style={styles.scoreChange}>
@@ -440,7 +440,7 @@ export default function SharedStackScreen() {
       ) : null}
 
       {note ? (
-        <Card style={{ backgroundColor: theme.tealSoft, borderColor: theme.tealSoft }}>
+        <Card style={{ backgroundColor: theme.sand, borderColor: theme.sand }}>
           <T size={14}>{note}</T>
         </Card>
       ) : null}
@@ -496,17 +496,17 @@ function localStyles(theme: Theme) {
   title: { letterSpacing: -0.6 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  merge: { borderColor: theme.teal, borderWidth: 2, gap: 12 },
+  merge: { borderColor: theme.action, borderWidth: 2, gap: 12 },
   scoreChange: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, paddingVertical: 4 },
   mergeRow: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: 6 },
   choiceRow: { flexDirection: 'row', gap: 6 },
   choice: { borderRadius: 999, paddingHorizontal: 14, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg },
-  choiceOn: { backgroundColor: theme.teal },
+  choiceOn: { backgroundColor: theme.action },
   product: { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 12, gap: space.xxs },
   changes: { backgroundColor: theme.bg, borderRadius: 12, padding: 12, gap: 4, marginTop: 4 },
   metric: { gap: space.xxs, borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 10 },
   slice: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: space.sm, paddingHorizontal: 8, borderRadius: 10 },
-  sliceYou: { backgroundColor: theme.tealSoft },
+  sliceYou: { backgroundColor: theme.sand },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });
 }

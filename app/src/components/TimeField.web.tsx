@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { StyleSheet, View, useColorScheme } from 'react-native';
 import { isValidTime } from '../../../shared/reminders';
-import { control, radius, space, typeSize, useTheme } from '../theme';
+import { fontFamily, control, radius, space, typeSize, useTheme } from '../theme';
 import { T } from './ui';
 
 /** Web stand-in. The time input on the right opens the browser picker when tapped. */
@@ -31,7 +31,7 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
           minHeight: control.compact,
           padding: '8px 12px',
           fontSize: typeSize.body,
-          fontWeight: '600',
+          fontFamily, fontWeight: '600',
         },
       })}
     </View>

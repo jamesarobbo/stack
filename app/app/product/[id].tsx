@@ -14,7 +14,7 @@ import { formatUsDate } from '@/src/dates';
 import { formatMoney } from '@/src/format';
 import { currencyOf } from '../../../shared/money';
 import { useApp } from '@/src/state';
-import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { fontFamily, control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ProductScreen() {
   const theme = useTheme();
@@ -60,7 +60,7 @@ export default function ProductScreen() {
         </Pressable>
       </View>
 
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {product.name}
       </T>
       {product.brand ? (
@@ -71,7 +71,7 @@ export default function ProductScreen() {
 
       {product.priceCents > 0 ? (
         <View style={{ gap: space.xs }}>
-          <T weight="bold" size={36} color={theme.amber} style={styles.price}>
+          <T weight="semibold" size={36} color={theme.amber} style={styles.price}>
             {formatMoney(monthly, priceCurrency)}
           </T>
           <T size={14} color={theme.muted}>
@@ -277,7 +277,7 @@ function localStyles(theme: Theme) {
       borderRadius: radius.sm,
       paddingHorizontal: space.md,
       fontSize: typeSize.body,
-      fontWeight: font.regular,
+      fontFamily, fontWeight: font.regular,
       color: theme.text,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.line,

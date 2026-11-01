@@ -17,7 +17,7 @@ export default function TodayScreen() {
   return (
     <Screen>
       <BackButton />
-      <T weight="bold" size={30} style={styles.title}>
+      <T weight="semibold" size={30} style={styles.title}>
         Today
       </T>
       <Card>
@@ -34,7 +34,7 @@ export default function TodayScreen() {
         onPress={() => router.push('/history')}
         style={({ pressed }) => [styles.historyRow, pressed ? { opacity: 0.88 } : null]}
       >
-        <T size={15} weight="medium" color={theme.muted} style={{ flex: 1 }}>
+        <T size={15} weight="regular" color={theme.muted} style={{ flex: 1 }}>
           History
         </T>
         <Ionicons name="chevron-forward" size={18} color={theme.muted} />

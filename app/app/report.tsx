@@ -59,7 +59,7 @@ function ReportEmpty({ products }: { products: number }) {
   const styles = useThemedStyles(localStyles);
   return (
     <>
-      <T weight="bold" size={28} style={styles.title}>
+      <T weight="semibold" size={28} style={styles.title}>
         {REPORT_EMPTY.title}
       </T>
       {products === 0 ? (
@@ -100,7 +100,7 @@ function ReportBody({ report, overlap }: { report: ReturnType<typeof buildMonthl
             <T size={14} style={{ flex: 1 }}>
               {item.name}
             </T>
-            <T weight="semibold" size={14} color={item.deepSleepDelta != null && item.deepSleepDelta > 0 ? theme.teal : theme.text}>
+            <T weight="semibold" size={14} color={item.deepSleepDelta != null && item.deepSleepDelta > 0 ? theme.good : theme.text}>
               {item.deepSleepDelta == null ? '-' : `${signed(item.deepSleepDelta)} min`}
             </T>
           </View>
@@ -128,7 +128,7 @@ function ReportBody({ report, overlap }: { report: ReturnType<typeof buildMonthl
         <T size={13} weight="semibold" color={theme.amber}>
           Potential overlap spend
         </T>
-        <T weight="bold" size={40} color={theme.amber} style={styles.savingsValue}>
+        <T weight="semibold" size={40} color={theme.amber} style={styles.savingsValue}>
           {overlap}
         </T>
         <T size={14} color={theme.muted}>
@@ -158,7 +158,7 @@ function ReportTitle() {
   const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.titleRow}>
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {MONTHLY_REPORT_LABEL}
       </T>
       <Pill tone="teal">Pro</Pill>

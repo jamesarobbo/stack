@@ -108,7 +108,7 @@ export function NativeSegmented<K extends string>({
         if (next) onChange(next.key);
       }}
       tintColor={theme.segmentOn}
-      fontStyle={{ color: theme.muted, fontWeight: '500' }}
+      fontStyle={{ color: theme.muted, fontWeight: '400' }}
       activeFontStyle={{ color: dark ? '#FFFFFF' : theme.text, fontWeight: '600' }}
       appearance={dark ? 'dark' : 'light'}
       style={styles.control}

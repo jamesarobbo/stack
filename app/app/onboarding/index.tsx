@@ -21,7 +21,7 @@ export default function WelcomeStep() {
         }}
       >
         <OnboardingProgress step="welcome" />
-        <T weight="bold" size={34} style={{ letterSpacing: -0.7 }}>
+        <T weight="semibold" size={34} style={{ letterSpacing: -0.7 }}>
           Your stack, in one place.
         </T>
         <T size={16} color={theme.muted}>

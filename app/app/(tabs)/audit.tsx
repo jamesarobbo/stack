@@ -27,7 +27,7 @@ export default function AuditScreen() {
       <Screen>
         <EmptyLead title={AUDIT_EMPTY.title} body={AUDIT_EMPTY.body} />
         <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)} style={styles.link}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             {GO_TO_STACK_LABEL}
           </T>
         </Pressable>
@@ -43,13 +43,13 @@ export default function AuditScreen() {
       </FadeIn>
       {hasGaps ? (
         <Pressable accessibilityRole="link" onPress={() => router.navigate(DISCOVER_TAB_HREF)} style={styles.link}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             {BROWSE_LISTED}
           </T>
         </Pressable>
       ) : null}
       <View style={styles.savings}>
-        <T weight="bold" size={32} color={theme.amber} style={styles.savingsTitle}>
+        <T weight="semibold" size={32} color={theme.amber} style={styles.savingsTitle}>
           {savings ? `You could save ${savings} a month` : 'No duplicate spend found'}
         </T>
         <T size={14} color={theme.muted}>

@@ -65,7 +65,7 @@ export function TodayList({
               onPress={() => onAllTaken(shown)}
               style={({ pressed }) => [styles.all, pressed ? { opacity: 0.88 } : null]}
             >
-              <T weight="semibold" color={theme.teal}>
+              <T weight="semibold" color={theme.action}>
                 All taken
               </T>
             </Pressable>
@@ -99,8 +99,8 @@ export function TodayList({
                   onPress={() => onToggle(product.id, shown, on)}
                   style={({ pressed }) => [styles.taken, pressed ? { opacity: 0.88 } : null]}
                 >
-                  <Ionicons name={on ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={on ? theme.teal : theme.muted} />
-                  <T weight="semibold" color={on ? theme.teal : theme.text}>
+                  <Ionicons name={on ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={on ? theme.action : theme.muted} />
+                  <T weight="semibold" color={on ? theme.action : theme.text}>
                     Taken
                   </T>
                 </Pressable>

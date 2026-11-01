@@ -17,7 +17,7 @@ export default function GoalStep() {
       step="goal"
       footer={<Button label="Use these goals" disabled={selected.length === 0} onPress={() => void go(selected)} />}
     >
-      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+      <T weight="semibold" size={32} style={{ letterSpacing: -0.8 }}>
         What do you want your stack to do?
       </T>
       <T size={15} color={theme.muted}>
