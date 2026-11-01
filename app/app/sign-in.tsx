@@ -36,7 +36,7 @@ export default function SignInScreen() {
             Signing in syncs the supplement list you typed. Sleep, heart rate, steps, and the other wearable samples stay on this device. A shared result sends only its headline, and only when you choose it.
           </T>
         </Card>
-        <Button label="Sign out" tone="ghost" onPress={() => void app.signOut()} />
+        <Button label="Sign out" kind="plain" onPress={() => void app.signOut()} />
       </Screen>
     );
   }
@@ -99,7 +99,7 @@ export default function SignInScreen() {
       {Platform.OS === 'ios' ? (
         <Button
           label="Sign in with Apple"
-          tone="ghost"
+          kind="secondary"
           onPress={async () => {
             setError(null);
             try {

@@ -21,7 +21,7 @@ export function Screen({
     paddingHorizontal: space.xl,
     paddingTop: insets.top + space.lg,
     paddingBottom: space.xl,
-    gap: space.md,
+    gap: space.xl,
   };
   const body = scroll ? (
     <ScrollView

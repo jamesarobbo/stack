@@ -1,10 +1,10 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform, Pressable, StyleSheet, View, useColorScheme } from 'react-native';
 import { formatClock, isValidTime } from '../../../shared/reminders';
 import { control, radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
+import { WheelSheet } from './WheelSheet';
 
 function dateFromTime(time: string): Date {
   const date = new Date();
@@ -26,7 +26,6 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   const scheme = useColorScheme();
-  const insets = useSafeAreaInsets();
   const shown = isValidTime(value) ? value : '08:00';
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(shown);
@@ -73,35 +72,18 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
       ) : null}
 
       {Platform.OS === 'ios' ? (
-        <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
-          <View style={[styles.sheet, { backgroundColor: theme.bg, paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <View style={[styles.sheetBar, { borderBottomColor: theme.line }]}>
-              <Pressable accessibilityRole="button" accessibilityLabel="Cancel" onPress={() => setOpen(false)} hitSlop={8} style={styles.sheetAction}>
-                <T size={17} color={theme.action}>
-                  Cancel
-                </T>
-              </Pressable>
-              <T weight="semibold" size={17} style={{ flex: 1, textAlign: 'center' }}>
-                {label}
-              </T>
-              <Pressable accessibilityRole="button" accessibilityLabel="Done" onPress={confirmIos} hitSlop={8} style={styles.sheetAction}>
-                <T size={17} weight="semibold" color={theme.action}>
-                  Done
-                </T>
-              </Pressable>
-            </View>
-            <DateTimePicker
-              value={dateFromTime(draft)}
-              mode="time"
-              display="spinner"
-              themeVariant={scheme === 'dark' ? 'dark' : 'light'}
-              accentColor={theme.action}
-              accessibilityLabel={label}
-              onChange={onIosSpin}
-              style={styles.spinner}
-            />
-          </View>
-        </Modal>
+        <WheelSheet visible={open} title={label} onCancel={() => setOpen(false)} onDone={confirmIos}>
+          <DateTimePicker
+            value={dateFromTime(draft)}
+            mode="time"
+            display="spinner"
+            themeVariant={scheme === 'dark' ? 'dark' : 'light'}
+            accentColor={theme.action}
+            accessibilityLabel={label}
+            onChange={onIosSpin}
+            style={styles.spinner}
+          />
+        </WheelSheet>
       ) : null}
     </View>
   );
@@ -118,15 +100,6 @@ function localStyles(theme: Theme) {
       paddingHorizontal: space.md,
       paddingVertical: space.sm,
     },
-    sheet: { flex: 1 },
-    sheetBar: {
-      minHeight: control.button,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: space.sm,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-    },
-    sheetAction: { minWidth: 72, minHeight: control.height, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.sm },
     spinner: { alignSelf: 'center', width: '100%' },
   });
 }

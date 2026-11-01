@@ -37,7 +37,7 @@ export default function WearableStep() {
       footer={
         <View style={{ gap: space.sm }}>
           <Button label="Continue" onPress={() => void go(linked ? 'healthkit' : tried ? 'sample' : 'skipped')} />
-          <Button label="Skip for now" tone="ghost" onPress={() => void go('skipped')} />
+          <Button label="Skip for now" kind="secondary" onPress={() => void go('skipped')} />
         </View>
       }
     >

@@ -159,8 +159,8 @@ export default function PaywallScreen() {
         ))}
       </View>
 
-      <Button label={app.previewPro ? 'Turn off preview' : `Start Pro: ${price}`} onPress={() => void start()} />
-      {fromOnboarding ? <Button label="Continue with Free" tone="ghost" onPress={() => void finishFree()} /> : null}
+      <Button label={app.previewPro ? 'Turn off preview' : `Start Pro: ${price}`} kind={app.previewPro ? 'secondary' : 'primary'} onPress={() => void start()} />
+      {fromOnboarding ? <Button label="Continue with Free" kind="secondary" onPress={() => void finishFree()} /> : null}
       {fromOnboarding ? (
         <Pressable accessibilityRole="link" onPress={() => void browseListed()} style={styles.link}>
           <T size={15} weight="semibold" color={theme.teal} style={{ textAlign: 'center' }}>

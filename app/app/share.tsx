@@ -191,7 +191,7 @@ export default function ShareScreen() {
         </Card>
         <Button
           label="Not now"
-          tone="ghost"
+          kind="secondary"
           onPress={() => {
             setAfterUsername(null);
             setStep('edit');
@@ -207,7 +207,7 @@ export default function ShareScreen() {
         footer={
           <View style={{ gap: space.sm }}>
             <Button label={busy ? 'Publishing' : current ? 'Publish update and share' : 'Publish and share'} disabled={busy} onPress={() => void publish()} />
-            <Button label="Go back and edit" tone="ghost" onPress={() => setStep('edit')} />
+            <Button label="Go back and edit" kind="secondary" onPress={() => setStep('edit')} />
           </View>
         }
       >
@@ -329,7 +329,7 @@ export default function ShareScreen() {
                 <Button label="Send link" onPress={() => void openShareSheet(current)} />
               </View>
               <View style={{ flex: 1 }}>
-                <Button label="Unshare" tone="ghost" onPress={() => setConfirmUnshare(true)} />
+                <Button label="Unshare" kind="plain" onPress={() => setConfirmUnshare(true)} />
               </View>
             </View>
             {confirmUnshare ? (
@@ -337,10 +337,10 @@ export default function ShareScreen() {
                 <T size={14}>Turn the link off? It stops working for everyone, leaves Discover, and the copy count starts again if you share later.</T>
                 <View style={{ flexDirection: 'row', gap: space.sm }}>
                   <View style={{ flex: 1 }}>
-                    <Button label="Keep sharing" tone="ghost" onPress={() => setConfirmUnshare(false)} />
+                    <Button label="Keep sharing" kind="secondary" onPress={() => setConfirmUnshare(false)} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Button label="Turn off" disabled={busy} onPress={() => void unshare()} />
+                    <Button label="Turn off" kind="destructive" disabled={busy} onPress={() => void unshare()} />
                   </View>
                 </View>
               </View>

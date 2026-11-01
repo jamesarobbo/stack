@@ -72,18 +72,18 @@ export default function StackScreen() {
             onDismiss={() => void app.dismissReminderOffer()}
           />
         ) : null}
-        <Card>
+        <Card style={styles.hero}>
           <T size={13} color={theme.muted}>
             Estimated monthly spend
           </T>
-          <T weight="bold" size={44} style={styles.spend}>
+          <T weight="bold" size={44} color={theme.amber} style={styles.spend}>
             {joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.monthlyCents }))) ?? formatMoney(0, app.currency)}
           </T>
           {audit.duplicates.length > 0 ? (
             <View style={styles.overlapRow}>
               <Pill>{`${audit.duplicates.length} overlaps`}</Pill>
               <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/audit')} style={styles.link}>
-                <T size={14} weight="semibold" color={theme.teal}>
+                <T size={14} weight="semibold" color={theme.action}>
                   View in Audit
                 </T>
               </Pressable>
@@ -102,7 +102,7 @@ export default function StackScreen() {
           ) : null}
         </Card>
         {app.products.length === 0 ? (
-          <Card>
+          <Card tone="sand">
             <T weight="semibold" size={18}>
               Nothing in your stack yet
             </T>
@@ -156,17 +156,18 @@ function localStyles(theme: Theme) {
   header: { paddingHorizontal: space.xl, paddingBottom: 8, gap: space.xs },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   title: { letterSpacing: -0.8, flex: 1 },
-  group: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
+  group: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line, overflow: 'hidden' },
   links: { flexDirection: 'row', gap: space.lg },
   link: { minHeight: control.height, justifyContent: 'center' },
-  scroll: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, gap: space.md },
+  scroll: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.xxl, gap: space.xl },
+  hero: { gap: space.xl },
   spend: { letterSpacing: -1.5, lineHeight: 50 },
   overlapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.md,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: theme.line,
     paddingTop: 12,
     marginTop: 4,
@@ -181,7 +182,7 @@ function localStyles(theme: Theme) {
   },
   addBar: {
     minHeight: control.button,
-    borderRadius: radius.md,
+    borderRadius: radius.pill,
     backgroundColor: theme.action,
     flexDirection: 'row',
     alignItems: 'stretch',

@@ -159,17 +159,9 @@ export default function SettingsScreen() {
             : 'Your stack starts empty. Add what you take.'}
         </T>
         {app.previewPro ? (
-          <Pressable accessibilityRole="button" onPress={() => void app.setPreviewPro(false)}>
-            <T weight="semibold" color={theme.teal}>
-              Turn off Pro preview
-            </T>
-          </Pressable>
+          <Button label="Turn off Pro preview" kind="plain" onPress={() => void app.setPreviewPro(false)} />
         ) : null}
-        <Pressable accessibilityRole="button" onPress={() => void exportData()}>
-          <T weight="semibold" color={theme.teal}>
-            Export my data
-          </T>
-        </Pressable>
+        <Button label="Export my data" kind="plain" onPress={() => void exportData()} />
       </Card>
       {app.sessionToken ? (
         <Card>
@@ -177,43 +169,28 @@ export default function SettingsScreen() {
           <T size={14} color={theme.muted}>
             Upload and download move the supplement list only.
           </T>
-          <Pressable accessibilityRole="button" onPress={() => void app.uploadStack()}>
-            <T weight="semibold" color={theme.teal}>
-              Upload stack
-            </T>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
+          <Button label="Upload stack" kind="plain" onPress={() => void app.uploadStack()} />
+          <Button
+            label="Download saved stack"
+            kind="plain"
             onPress={() => {
               Alert.alert('Replace this device?', 'This replaces the products on this device with the saved account copy. Health samples stay here.', [
                 { text: 'Cancel', style: 'cancel' },
                 { text: 'Replace', style: 'destructive', onPress: () => void app.downloadStack() },
               ]);
             }}
-          >
-            <T weight="semibold" color={theme.teal}>
-              Download saved stack
-            </T>
-          </Pressable>
-          <Pressable accessibilityRole="button" onPress={() => void clearBlocks()}>
-            <T weight="semibold" color={theme.teal}>
-              Clear blocked creators
-            </T>
-          </Pressable>
+          />
+          <Button label="Clear blocked creators" kind="plain" onPress={() => void clearBlocks()} />
           {confirmAccount ? (
             <>
               <T size={14} color={theme.muted}>
                 This deletes your account, your shared link, saves, copies, and any results you sent. This device keeps its data.
               </T>
-              <Button label="Delete my account" onPress={() => void app.deleteAccount().then(() => setConfirmAccount(false))} />
-              <Button label="Cancel" tone="ghost" onPress={() => setConfirmAccount(false)} />
+              <Button label="Delete my account" kind="destructive" onPress={() => void app.deleteAccount().then(() => setConfirmAccount(false))} />
+              <Button label="Cancel" kind="secondary" onPress={() => setConfirmAccount(false)} />
             </>
           ) : (
-            <Pressable accessibilityRole="button" onPress={() => setConfirmAccount(true)}>
-              <T weight="semibold" color={theme.flagText}>
-                Delete account
-              </T>
-            </Pressable>
+            <Button label="Delete account" kind="destructive" onPress={() => setConfirmAccount(true)} />
           )}
           {accountNote ? (
             <T size={13} color={theme.muted}>
@@ -230,17 +207,14 @@ export default function SettingsScreen() {
         {confirmDelete ? (
           <Button
             label="Delete everything on this device"
+            kind="destructive"
             onPress={async () => {
               await app.deleteLocal();
               setConfirmDelete(false);
             }}
           />
         ) : (
-          <Pressable accessibilityRole="button" onPress={() => setConfirmDelete(true)}>
-            <T weight="semibold" color={theme.flagText}>
-              Delete local data
-            </T>
-          </Pressable>
+          <Button label="Delete local data" kind="destructive" onPress={() => setConfirmDelete(true)} />
         )}
       </Card>
       <Card>
@@ -251,19 +225,11 @@ export default function SettingsScreen() {
         <T size={13} color={theme.muted}>
           {DSLD_ATTRIBUTION}
         </T>
-        <Pressable accessibilityRole="button" onPress={() => void Linking.openURL(DSLD_URL)}>
-          <T weight="semibold" color={theme.teal}>
-            dsld.od.nih.gov
-          </T>
-        </Pressable>
+        <Button label="dsld.od.nih.gov" kind="plain" onPress={() => void Linking.openURL(DSLD_URL)} />
         <T size={13} color={theme.muted}>
           {OFF_ATTRIBUTION}
         </T>
-        <Pressable accessibilityRole="button" onPress={() => void Linking.openURL(OFF_URL)}>
-          <T weight="semibold" color={theme.teal}>
-            world.openfoodfacts.org
-          </T>
-        </Pressable>
+        <Button label="openfoodfacts.org" kind="plain" onPress={() => void Linking.openURL(OFF_URL)} />
       </Card>
       <T size={13} color={theme.muted}>
         {`${APP_NAME}. Educational wellness log. Not a medical device.`}

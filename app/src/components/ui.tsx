@@ -11,6 +11,7 @@ import { formatMoney } from '../format';
 import { productSubtitle } from '../productSubtitle';
 import { currencyOf } from '../../../shared/money';
 import { control, font, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
+import { Button as PrimitiveButton } from '../primitives/Button';
 export { DoseRow, Field as PrimField, SectionHeader, Group, Row } from '../primitives';
 
 type Weight = keyof typeof font;
@@ -104,9 +105,22 @@ export function SectionLabel({ label, badge }: { label: string; badge?: string }
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+export function Card({
+  children,
+  style,
+  tone = 'surface',
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  tone?: 'surface' | 'sand' | 'accent';
+}) {
+  const theme = useTheme();
   const styles = useThemedStyles(localStyles);
-  return <View style={[styles.card, style]}>{children}</View>;
+  const bg = tone === 'sand' ? theme.sand : tone === 'accent' ? theme.tealSoft : theme.card;
+  const borderW = tone === 'surface' ? StyleSheet.hairlineWidth : 0;
+  return (
+    <View style={[styles.card, { backgroundColor: bg, borderWidth: borderW }, style]}>{children}</View>
+  );
 }
 
 export function Pill({
@@ -210,32 +224,37 @@ export function EmptyLead({ title, body }: { title: string; body: string }) {
 export function Button({
   label,
   onPress,
-  tone = 'teal',
+  kind,
+  tone,
   disabled = false,
+  loading = false,
+  fullWidth,
+  style,
 }: {
   label: string;
   onPress: () => void;
+  /** Preferred. primary filled action, secondary bordered, plain text, destructive. */
+  kind?: 'primary' | 'secondary' | 'plain' | 'destructive';
+  /** @deprecated Use kind. teal → primary, ghost → secondary. */
   tone?: 'teal' | 'ghost';
   disabled?: boolean;
+  loading?: boolean;
+  fullWidth?: boolean;
+  style?: StyleProp<ViewStyle>;
 }) {
-  const theme = useTheme();
-  const styles = useThemedStyles(localStyles);
+  const resolved =
+    kind ??
+    (tone === 'ghost' ? 'secondary' : 'primary');
   return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={disabled}
+    <PrimitiveButton
+      label={label}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        tone === 'ghost' ? styles.buttonGhost : styles.buttonTeal,
-        pressed && !disabled ? { opacity: 0.88 } : null,
-        disabled ? { opacity: 0.45 } : null,
-      ]}
-    >
-      <T weight="semibold" size={16} color={tone === 'ghost' ? theme.teal : '#fff'}>
-        {label}
-      </T>
-    </Pressable>
+      kind={resolved}
+      disabled={disabled}
+      loading={loading}
+      fullWidth={fullWidth}
+      style={style}
+    />
   );
 }
 
@@ -353,20 +372,19 @@ export function Boot({ message }: { message: string }) {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: theme.bg },
-    scroll: { paddingHorizontal: space.xl, paddingBottom: space.xxl, gap: space.md },
+    scroll: { paddingHorizontal: space.xl, paddingBottom: space.xxl, gap: space.xl },
     footer: { paddingHorizontal: space.xl, paddingTop: space.sm, backgroundColor: theme.bg, gap: space.sm },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     card: {
       backgroundColor: theme.card,
       borderRadius: radius.lg,
-      padding: space.lg,
-      borderWidth: 1,
+      padding: space.xl,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.line,
-      gap: space.md,
+      gap: space.lg,
     },
     pill: { borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.xs, alignSelf: 'flex-start' },
-    button: { height: control.button, paddingHorizontal: space.lg, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
     field: {
       height: control.height,
       minHeight: control.height,
@@ -378,8 +396,6 @@ function localStyles(theme: Theme) {
       fontSize: typeSize.body,
       color: theme.text,
     },
-    buttonTeal: { backgroundColor: theme.action },
-    buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
     disclaimer: {
       borderRadius: radius.lg,
       borderWidth: 1,

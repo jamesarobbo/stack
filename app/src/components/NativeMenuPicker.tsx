@@ -1,12 +1,21 @@
 import type { ReactNode } from 'react';
 import { Host, Picker, Text, VStack } from '@expo/ui/swift-ui';
-import { accessibilityLabel as a11yLabel, frame, labelsHidden, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+import {
+  accessibilityLabel as a11yLabel,
+  frame,
+  labelsHidden,
+  lineLimit,
+  pickerStyle,
+  tag,
+  truncationMode,
+} from '@expo/ui/swift-ui/modifiers';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { control, radius, space, useTheme } from '../theme';
 
 /**
  * Native iOS pull-down menu picker (UIMenu / SwiftUI menu Picker).
  * Fixed height Host so the label centres with the amount field beside it.
+ * Long labels stay on one line with a tail ellipsis; the chevron stays visible.
  */
 export function NativeMenuPicker<T extends string>({
   options,
@@ -27,18 +36,20 @@ export function NativeMenuPicker<T extends string>({
   const modifiers = [
     pickerStyle('menu'),
     labelsHidden(),
-    frame({ height: control.height, alignment: 'center' }),
+    frame({ maxWidth: 9999, maxHeight: control.height, minHeight: control.height, alignment: 'center' }),
+    lineLimit(1),
+    truncationMode('tail'),
   ];
   if (accessibilityLabel) modifiers.push(a11yLabel(accessibilityLabel));
 
   return (
     <Host
       matchContents={false}
-      colorScheme={theme.bg === '#000000' ? 'dark' : 'light'}
+      colorScheme={theme.bg === '#16130F' ? 'dark' : 'light'}
       style={[styles.host, style]}
     >
       <VStack
-        alignment="center"
+        alignment="leading"
         spacing={0}
         modifiers={[frame({ maxWidth: 9999, minHeight: control.height, maxHeight: control.height, alignment: 'center' })]}
       >
@@ -52,7 +63,7 @@ export function NativeMenuPicker<T extends string>({
           modifiers={modifiers}
         >
           {options.map((option) => (
-            <Text key={option} modifiers={[tag(option)]}>
+            <Text key={option} modifiers={[tag(option), lineLimit(1), truncationMode('tail')]}>
               {option}
             </Text>
           ))}
@@ -89,6 +100,7 @@ const styles = StyleSheet.create({
     minHeight: control.height,
     width: '100%',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   shell: {
     flex: 1,

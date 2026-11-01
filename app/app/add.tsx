@@ -110,17 +110,7 @@ export default function AddScreen() {
         <ManualAdd barcode={barcode} onBarcode={setBarcode} seed={null} off={offDraft} onClearOff={() => setOffDraft(null)} />
       ) : (
         <>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Scan a barcode"
-            onPress={() => router.push('/scan')}
-            style={({ pressed }) => [styles.scan, pressed ? { opacity: 0.88 } : null]}
-          >
-            <Ionicons name="barcode-outline" size={22} color="#FFFFFF" />
-            <T weight="semibold" size={16} color="#FFFFFF">
-              Scan a barcode
-            </T>
-          </Pressable>
+          <Button label="Scan a barcode" onPress={() => router.push('/scan')} />
           <NativeSegmented
             items={[
               { key: 'search', label: 'Search' },
@@ -662,16 +652,6 @@ function slug(value: string): string {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.6 },
-  scan: {
-    height: control.button,
-    borderRadius: radius.pill,
-    backgroundColor: theme.action,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: space.sm,
-    paddingHorizontal: space.lg,
-  },
   input: {
     height: control.height,
     minHeight: control.height,

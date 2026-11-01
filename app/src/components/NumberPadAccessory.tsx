@@ -50,7 +50,7 @@ function NumberPadAccessoryBar() {
   const index = padFields.findIndex((field) => field.id === activePadId);
   const prev = index > 0 ? padFields[index - 1] : null;
   const next = index >= 0 && index < padFields.length - 1 ? padFields[index + 1] : null;
-  const dark = theme.bg === '#000000';
+  const dark = theme.bg === '#16130F';
 
   return (
     <InputAccessoryView nativeID={NUMBER_PAD_ACCESSORY_ID} backgroundColor={dark ? '#2C2C2E' : '#F2F2F7'}>

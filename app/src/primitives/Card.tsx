@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { radius, space, useTheme } from '../theme';
 
-/** Flat card: surface fill, hairline border, lg radius, lg padding. */
+/** Flat card: surface on paper, hairline border, SOL lg radius and xl padding. */
 export function Card({
   children,
   style,
@@ -16,17 +16,17 @@ export function Card({
 }) {
   const theme = useTheme();
   const bg = tone === 'sand' ? theme.sand : tone === 'accent' ? theme.tealSoft : theme.card;
-  const border = tone === 'sand' ? 'transparent' : tone === 'accent' ? theme.tealSoft : theme.line;
+  const bordered = tone === 'surface';
   return (
     <View
       style={[
         {
           backgroundColor: bg,
           borderRadius: radius.lg,
-          borderWidth: tone === 'sand' ? 0 : 1,
-          borderColor: border,
-          padding: padded ? space.lg : 0,
-          gap: space.md,
+          borderWidth: bordered ? StyleSheet.hairlineWidth : 0,
+          borderColor: theme.line,
+          padding: padded ? space.xl : 0,
+          gap: space.lg,
           overflow: 'hidden',
         },
         style,

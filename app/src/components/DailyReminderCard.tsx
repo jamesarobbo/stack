@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, Switch, View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { isValidTime } from '../../../shared/reminders';
 import { requestReminderAccess, readReminderAccess, type ReminderAccess } from '../reminders/notify';
 import { getSetting, setSetting } from '../settings';
@@ -80,7 +80,7 @@ export function DailyReminderCard() {
         <View style={{ gap: space.md }}>
           <T size={15}>{EXPLANATION}</T>
           <Button label="Continue" onPress={() => void enable()} />
-          <Button label="Not now" tone="ghost" onPress={() => setAsking(false)} />
+          <Button label="Not now" kind="secondary" onPress={() => setAsking(false)} />
         </View>
       ) : null}
       {app.dailyReminder ? (
@@ -96,35 +96,14 @@ export function DailyReminderCard() {
 }
 
 export function ReminderOffer({ onContinue, onDismiss }: { onContinue: () => void; onDismiss: () => void }) {
-  const theme = useTheme();
   return (
     <Card>
       <T weight="semibold" size={17}>
         Daily reminder
       </T>
       <T size={15}>{EXPLANATION}</T>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Continue"
-          onPress={onContinue}
-          style={({ pressed }) => [{ minHeight: control.height, justifyContent: 'center', paddingRight: 12 }, pressed ? { opacity: 0.88 } : null]}
-        >
-          <T weight="semibold" color={theme.teal}>
-            Continue
-          </T>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Not now"
-          onPress={onDismiss}
-          style={({ pressed }) => [{ minHeight: control.height, justifyContent: 'center', paddingHorizontal: 4 }, pressed ? { opacity: 0.88 } : null]}
-        >
-          <T weight="semibold" color={theme.muted}>
-            Not now
-          </T>
-        </Pressable>
-      </View>
+      <Button label="Continue" onPress={onContinue} />
+      <Button label="Not now" kind="secondary" onPress={onDismiss} />
     </Card>
   );
 }

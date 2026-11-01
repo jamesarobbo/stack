@@ -143,7 +143,7 @@ export default function DiscoverScreen() {
           <T>{note}</T>
           {!app.sessionToken && (segment === 'saved' || segment === 'like_you') ? <Button label="Sign in" onPress={() => router.push('/sign-in')} /> : null}
           {app.sessionToken && segment === 'like_you' && /age range/.test(note) ? (
-            <Button label="Open settings" tone="ghost" onPress={() => router.push('/settings')} />
+            <Button label="Open settings" kind="secondary" onPress={() => router.push('/settings')} />
           ) : null}
         </Card>
       ) : null}
@@ -167,7 +167,7 @@ export default function DiscoverScreen() {
       {!loading && items.length === 0 && !note && !filtered ? (
         <EmptyLead title={DISCOVER_EMPTY_TITLE} body={DISCOVER_EMPTY_BODY} />
       ) : null}
-      {nextOffset != null ? <Button label="Load more" tone="ghost" onPress={() => void loadMore()} /> : null}
+      {nextOffset != null ? <Button label="Load more" kind="secondary" onPress={() => void loadMore()} /> : null}
     </Screen>
   );
 }

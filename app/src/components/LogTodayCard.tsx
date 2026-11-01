@@ -123,7 +123,7 @@ function localStyles(theme: Theme) {
       paddingLeft: 12,
       borderRadius: theme.radius,
       borderWidth: 1,
-      borderColor: theme.bg === '#000000' ? '#2A3A4A' : '#C5D8EF',
+      borderColor: theme.bg === '#16130F' ? '#2A3A4A' : '#C5D8EF',
       backgroundColor: theme.tealSoft,
       overflow: 'hidden',
     },

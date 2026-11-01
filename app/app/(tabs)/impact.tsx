@@ -50,7 +50,7 @@ export default function ImpactScreen() {
         ) : null}
         <Button
           label="Connect Apple Health"
-          tone={needsProduct ? 'ghost' : 'teal'}
+          kind={needsProduct ? 'secondary' : 'primary'}
           onPress={() => {
             void app.connectWearable().then(setConnectNote);
           }}

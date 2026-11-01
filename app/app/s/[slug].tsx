@@ -218,14 +218,14 @@ export default function SharedStackScreen() {
   }
 
   const footer = own ? (
-    <Button label="Edit what you share" tone="ghost" onPress={() => router.push('/share')} />
+    <Button label="Edit what you share" kind="secondary" onPress={() => router.push('/share')} />
   ) : rows ? (
     <View style={{ gap: 8 }}>
       <Button label={busy ? 'Adding' : `Add ${applyPlan(rows).add.length} to my stack`} disabled={busy} onPress={() => void copyNow()} />
-      <Button label="Cancel" tone="ghost" onPress={() => setRows(null)} />
+      <Button label="Cancel" kind="secondary" onPress={() => setRows(null)} />
     </View>
   ) : inStack && !changedSince ? (
-    <Button label="In your stack" tone="ghost" onPress={() => router.push('/(tabs)/stack')} />
+    <Button label="In your stack" kind="secondary" onPress={() => router.push('/(tabs)/stack')} />
   ) : (
     <Button label={changedSince && inStack ? 'Copy the update' : 'Copy to my stack'} onPress={startCopy} />
   );
@@ -472,7 +472,7 @@ export default function SharedStackScreen() {
           <T size={14} color={theme.muted}>
             Their stacks leave Discover for you. They are not told. You can clear blocks in Settings.
           </T>
-          <Button label="Block" onPress={() => void setBlocked(true)} />
+          <Button label="Block" kind="destructive" onPress={() => void setBlocked(true)} />
         </Card>
       ) : null}
 
