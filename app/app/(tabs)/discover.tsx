@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { EngagementStats, engagementPhrase } from '@/src/components/EngagementStats';
 import { ProductChips } from '@/src/components/ProductChips';
 import { Chip, FadeIn, ResultLine, ScoreRing, scoreTone, Segmented } from '@/src/components/share';
@@ -132,11 +132,11 @@ export default function DiscoverScreen() {
         ) : null}
       </View>
       <Segmented items={LIBRARY_SEGMENTS} value={segment} onChange={setSegment} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <View style={styles.chips}>
         {LIBRARY_GOALS.map((item) => (
           <Chip key={item.key} label={item.label} selected={goal === item.key} onPress={() => setGoal((current) => (current === item.key ? null : item.key))} />
         ))}
-      </ScrollView>
+      </View>
 
       {note && items.length === 0 && !loading ? (
         <Card>
@@ -264,7 +264,7 @@ function localStyles(theme: Theme) {
   },
   searchInput: { flex: 1, minHeight: control.height, paddingVertical: space.md, fontWeight: font.regular, fontSize: typeSize.body, color: theme.text },
   clear: { minWidth: 44, minHeight: control.height, alignItems: 'center', justifyContent: 'center' },
-  chips: { gap: space.sm, paddingRight: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   card: { backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.line, gap: space.md, overflow: 'hidden', paddingTop: 16 },
   pad: { paddingHorizontal: space.lg },
   padBottom: { paddingHorizontal: space.lg, paddingBottom: 16 },
