@@ -34,7 +34,7 @@ export default function MoreScreen() {
         <Row title="Currency" detail={currencyName(app.currency)} onPress={() => router.push('/currency')} />
         <Row title="Log history" detail="Days you logged" onPress={() => router.push('/history')} />
         <Row title="Settings" detail="Reminder, currency, username, export, and delete" onPress={() => router.push('/settings')} />
-        <Row title="About results" detail="What a star on a result means" onPress={() => router.push('/results')} />
+        <Row title="About results" detail="How Stack works out your results" onPress={() => router.push('/results')} />
         <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} last />
       </View>
       <DeveloperTools />
