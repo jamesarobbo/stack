@@ -49,7 +49,6 @@ export default function AuditScreen() {
         </Pressable>
       ) : null}
       <View style={styles.savings}>
-        <Pill tone="amber">Possible savings</Pill>
         <T weight="bold" size={32} color={theme.amber} style={styles.savingsTitle}>
           {savings ? `You could save ${savings} a month` : 'No duplicate spend found'}
         </T>
