@@ -33,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './assets/images/icon.png',
   scheme: APP_SCHEME,
   userInterfaceStyle: 'automatic',
+  // Splash / pre-JS shell only. Runtime sets light #F6F3EC or dark #16130F via expo-system-ui.
   backgroundColor: '#F6F3EC',
   ios: {
     supportsTablet: false,

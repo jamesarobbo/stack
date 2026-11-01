@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useColorScheme, type TextStyle } from 'react-native';
+import { Appearance, useColorScheme, type ColorSchemeName, type TextStyle } from 'react-native';
 
 /**
  * Stack theme, structured like Spanish Out Loud: one spacing scale, radii,
@@ -222,9 +222,19 @@ export function typeStyle(variant: TypeVariant, theme: Theme): TextStyle {
   }
 }
 
+/** Prefer the live hook; fall back to Appearance so null never forces light cream. */
+export function resolvedColorScheme(scheme: ColorSchemeName | null | undefined): 'light' | 'dark' {
+  if (scheme === 'light' || scheme === 'dark') return scheme;
+  return Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
+}
+
 export function useTheme(): Theme {
-  const scheme = useColorScheme();
+  const scheme = resolvedColorScheme(useColorScheme());
   return scheme === 'dark' ? darkTheme : lightTheme;
+}
+
+export function backgroundForScheme(scheme: ColorSchemeName | null | undefined): string {
+  return resolvedColorScheme(scheme) === 'dark' ? darkTheme.bg : lightTheme.bg;
 }
 
 export function useThemedStyles<T>(factory: (theme: Theme) => T): T {
