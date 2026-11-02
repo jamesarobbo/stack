@@ -20,6 +20,7 @@ import { blockCreator, copyCountLabel, intParam, refreshDailyStats, reportShare,
 import { ogImageVersion, ogSvg, publishedResult, renderOgPng, storyImageVersion, storySvg, type OgAssets } from './og';
 import { spendSentence } from '../../shared/money';
 import { addressKey, allow, clientAddress } from './rateLimit';
+import { clipField, upsertWaitlist, waitlistCount } from './waitlist';
 import { isCurrency } from '../../shared/money';
 import { normalizeUsername, usernameHandle } from '../../shared/username';
 import { setUsername, usernameAvailable, usernameRejection } from './username';
@@ -101,6 +102,27 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use('*', cors());
 
 app.get('/health', (c) => c.json({ ok: true, service: 'stack-api' }));
+
+app.post('/v1/waitlist', async (c) => {
+  const body = await readJson(c);
+  // Honeypot: bots fill company; humans leave it empty.
+  if (typeof body.company === 'string' && body.company.trim()) {
+    return c.json({ ok: true });
+  }
+  const email = normalizeEmail(body.email);
+  if (!email) return c.json({ error: 'Enter a valid email address.' }, 400);
+  if (!(await allowAddress(c, 'waitlist', 8, 3600))) return tooMany(c);
+  const status = await upsertWaitlist(c.env.DB, {
+    email,
+    source: clipField(body.source),
+    utmSource: clipField(body.utm_source ?? body.utmSource),
+    utmMedium: clipField(body.utm_medium ?? body.utmMedium),
+    utmCampaign: clipField(body.utm_campaign ?? body.utmCampaign),
+    createdAt: new Date().toISOString(),
+  });
+  return c.json({ ok: true, status });
+});
+
 
 app.post('/v1/auth/email/start', async (c) => {
   const body = await readJson(c);
@@ -604,6 +626,12 @@ app.get('/v1/admin/reports', async (c) => {
     .bind()
     .all();
   return c.json({ queue: rows.results ?? [] });
+});
+
+app.get('/v1/admin/waitlist/count', async (c) => {
+  const denied = adminDenied(c);
+  if (denied) return denied;
+  return c.json({ count: await waitlistCount(c.env.DB) });
 });
 
 app.post('/v1/admin/shares/:slug', async (c) => {

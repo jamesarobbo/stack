@@ -1,0 +1,7 @@
+# Cloudflare Pages project for the Stack landing page.
+# Create the project and deploy only when James approves.
+# Example: npx wrangler pages project create stack-landing
+#          npx wrangler pages deploy . --project-name=stack-landing
+name = "stack-landing"
+compatibility_date = "2026-10-30"
+pages_build_output_dir = "."

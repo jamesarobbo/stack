@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Fail if a tracked text file contains U+2014 or U+2013.
+ * Also fail if a tracked file under web/ uses a spaced hyphen as a dash (" - ").
  * Lockfiles and vendored trees are skipped. The characters are written as
  * escapes here so this file does not contain them.
  */
@@ -53,16 +54,20 @@ for (const file of trackedFiles()) {
   const bytes = fs.readFileSync(file);
   if (bytes.includes(0)) continue;
   const text = bytes.toString('utf8');
-  if (!FORBIDDEN.some((item) => text.includes(item.char))) continue;
-  text.split('\n').forEach((line, index) => {
+  const lines = text.split('\n');
+  lines.forEach((line, index) => {
     for (const item of FORBIDDEN) {
       if (line.includes(item.char)) hits.push(`${file}:${index + 1}: ${item.name}`);
+    }
+    if ((file === 'web' || file.startsWith('web/')) && line.includes(' - ')) {
+      hits.push(`${file}:${index + 1}: spaced hyphen used as a dash`);
     }
   });
 }
 
 if (hits.length > 0) {
   console.error('Tracked text files must not contain an em dash (U+2014) or an en dash (U+2013).');
+  console.error('Files under web/ must not use a spaced hyphen as a dash.');
   console.error(hits.join('\n'));
   process.exit(1);
 }
