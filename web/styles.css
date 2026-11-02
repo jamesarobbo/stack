@@ -1105,3 +1105,21 @@ input {
   background: radial-gradient(60% 80% at 50% 0%, rgba(255, 255, 255, 0.7), transparent 70%);
   pointer-events: none;
 }
+
+
+.phone-shot {
+  padding: 10px;
+  background: linear-gradient(160deg, #2a2a2e, #111114 55%, #1c1c1e);
+  overflow: hidden;
+}
+
+.phone-shot-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 34px;
+}
+
+.phone.phone-shot::before {
+  border-radius: 42px;
+}
