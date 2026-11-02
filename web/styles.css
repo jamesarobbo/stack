@@ -132,13 +132,22 @@ input {
 .brand-mark {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  background: var(--ink);
-  color: var(--cream);
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 7px;
+  display: block;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(11, 29, 58, 0.08);
+}
+
+.footer-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.footer-brand strong {
+  display: block;
+  font-size: 16px;
+  letter-spacing: -0.02em;
 }
 
 .nav-cta {
