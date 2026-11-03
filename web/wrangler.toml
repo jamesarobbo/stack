@@ -1,4 +1,4 @@
-# Cloudflare Pages project for the Stack landing page.
+# Cloudflare Pages project for the StackView landing page.
 # Create the project and deploy only when James approves.
 # Example: npx wrangler pages project create stack-landing
 #          npx wrangler pages deploy . --project-name=stack-landing
