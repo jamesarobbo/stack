@@ -7,7 +7,7 @@ export default function PrivacyScreen() {
   return (
     <Screen>
       <BackButton />
-      <T weight="bold" size={32} style={{ letterSpacing: -0.6 }}>
+      <T weight="semibold" size={32} style={{ letterSpacing: -0.6 }}>
         Privacy
       </T>
       <T size={15} color={theme.muted}>

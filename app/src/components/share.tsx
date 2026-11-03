@@ -5,7 +5,7 @@ import type { DailyTotal, ScoreReason } from '../domain/auditScore';
 import { heroParts, type OutcomeFields } from '../domain/outcome';
 import { formatDose } from '../../../shared/doses';
 import { PERSONAL_RESULT_NOTE } from '../../../shared/outcome';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { useTheme, useThemedStyles, type Theme} from '../theme';
 import { NativeSegmented } from './NativeSegmented';
 import { T } from './ui';
 
@@ -112,11 +112,11 @@ export function ScoreRing({
         <Animated.View style={[arc, { position: 'absolute', left: 0, transform: [{ rotate: left }] }]} />
       </View>
       <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-        <T scale={false} weight="bold" size={size * 0.36} color={textColor} style={{ letterSpacing: -1.5, lineHeight: size * 0.4 }}>
+        <T scale={false} weight="semibold" size={size * 0.36} color={textColor} style={{ letterSpacing: -1.5, lineHeight: size * 0.4 }}>
           {String(reduced ? Math.round(target * 100) : shown)}
         </T>
         {size >= 100 ? (
-          <T scale={false} size={11} weight="medium" color={subColor} style={{ marginTop: -2 }}>
+          <T scale={false} size={11} weight="regular" color={subColor} style={{ marginTop: -2 }}>
             out of 100
           </T>
         ) : null}
@@ -149,7 +149,7 @@ export function ScoreHero({
     over: theme.flagText,
     near: theme.near,
     doubled: theme.score,
-    overlap_ok: theme.teal,
+    overlap_ok: theme.action,
     unchecked: theme.muted,
   };
   return (
@@ -167,7 +167,7 @@ export function ScoreHero({
           <T size={13} weight="semibold" color={theme.muted}>
             {title}
           </T>
-          <T weight="bold" size={18} color={theme.text} style={{ lineHeight: 23 }}>
+          <T weight="semibold" size={18} color={theme.text} style={{ lineHeight: 23 }}>
             {summary}
           </T>
           <T size={13} color={theme.muted}>
@@ -274,10 +274,10 @@ export function OutcomeHero({
       <View style={{ gap: 10 }}>
         <View style={styles.outcomeRow}>
           <View style={styles.outcomeIcon}>
-            <Ionicons name={icon} size={22} color={theme.teal} />
+            <Ionicons name={icon} size={22} color={theme.action} />
           </View>
           <View style={{ flex: 1, gap: 2 }}>
-            <T weight="bold" size={parts.value.length > 5 ? 36 : 52} color={theme.text} style={{ letterSpacing: -1.5, lineHeight: 58 }}>
+            <T weight="semibold" size={parts.value.length > 5 ? 36 : 52} color={theme.text} style={{ letterSpacing: -1.5, lineHeight: 58 }}>
               {parts.value}
             </T>
             <ResultLine line={`${result.label} ${parts.word}`} note={PERSONAL_RESULT_NOTE} size={15} weight="semibold" />
@@ -410,7 +410,7 @@ export function ScoreBadge({ score, size = 56 }: { score: number; size?: number 
       accessible
       accessibilityLabel={`Dose score ${score} out of 100, from doses and overlaps, not price.`}
     >
-      <T scale={false} weight="bold" size={size * 0.4} color="#FFFFFF" style={{ letterSpacing: -0.8, lineHeight: size * 0.46 }}>
+      <T scale={false} weight="semibold" size={size * 0.4} color="#FFFFFF" style={{ letterSpacing: -0.8, lineHeight: size * 0.46 }}>
         {String(score)}
       </T>
     </View>
@@ -449,14 +449,14 @@ export function ShareCardPreview({
   return (
     <View style={styles.preview} accessibilityLabel="Link preview" accessibilityHint={result?.disclaimer}>
       <BrandMark />
-      <T weight="bold" size={22} style={{ letterSpacing: -0.5, lineHeight: 26 }}>
+      <T weight="semibold" size={22} style={{ letterSpacing: -0.5, lineHeight: 26 }}>
         {stackName}
       </T>
       <T size={13} color={theme.muted}>
         {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
       </T>
       {spend ? (
-        <T size={13} weight="bold" color={theme.amber}>
+        <T size={13} weight="semibold" color={theme.amber}>
           {spend}
         </T>
       ) : null}
@@ -464,7 +464,7 @@ export function ShareCardPreview({
         <View style={{ flex: 1.15, gap: 8, justifyContent: 'center' }}>
           {result ? (
             <View style={styles.previewResult}>
-              <T weight="bold" size={28} style={{ letterSpacing: -1, lineHeight: 32 }}>
+              <T weight="semibold" size={28} style={{ letterSpacing: -1, lineHeight: 32 }}>
                 {result.value}
               </T>
               <MarkedLine line={`${result.label} ${result.word}`} size={13} weight="semibold" />
@@ -495,7 +495,7 @@ export function ShareCardPreview({
           </T>
         </View>
       </View>
-      <T weight="bold" size={14} color={theme.teal}>
+      <T weight="semibold" size={14} color={theme.action}>
         Check your stack against this one
       </T>
     </View>
@@ -528,14 +528,14 @@ export function StoryCardPreview({
   return (
     <View style={styles.story} accessibilityLabel="Story card" accessibilityHint={result?.disclaimer}>
       <BrandMark size={22} />
-      <T weight="bold" size={28} style={{ letterSpacing: -0.8, lineHeight: 32 }}>
+      <T weight="semibold" size={28} style={{ letterSpacing: -0.8, lineHeight: 32 }}>
         {stackName}
       </T>
       <T size={14} color={theme.muted}>
         {`${creator}, ${productCount} ${productCount === 1 ? 'product' : 'products'}`}
       </T>
       {spend ? (
-        <T size={15} weight="bold" color={theme.amber}>
+        <T size={15} weight="semibold" color={theme.amber}>
           {spend}
         </T>
       ) : null}
@@ -544,16 +544,16 @@ export function StoryCardPreview({
         <T size={13} weight="semibold" color={theme.muted}>
           Dose score
         </T>
-        <T size={16} weight="bold" style={{ textAlign: 'center' }}>
+        <T size={16} weight="semibold" style={{ textAlign: 'center' }}>
           {summary}
         </T>
       </View>
       {result ? (
         <View style={styles.storyResult}>
-          <T size={13} weight="bold" color={theme.muted}>
+          <T size={13} weight="semibold" color={theme.muted}>
             {result.kicker}
           </T>
-          <T weight="bold" size={48} style={{ letterSpacing: -1.5, lineHeight: 52 }}>
+          <T weight="semibold" size={48} style={{ letterSpacing: -1.5, lineHeight: 52 }}>
             {result.value}
           </T>
           <MarkedLine line={`${result.label} ${result.word}`} size={16} weight="semibold" />
@@ -584,11 +584,9 @@ export function StoryCardPreview({
           );
         })}
       </View>
-      <View style={styles.storyCta}>
-        <T weight="bold" size={15} color="#FFFFFF" style={{ textAlign: 'center' }}>
-          Check your stack against this one
-        </T>
-      </View>
+      <T weight="semibold" size={15} color={theme.action} style={{ textAlign: 'center' }}>
+        Check your stack against this one
+      </T>
     </View>
   );
 }
@@ -603,7 +601,7 @@ export function BrandMark({ size = 18 }: { size?: number }) {
           width: size,
           height: size,
           borderRadius: Math.round(size * 0.28),
-          backgroundColor: theme.mark,
+          backgroundColor: theme.text,
           justifyContent: 'center',
           paddingHorizontal: Math.round(size * 0.2),
           gap: Math.max(1, Math.round(size * 0.08)),
@@ -613,7 +611,7 @@ export function BrandMark({ size = 18 }: { size?: number }) {
         <View style={{ height: line, borderRadius: line / 2, backgroundColor: '#FFFFFF', opacity: 0.8 }} />
         <View style={{ height: line, borderRadius: line / 2, backgroundColor: '#FFFFFF', opacity: 0.6 }} />
       </View>
-      <T weight="bold" size={Math.round(size * 0.85)}>
+      <T weight="semibold" size={Math.round(size * 0.85)}>
         Stack
       </T>
     </View>
@@ -676,10 +674,10 @@ export function IconAction({ icon, label, onPress, active }: { icon: keyof typeo
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [styles.iconAction, active ? { backgroundColor: theme.tealSoft, borderColor: theme.tealSoft } : null, pressed ? { opacity: 0.85 } : null]}
+      style={({ pressed }) => [styles.iconAction, active ? { backgroundColor: theme.sand, borderColor: theme.sand } : null, pressed ? { opacity: 0.85 } : null]}
     >
-      <Ionicons name={icon} size={18} color={theme.teal} />
-      <T size={13} weight="semibold" color={theme.teal}>
+      <Ionicons name={icon} size={18} color={theme.action} />
+      <T size={13} weight="semibold" color={theme.action}>
         {label}
       </T>
     </Pressable>
@@ -699,14 +697,13 @@ function localStyles(theme: Theme) {
   outcomeRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   outcomeIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.card, alignItems: 'center', justifyContent: 'center' },
   noLimit: { height: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: theme.line },
-  preview: { backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 16, paddingTop: 18, gap: 8, overflow: 'hidden' },
+  preview: { backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 16, paddingTop: 18, paddingBottom: 22, gap: 8, overflow: 'hidden' },
   previewPanel: { width: 132, borderRadius: 12, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden' },
   previewGlow: { position: 'absolute', width: 160, height: 160, borderRadius: 80, right: -70, bottom: -80, opacity: 0.55 },
   previewResult: { backgroundColor: theme.bg, borderRadius: 12, padding: 10, gap: 2 },
-  story: { backgroundColor: theme.bg, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 18, paddingTop: 22, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
+  story: { backgroundColor: theme.bg, borderRadius: 12, borderWidth: 1, borderColor: theme.line, padding: 18, paddingTop: 22, paddingBottom: 28, gap: 10, overflow: 'hidden', aspectRatio: 9 / 16, justifyContent: 'space-between' },
   storyPanel: { borderRadius: 12, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 4, overflow: 'hidden', backgroundColor: theme.card },
   storyResult: { backgroundColor: theme.card, borderRadius: 12, padding: 14, gap: 2 },
-  storyCta: { backgroundColor: theme.action, borderRadius: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 12 },
   chip: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
   chipOn: { backgroundColor: theme.action, borderColor: theme.action },
   segmented: { flexDirection: 'row', backgroundColor: theme.segmentTrack, borderRadius: 12, padding: 3, gap: 2 },

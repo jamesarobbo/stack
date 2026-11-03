@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { previousOnboardingStep, onboardingProgress, type OnboardingStepKey } from '@/src/onboarding/steps';
 import { track } from '@/src/telemetry';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 import { Screen, T } from './ui';
 
 export function OnboardingProgress({ step }: { step: OnboardingStepKey }) {
@@ -53,8 +53,8 @@ export function OnboardingFrame({
           }}
           style={styles.back}
         >
-          <Ionicons name="chevron-back" size={18} color={theme.teal} />
-          <T size={15} weight="medium" color={theme.teal}>
+          <Ionicons name="chevron-back" size={18} color={theme.text} />
+          <T size={15} weight="regular" color={theme.text}>
             Back
           </T>
         </Pressable>
@@ -77,32 +77,32 @@ export function Choice({ label, selected, onPress }: { label: string; selected: 
       <T weight="semibold" style={{ flex: 1 }}>
         {label}
       </T>
-      {selected ? <Ionicons name="checkmark-circle" size={20} color={theme.teal} /> : null}
+      {selected ? <Ionicons name="checkmark-circle" size={20} color={theme.action} /> : null}
     </Pressable>
   );
 }
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  wrap: { gap: 8 },
-  track: { flexDirection: 'row', gap: 4 },
-  segment: { flex: 1, height: 4, borderRadius: 999 },
-  filled: { backgroundColor: theme.teal },
+  wrap: { gap: space.sm },
+  track: { flexDirection: 'row', gap: space.xs },
+  segment: { flex: 1, height: 4, borderRadius: radius.pill },
+  filled: { backgroundColor: theme.action },
   empty: { backgroundColor: theme.line },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
+  back: { flexDirection: 'row', alignItems: 'center', gap: space.xxs, alignSelf: 'flex-start' },
   choice: {
-    minHeight: 56,
+    minHeight: control.listRow,
     backgroundColor: theme.card,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: theme.line,
-    paddingHorizontal: 16,
+    paddingHorizontal: space.lg,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
   },
-  choiceOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
+  choiceOn: { borderColor: theme.action, backgroundColor: theme.sand },
 });
 }
 

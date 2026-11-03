@@ -17,7 +17,7 @@ import {
 import { signed } from '@/src/format';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ImpactScreen() {
   const theme = useTheme();
@@ -43,14 +43,14 @@ export default function ImpactScreen() {
         </T>
         {needsProduct ? (
           <Pressable accessibilityRole="link" onPress={() => router.navigate(STACK_TAB_HREF)} style={styles.link}>
-            <T weight="semibold" color={theme.teal}>
+            <T weight="semibold" color={theme.action}>
               {GO_TO_STACK_LABEL}
             </T>
           </Pressable>
         ) : null}
         <Button
           label="Connect Apple Health"
-          tone={needsProduct ? 'ghost' : 'teal'}
+          kind={needsProduct ? 'secondary' : 'primary'}
           onPress={() => {
             void app.connectWearable().then(setConnectNote);
           }}
@@ -85,7 +85,7 @@ export default function ImpactScreen() {
   return (
     <Screen>
       {app.usingSampleData ? <Pill>Example data</Pill> : null}
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {product.name}
       </T>
       <T size={14} color={theme.muted}>
@@ -97,9 +97,13 @@ export default function ImpactScreen() {
         <T size={13} weight="semibold" color={theme.sleep}>
           Deep sleep
         </T>
-        <T weight="bold" size={40} style={styles.heroValue}>
-          {sleep.after.mean == null ? '-' : formatHours(sleep.after.mean)}
-        </T>
+        {sleep.after.mean == null ? (
+          <T weight="semibold" size={40} style={styles.heroValue}>
+            -
+          </T>
+        ) : (
+          <HoursHero minutes={sleep.after.mean} />
+        )}
         <T size={15} weight="semibold" color={theme.muted}>
           {sleep.delta == null ? 'No days' : `${signed(sleep.delta)} vs baseline`}
         </T>
@@ -136,7 +140,7 @@ export default function ImpactScreen() {
             <T size={14} color={theme.muted}>
               Training load, alcohol tags, and travel stay off the free before/after. The numbers above use every day in the window.
             </T>
-            <T weight="semibold" color={theme.teal}>
+            <T weight="semibold" color={theme.action}>
               See Pro
             </T>
           </Card>
@@ -151,7 +155,7 @@ export default function ImpactScreen() {
       </Card>
 
       {app.products.length > 1 ? (
-        <View style={{ gap: 8 }}>
+        <View style={{ gap: space.sm }}>
           <T size={13} weight="semibold" color={theme.muted}>
             Other supplements
           </T>
@@ -181,12 +185,25 @@ export default function ImpactScreen() {
   );
 }
 
-function formatHours(minutes: number): string {
+
+function HoursHero({ minutes }: { minutes: number }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(localStyles);
   const total = Math.round(minutes);
   const h = Math.floor(total / 60);
   const m = total % 60;
-  return `${h}h ${String(m).padStart(2, '0')}m`;
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+      <T weight="semibold" size={40} style={styles.heroValue}>
+        {`${h}h `}
+      </T>
+      <T weight="semibold" size={40} color={theme.muted} style={styles.heroValue}>
+        {`${String(m).padStart(2, '0')}m`}
+      </T>
+    </View>
+  );
 }
+
 
 function Stat({
   label,
@@ -205,7 +222,7 @@ function Stat({
       <T size={12} weight="semibold" color={theme.muted}>
         {label}
       </T>
-      <T weight="bold" size={22} style={{ letterSpacing: -0.4 }}>
+      <T weight="semibold" size={22} style={{ letterSpacing: -0.4 }}>
         {value}
       </T>
       <T size={12} weight="semibold" color={theme.muted}>
@@ -232,7 +249,7 @@ function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
   const styles = useThemedStyles(localStyles);
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.tagButton}>
-      <T size={14} weight="semibold" color={theme.teal}>
+      <T size={14} weight="semibold" color={theme.action}>
         {label}
       </T>
     </Pressable>
@@ -242,33 +259,33 @@ function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8, marginTop: 4 },
-  link: { minHeight: 44, justifyContent: 'center' },
+  link: { minHeight: control.height, justifyContent: 'center' },
   heroStat: {
     backgroundColor: theme.card,
     borderRadius: theme.radius,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: theme.line,
-    padding: 18,
-    gap: 4,
+    padding: space.lg,
+    gap: space.xs,
   },
   heroValue: { letterSpacing: -1.2, lineHeight: 46 },
-  stats: { flexDirection: 'row', gap: 8 },
+  stats: { flexDirection: 'row', gap: space.sm },
   stat: {
     flex: 1,
     backgroundColor: theme.card,
-    borderRadius: 14,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: theme.line,
-    padding: 10,
-    gap: 4,
+    padding: space.md,
+    gap: space.xs,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderRadius: 999, borderWidth: 1, borderColor: theme.line, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: theme.card },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  chip: { borderRadius: radius.pill, borderWidth: 1, borderColor: theme.line, paddingHorizontal: space.md, paddingVertical: space.sm, backgroundColor: theme.card },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   tagButton: {
-    minHeight: 44,
-    paddingHorizontal: 14,
-    borderRadius: 999,
+    minHeight: control.height,
+    paddingHorizontal: space.md,
+    borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: theme.line,
     backgroundColor: theme.card,

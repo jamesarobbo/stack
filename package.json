@@ -8,6 +8,7 @@
     "check:dashes": "node scripts/check-no-em-dash",
     "check:case": "node scripts/check-no-uppercase.js",
     "check:emoji": "node scripts/check-no-emoji.js",
+    "check:fonts": "node scripts/check-font-weights.js",
     "dev:app": "npm start --prefix app",
     "dev:server": "npm run dev --prefix server"
   }

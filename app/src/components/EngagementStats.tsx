@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { compactCount, copiesLabel, viewsLabel } from '../../../shared/engagement';
-import { useTheme } from '../theme';
+import { space, useTheme } from '../theme';
 import { T } from './ui';
 
 
@@ -9,7 +9,7 @@ import { T } from './ui';
 export function EngagementStats({ copies, views }: { copies: number | null; views: number | null }) {
   if (copies == null && views == null) return null;
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.md }}>
       {copies != null ? <Stat icon="copy-outline" value={compactCount(copies)} label={copiesLabel(copies)} /> : null}
       {views != null ? <Stat icon="eye-outline" value={compactCount(views)} label={viewsLabel(views)} /> : null}
     </View>
@@ -19,7 +19,7 @@ export function EngagementStats({ copies, views }: { copies: number | null; view
 function Stat({ icon, value, label }: { icon: 'copy-outline' | 'eye-outline'; value: string; label: string }) {
   const theme = useTheme();
   return (
-    <View accessible accessibilityLabel={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+    <View accessible accessibilityLabel={label} style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
       <Ionicons name={icon} size={16} color={theme.muted} />
       <T size={13} weight="semibold" color={theme.muted}>
         {value}

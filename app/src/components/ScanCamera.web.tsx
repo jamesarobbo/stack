@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { useTheme, useThemedStyles, type Theme, space } from '../theme';
 import { ScanFrame } from './ScanFrame';
 import { T } from './ui';
 
@@ -22,7 +22,7 @@ export function ScanCamera({ torch }: { torch: boolean; onScan: (code: string) =
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 28 },
+  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xxl },
 });
 }
 

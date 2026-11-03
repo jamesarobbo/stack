@@ -18,10 +18,10 @@ export default function ResultStep() {
 
   return (
     <OnboardingFrame step="result" footer={<Button label="See my full audit" onPress={() => router.push('/onboarding/save')} />}>
-      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+      <T weight="semibold" size={32} style={{ letterSpacing: -0.8 }}>
         {preview.headline}
       </T>
-      <T size={15} weight="semibold" color={theme.teal}>
+      <T size={15} weight="semibold" color={theme.action}>
         {preview.goalLine}
       </T>
       <T size={16} color={theme.muted}>
@@ -41,7 +41,7 @@ export default function ResultStep() {
           <T size={13} color={theme.amber}>
             Estimated overlap
           </T>
-          <T weight="bold" size={32} color={theme.amber}>
+          <T weight="semibold" size={32} color={theme.amber}>
             {preview.wastedLabel}
           </T>
           {preview.duplicateDetail.map((line) => (

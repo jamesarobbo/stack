@@ -13,7 +13,7 @@ import { EXPECTATION, goalEcho, wearableLine } from '@/src/onboarding/answers';
 import { readGoals, readWearable } from '@/src/onboarding/storage';
 import { purchasesAvailable } from '@/src/purchases';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const ROWS: { label: string; free: boolean; pro: boolean }[] = [
   { label: 'Stack log + duplicates', free: true, pro: true },
@@ -78,11 +78,11 @@ export default function PaywallScreen() {
     <Screen>
       {fromOnboarding ? <OnboardingProgress step="paywall" /> : null}
       <BackButton fallback={fromOnboarding ? '/onboarding/save' : '/(tabs)/more'} />
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {fromOnboarding ? 'Keep this audit, and the weeks after' : 'See every dollar and every signal'}
       </T>
       {fromOnboarding ? (
-        <T size={15} weight="semibold" color={theme.teal}>
+        <T size={15} weight="semibold" color={theme.action}>
           {goalEcho(readGoals())}
         </T>
       ) : null}
@@ -96,7 +96,7 @@ export default function PaywallScreen() {
           <T size={13} color={theme.amber}>
             Estimated overlap from your labels
           </T>
-          <T weight="bold" size={28} color={theme.amber}>
+          <T weight="semibold" size={28} color={theme.amber}>
             {`${overlap} a month`}
           </T>
         </Card>
@@ -109,13 +109,13 @@ export default function PaywallScreen() {
             Billed once a year
           </T>
         </View>
-        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+        <View style={{ alignItems: 'flex-end', gap: space.xs }}>
           <View style={styles.best}>
-            <T size={11} weight="semibold" color={theme.teal}>
+            <T size={11} weight="semibold" color={theme.action}>
               Best value
             </T>
           </View>
-          <T weight="bold" size={18} color={theme.amber}>
+          <T weight="semibold" size={18} color={theme.amber}>
             {formatUsd(PRO_ANNUAL_CENTS)}
           </T>
           <View style={styles.save}>
@@ -133,7 +133,7 @@ export default function PaywallScreen() {
             Cancel any time
           </T>
         </View>
-        <T weight="bold" size={18} color={theme.amber}>
+        <T weight="semibold" size={18} color={theme.amber}>
           {formatUsd(PRO_MONTHLY_CENTS)}
         </T>
       </Pressable>
@@ -144,7 +144,7 @@ export default function PaywallScreen() {
           <T size={12} weight="semibold" color={theme.muted} style={styles.col}>
             Free
           </T>
-          <T size={12} weight="semibold" color={theme.teal} style={styles.col}>
+          <T size={12} weight="semibold" color={theme.action} style={styles.col}>
             Pro
           </T>
         </View>
@@ -159,11 +159,11 @@ export default function PaywallScreen() {
         ))}
       </View>
 
-      <Button label={app.previewPro ? 'Turn off preview' : `Start Pro: ${price}`} onPress={() => void start()} />
-      {fromOnboarding ? <Button label="Continue with Free" tone="ghost" onPress={() => void finishFree()} /> : null}
+      <Button label={app.previewPro ? 'Turn off preview' : `Start Pro: ${price}`} kind={app.previewPro ? 'secondary' : 'primary'} onPress={() => void start()} />
+      {fromOnboarding ? <Button label="Continue with Free" kind="secondary" onPress={() => void finishFree()} /> : null}
       {fromOnboarding ? (
         <Pressable accessibilityRole="link" onPress={() => void browseListed()} style={styles.link}>
-          <T size={15} weight="semibold" color={theme.teal} style={{ textAlign: 'center' }}>
+          <T size={15} weight="semibold" color={theme.action} style={{ textAlign: 'center' }}>
             {BROWSE_LISTED}
           </T>
         </Pressable>
@@ -177,7 +177,7 @@ export default function PaywallScreen() {
           }
         }}
       >
-        <T size={14} weight="semibold" color={theme.teal} style={{ textAlign: 'center' }}>
+        <T size={14} weight="semibold" color={theme.action} style={{ textAlign: 'center' }}>
           Restore purchases
         </T>
       </Pressable>
@@ -198,7 +198,7 @@ function Mark({ on }: { on: boolean }) {
   const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.col}>
-      <Ionicons name={on ? 'checkmark' : 'remove'} size={16} color={on ? theme.teal : theme.muted} />
+      <Ionicons name={on ? 'checkmark' : 'remove'} size={16} color={on ? theme.action : theme.muted} />
     </View>
   );
 }
@@ -208,22 +208,22 @@ function localStyles(theme: Theme) {
   title: { letterSpacing: -0.8 },
   plan: {
     backgroundColor: theme.card,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: theme.line,
-    padding: 16,
+    padding: space.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
   },
-  planOn: { borderColor: theme.teal, backgroundColor: theme.tealSoft },
-  best: { backgroundColor: theme.tealSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  save: { backgroundColor: theme.amberPill, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  table: { backgroundColor: theme.card, borderRadius: 18, borderWidth: 1, borderColor: theme.line, padding: 14, gap: 10 },
+  planOn: { borderColor: theme.action, backgroundColor: theme.sand },
+  best: { backgroundColor: theme.sand, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 },
+  save: { backgroundColor: theme.amberPill, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 },
+  table: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: 1, borderColor: theme.line, padding: space.md, gap: space.md },
   tableHead: { flexDirection: 'row', alignItems: 'center' },
-  tableRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tableRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   col: { width: 44, textAlign: 'center', alignItems: 'center' },
-  link: { minHeight: 44, justifyContent: 'center' },
+  link: { minHeight: control.height, justifyContent: 'center' },
 });
 }
 

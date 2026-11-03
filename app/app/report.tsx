@@ -13,7 +13,7 @@ import { joinMoney } from '../../shared/money';
 import { auditStack } from '@/src/domain/audit';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function ReportScreen() {
   const theme = useTheme();
@@ -59,7 +59,7 @@ function ReportEmpty({ products }: { products: number }) {
   const styles = useThemedStyles(localStyles);
   return (
     <>
-      <T weight="bold" size={28} style={styles.title}>
+      <T weight="semibold" size={28} style={styles.title}>
         {REPORT_EMPTY.title}
       </T>
       {products === 0 ? (
@@ -100,7 +100,7 @@ function ReportBody({ report, overlap }: { report: ReturnType<typeof buildMonthl
             <T size={14} style={{ flex: 1 }}>
               {item.name}
             </T>
-            <T weight="semibold" size={14} color={item.deepSleepDelta != null && item.deepSleepDelta > 0 ? theme.teal : theme.text}>
+            <T weight="semibold" size={14} color={item.deepSleepDelta != null && item.deepSleepDelta > 0 ? theme.good : theme.text}>
               {item.deepSleepDelta == null ? '-' : `${signed(item.deepSleepDelta)} min`}
             </T>
           </View>
@@ -128,7 +128,7 @@ function ReportBody({ report, overlap }: { report: ReturnType<typeof buildMonthl
         <T size={13} weight="semibold" color={theme.amber}>
           Potential overlap spend
         </T>
-        <T weight="bold" size={40} color={theme.amber} style={styles.savingsValue}>
+        <T weight="semibold" size={40} color={theme.amber} style={styles.savingsValue}>
           {overlap}
         </T>
         <T size={14} color={theme.muted}>
@@ -158,7 +158,7 @@ function ReportTitle() {
   const styles = useThemedStyles(localStyles);
   return (
     <View style={styles.titleRow}>
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {MONTHLY_REPORT_LABEL}
       </T>
       <Pill tone="teal">Pro</Pill>
@@ -174,18 +174,18 @@ function VerdictPill({ verdict }: { verdict: Verdict }) {
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
   title: { letterSpacing: -0.8, flex: 1 },
   savings: {
     backgroundColor: theme.amberBg,
     borderColor: theme.amberBorder,
     borderWidth: 1,
-    borderRadius: 20,
-    padding: 18,
-    gap: 8,
+    borderRadius: radius.lg,
+    padding: space.lg,
+    gap: space.sm,
   },
   savingsValue: { letterSpacing: -1.2, lineHeight: 46 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 36 },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: control.compact },
 });
 }
 

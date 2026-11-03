@@ -6,12 +6,12 @@ export const DISCOVER_SPARSE = 'This is every listed stack right now.';
 export const BROWSE_LISTED = 'Browse listed stacks';
 
 export const LIBRARY_GOALS = [
+  { key: 'longevity', label: 'Longevity' },
   { key: 'sleep', label: 'Sleep' },
   { key: 'energy', label: 'Energy' },
   { key: 'heart', label: 'Heart health' },
   { key: 'recovery', label: 'Recovery' },
   { key: 'focus', label: 'Focus' },
-  { key: 'longevity', label: 'Longevity' },
 ] as const;
 
 export type LibraryGoalKey = (typeof LIBRARY_GOALS)[number]['key'];

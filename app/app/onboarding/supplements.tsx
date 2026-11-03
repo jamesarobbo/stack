@@ -7,7 +7,7 @@ import { goalEcho } from '@/src/onboarding/answers';
 import { readGoals } from '@/src/onboarding/storage';
 import { SUPPLEMENT_ENTRY } from '@/src/onboarding/steps';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const ICONS = {
   search: 'search-outline',
@@ -33,10 +33,10 @@ export default function SupplementStep() {
         />
       }
     >
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         Add your supplements
       </T>
-      <T size={15} weight="semibold" color={theme.teal}>
+      <T size={15} weight="semibold" color={theme.action}>
         {echo}
       </T>
       <T size={16} color={theme.muted}>
@@ -54,7 +54,7 @@ export default function SupplementStep() {
             style={styles.row}
           >
             <View style={styles.icon}>
-              <Ionicons name={ICONS[entry.key]} size={18} color={theme.teal} />
+              <Ionicons name={ICONS[entry.key]} size={18} color={theme.muted} />
             </View>
             <View style={{ flex: 1 }}>
               <T weight="semibold">{entry.title}</T>
@@ -92,27 +92,27 @@ export default function SupplementStep() {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8 },
-  list: { gap: 10 },
+  list: { gap: space.md },
   row: {
-    minHeight: 72,
+    minHeight: control.listRow + space.md,
     backgroundColor: theme.card,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: theme.line,
-    padding: 14,
+    padding: space.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
   },
   icon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.tealSoft,
+    borderRadius: radius.lg,
+    backgroundColor: theme.sand,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
 });
 }
 

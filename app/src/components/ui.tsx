@@ -10,7 +10,9 @@ import type { ProductInput } from '../domain/types';
 import { formatMoney } from '../format';
 import { productSubtitle } from '../productSubtitle';
 import { currencyOf } from '../../../shared/money';
-import { font, space, useTheme, useThemedStyles, type Theme } from '../theme';
+import { control, font, fontFamily, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
+import { Button as PrimitiveButton } from '../primitives/Button';
+export { DoseRow, Field as PrimField, SectionHeader, Group, Row } from '../primitives';
 
 type Weight = keyof typeof font;
 
@@ -34,7 +36,7 @@ export function T({
   return (
     <Text
       allowFontScaling={scale}
-      style={[{ fontWeight: font[weight], fontSize: size, color: color ?? theme.text, lineHeight: Math.round(size * 1.35) }, style]}
+      style={[{ fontFamily, fontWeight: font[weight], fontSize: size, color: color ?? theme.text, lineHeight: Math.round(size * 1.35) }, style]}
     >
       {children}
     </Text>
@@ -52,9 +54,10 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const styles = useThemedStyles(localStyles);
+  const bottomPad = footer ? space.xxl + 72 : space.xxl;
   const body = scroll ? (
     <ScrollView
-      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]}
+      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + space.lg, paddingBottom: bottomPad }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
@@ -63,7 +66,7 @@ export function Screen({
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.scroll, { paddingTop: insets.top + 20, flex: 1 }]}>{children}</View>
+    <View style={[styles.scroll, { paddingTop: insets.top + space.lg, paddingBottom: bottomPad, flex: 1 }]}>{children}</View>
   );
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -82,7 +85,7 @@ export function Eyebrow({ left, right }: { left: string; right?: string }) {
         {left}
       </T>
       {right ? (
-        <T size={13} weight="medium" color={theme.muted}>
+        <T size={13} weight="regular" color={theme.muted}>
           {right}
         </T>
       ) : null}
@@ -103,29 +106,44 @@ export function SectionLabel({ label, badge }: { label: string; badge?: string }
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+export function Card({
+  children,
+  style,
+  tone = 'surface',
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  tone?: 'surface' | 'sand' | 'accent';
+}) {
+  const theme = useTheme();
   const styles = useThemedStyles(localStyles);
-  return <View style={[styles.card, style]}>{children}</View>;
+  const bg = tone === 'sand' ? theme.sand : tone === 'accent' ? theme.sand : theme.card;
+  const borderW = tone === 'surface' ? StyleSheet.hairlineWidth : 0;
+  return (
+    <View style={[styles.card, { backgroundColor: bg, borderWidth: borderW }, style]}>{children}</View>
+  );
 }
 
 export function Pill({
   children,
   tone = 'grey',
+  style,
 }: {
   children: ReactNode;
   tone?: 'grey' | 'amber' | 'teal' | 'flag' | 'blue';
+  style?: StyleProp<ViewStyle>;
 }) {
   const theme = useTheme();
   const styles = useThemedStyles(localStyles);
   const tones = {
     grey: { bg: theme.greyPill, fg: theme.muted },
     amber: { bg: theme.amberPill, fg: theme.amber },
-    teal: { bg: theme.tealSoft, fg: theme.teal },
+    teal: { bg: theme.sand, fg: theme.muted },
     flag: { bg: theme.flagBg, fg: theme.flagText },
-    blue: { bg: theme.tealSoft, fg: theme.teal },
+    blue: { bg: theme.sand, fg: theme.muted },
   }[tone];
   return (
-    <View style={[styles.pill, { backgroundColor: tones.bg }]}>
+    <View style={[styles.pill, { backgroundColor: tones.bg }, style]}>
       <T size={12} weight="semibold" color={tones.fg}>
         {children}
       </T>
@@ -166,7 +184,7 @@ export function LabeledField({
   const styles = useThemedStyles(localStyles);
   const isPad = keyboardType === 'number-pad' || keyboardType === 'decimal-pad';
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{ gap: space.sm }}>
       <T size={13} weight="semibold">
         {label}
       </T>
@@ -195,8 +213,8 @@ export function LabeledField({
 export function EmptyLead({ title, body }: { title: string; body: string }) {
   const theme = useTheme();
   return (
-    <View style={{ gap: 10 }}>
-      <T weight="bold" size={32} style={{ letterSpacing: -0.8 }}>
+    <View style={{ gap: space.md }}>
+      <T weight="semibold" size={32} style={{ letterSpacing: -0.8 }}>
         {title}
       </T>
       <T size={16} color={theme.muted}>
@@ -209,32 +227,37 @@ export function EmptyLead({ title, body }: { title: string; body: string }) {
 export function Button({
   label,
   onPress,
-  tone = 'teal',
+  kind,
+  tone,
   disabled = false,
+  loading = false,
+  fullWidth,
+  style,
 }: {
   label: string;
   onPress: () => void;
+  /** Preferred. primary filled action, secondary bordered, plain text, destructive. */
+  kind?: 'primary' | 'secondary' | 'plain' | 'destructive';
+  /** @deprecated Use kind. teal → primary, ghost → secondary. */
   tone?: 'teal' | 'ghost';
   disabled?: boolean;
+  loading?: boolean;
+  fullWidth?: boolean;
+  style?: StyleProp<ViewStyle>;
 }) {
-  const theme = useTheme();
-  const styles = useThemedStyles(localStyles);
+  const resolved =
+    kind ??
+    (tone === 'ghost' ? 'secondary' : 'primary');
   return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={disabled}
+    <PrimitiveButton
+      label={label}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        tone === 'ghost' ? styles.buttonGhost : styles.buttonTeal,
-        pressed && !disabled ? { opacity: 0.88 } : null,
-        disabled ? { opacity: 0.45 } : null,
-      ]}
-    >
-      <T weight="semibold" size={16} color={tone === 'ghost' ? theme.teal : '#fff'}>
-        {label}
-      </T>
-    </Pressable>
+      kind={resolved}
+      disabled={disabled}
+      loading={loading}
+      fullWidth={fullWidth}
+      style={style}
+    />
   );
 }
 
@@ -247,9 +270,9 @@ export function ShareButton({ onPress }: { onPress: () => void }) {
       accessibilityLabel="Share stack"
       onPress={onPress}
       hitSlop={8}
-      style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+      style={{ width: 44, height: control.height, alignItems: 'center', justifyContent: 'center' }}
     >
-      <Ionicons name={name} size={22} color={theme.teal} />
+      <Ionicons name={name} size={22} color={theme.text} />
     </Pressable>
   );
 }
@@ -276,8 +299,8 @@ export function BackButton({ label = 'Back', fallback = '/(tabs)/stack' }: { lab
       style={styles.back}
       hitSlop={8}
     >
-      <Ionicons name="chevron-back" size={18} color={theme.teal} />
-      <T size={15} weight="medium" color={theme.teal}>
+      <Ionicons name="chevron-back" size={18} color={theme.text} />
+      <T size={15} weight="regular" color={theme.action}>
         {label}
       </T>
     </Pressable>
@@ -290,14 +313,14 @@ function Capsule({ color }: { color: string }) {
       style={{
         width: 18,
         height: 26,
-        borderRadius: 9,
+        borderRadius: radius.sm,
         borderWidth: 1.7,
         borderColor: color,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <View style={{ width: 8, height: 1.7, borderRadius: 1, backgroundColor: color }} />
+      <View style={{ width: 8, height: 1.7, borderRadius: radius.xs, backgroundColor: color }} />
     </View>
   );
 }
@@ -313,7 +336,7 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
       style={({ pressed }) => [styles.product, last ? styles.productLast : null, pressed ? { opacity: 0.85 } : null]}
     >
       <Capsule color={theme.muted} />
-      <View style={{ flex: 1, gap: 2 }}>
+      <View style={{ flex: 1, gap: space.xxs }}>
         <T weight="semibold" size={16}>
           {product.name}
         </T>
@@ -326,7 +349,7 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
           Add price
         </T>
       ) : (
-        <T weight="bold" size={16} color={theme.amber}>
+        <T weight="semibold" size={16} color={theme.amber}>
           {formatMoney(monthly, currencyOf(product))}
         </T>
       )}
@@ -352,50 +375,47 @@ export function Boot({ message }: { message: string }) {
 function localStyles(theme: Theme) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: theme.bg },
-    scroll: { paddingHorizontal: space.xl, paddingBottom: 28, gap: 14 },
+    scroll: { paddingHorizontal: space.xl, paddingBottom: space.xxl, gap: space.xl },
     footer: { paddingHorizontal: space.xl, paddingTop: space.sm, backgroundColor: theme.bg, gap: space.sm },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
     card: {
       backgroundColor: theme.card,
-      borderRadius: theme.radius,
-      padding: space.lg,
-      borderWidth: 1,
+      borderRadius: radius.lg,
+      padding: space.xl,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.line,
-      gap: 10,
+      gap: space.lg,
     },
-    pill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: space.xs, alignSelf: 'flex-start' },
-    button: { minHeight: 52, paddingVertical: 14, paddingHorizontal: space.lg, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    pill: { borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.xs, alignSelf: 'flex-start' },
     field: {
-      minHeight: 48,
-      backgroundColor: theme.card,
-      borderRadius: theme.radius,
+      height: control.height,
+      minHeight: control.height,
+      backgroundColor: theme.bg,
+      borderRadius: radius.sm,
       borderWidth: 1,
       borderColor: theme.line,
-      paddingHorizontal: 14,
-      paddingVertical: space.md,
-      fontSize: 16,
+      paddingHorizontal: space.md,
+      fontSize: typeSize.body,
       color: theme.text,
     },
-    buttonTeal: { backgroundColor: theme.action },
-    buttonGhost: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.line },
     disclaimer: {
-      borderRadius: theme.radius,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: theme.line,
       backgroundColor: theme.card,
-      padding: 14,
+      padding: space.md,
     },
-    back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', minHeight: 44 },
+    back: { flexDirection: 'row', alignItems: 'center', gap: space.xxs, alignSelf: 'flex-start', minHeight: control.height },
     product: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.md,
       paddingVertical: space.md,
-      paddingHorizontal: 14,
+      paddingHorizontal: space.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.line,
-      minHeight: 56,
+      minHeight: control.listRow,
     },
     productLast: { borderBottomWidth: 0 },
     boot: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: space.xxl, gap: space.sm },

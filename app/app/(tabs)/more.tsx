@@ -9,7 +9,7 @@ import { devToolsInProfile, openDevTools } from '@/src/devMenu';
 import { currentWearableEmptyCopy } from '@/src/health/runtime';
 import { currencyName } from '../../../shared/money';
 import { useApp } from '@/src/state';
-import { useTheme, useThemedStyles, type Theme } from '@/src/theme';
+import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 export default function MoreScreen() {
   const theme = useTheme();
@@ -18,7 +18,7 @@ export default function MoreScreen() {
   const latest = useMemo(() => latestMetrics(app.samples), [app.samples]);
   return (
     <Screen>
-      <T weight="bold" size={32} style={styles.title}>
+      <T weight="semibold" size={32} style={styles.title}>
         {APP_NAME}
       </T>
       <T size={16} color={theme.muted}>
@@ -34,7 +34,7 @@ export default function MoreScreen() {
         <Row title="Currency" detail={currencyName(app.currency)} onPress={() => router.push('/currency')} />
         <Row title="Log history" detail="Days you logged" onPress={() => router.push('/history')} />
         <Row title="Settings" detail="Reminder, currency, username, export, and delete" onPress={() => router.push('/settings')} />
-        <Row title="About results" detail="What a star on a result means" onPress={() => router.push('/results')} />
+        <Row title="About results" detail="How Stack works out your results" onPress={() => router.push('/results')} />
         <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} last />
       </View>
       <DeveloperTools />
@@ -101,7 +101,7 @@ function DeveloperTools() {
         Example data is off unless you load it. Loading replaces the stack, wearable days, and tags on this device.
       </T>
       <Pressable accessibilityRole="button" onPress={() => void app.restoreExample()}>
-        <T weight="semibold" color={theme.teal}>
+        <T weight="semibold" color={theme.action}>
           {LOAD_EXAMPLE_LABEL}
         </T>
       </Pressable>
@@ -122,7 +122,7 @@ function DeveloperTools() {
       </Pressable>
       {devToolsInProfile() ? (
         <Pressable accessibilityRole="button" onPress={openDevTools}>
-          <T weight="semibold" color={theme.teal}>
+          <T weight="semibold" color={theme.action}>
             Expo tools
           </T>
         </Pressable>
@@ -162,19 +162,19 @@ function Row({ title, detail, onPress, last = false }: { title: string; detail: 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
   title: { letterSpacing: -0.8, marginTop: 4 },
-  menu: { backgroundColor: theme.card, borderRadius: 16, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
+  menu: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: 1, borderColor: theme.line, overflow: 'hidden' },
   row: {
-    minHeight: 60,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    minHeight: control.listRow,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: space.sm,
     borderBottomWidth: 1,
     borderBottomColor: theme.line,
   },
   rowLast: { borderBottomWidth: 0 },
-  metric: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, minHeight: 28 },
+  metric: { flexDirection: 'row', justifyContent: 'space-between', gap: space.md, minHeight: space.xxl },
 });
 }
 

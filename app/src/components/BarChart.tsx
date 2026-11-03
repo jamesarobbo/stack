@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { bucketMeans } from '../domain/impact';
-import { useTheme, useThemedStyles, type Theme } from '../theme';
+import { radius, space, useTheme, useThemedStyles, type Theme } from '../theme';
 import { T } from './ui';
 
 export function BarChart({
@@ -53,15 +53,15 @@ function localStyles(theme: Theme) {
   card: {
     backgroundColor: theme.card,
     borderRadius: theme.radius,
-    padding: 16,
+    padding: space.lg,
     borderWidth: 1,
     borderColor: theme.line,
-    gap: 12,
+    gap: space.md,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  plot: { height: 140, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 7 },
-  bar: { width: 14, borderRadius: 5 },
-  labels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 },
+  plot: { height: 140, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: space.sm },
+  bar: { width: 14, borderRadius: radius.xs },
+  labels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space.sm },
 });
 }
 
