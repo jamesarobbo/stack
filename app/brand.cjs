@@ -3,7 +3,7 @@
  * Rename the app here. app.config.ts and src/config.ts both read this file.
  */
 module.exports = {
-  APP_NAME: 'Stack',
+  APP_NAME: 'StackView',
   APP_SLUG: 'stack',
   APP_SCHEME: 'stack',
   IOS_BUNDLE_ID: 'app.stack.mobile',

@@ -50,7 +50,7 @@ type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
 export function offUserAgent(contact: string | undefined): string {
   const detail = contact?.trim() || OFF_CONTACT_FALLBACK;
-  return `Stack/0.1 (${detail})`;
+  return `StackView/0.1 (${detail})`;
 }
 
 export function offProductUrl(code: string): string {

@@ -12,6 +12,7 @@ import { productSubtitle } from '../productSubtitle';
 import { currencyOf } from '../../../shared/money';
 import { control, font, fontFamily, radius, space, typeSize, useTheme, useThemedStyles, type Theme } from '../theme';
 import { Button as PrimitiveButton } from '../primitives/Button';
+import { APP_NAME } from '@/src/config';
 export { DoseRow, Field as PrimField, SectionHeader, Group, Row } from '../primitives';
 
 type Weight = keyof typeof font;
@@ -363,7 +364,7 @@ export function Boot({ message }: { message: string }) {
   return (
     <View style={styles.boot}>
       <T weight="semibold" size={18}>
-        Stack
+        {APP_NAME}
       </T>
       <T size={14} color={theme.muted} style={{ textAlign: 'center' }}>
         {message}

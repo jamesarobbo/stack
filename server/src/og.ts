@@ -132,7 +132,7 @@ export function ogSvg(input: OgInput): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
 <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="${CREAM}"/>
 ${brand(64, 40, 48)}
-<text x="128" y="74" font-family="Inter" font-weight="700" font-size="32" fill="${INK}" letter-spacing="-0.6">Stack</text>
+<text x="128" y="74" font-family="Inter" font-weight="700" font-size="32" fill="${INK}" letter-spacing="-0.6">StackView</text>
 ${titleText}
 <text x="64" y="${bylineY}" font-family="Inter" font-weight="500" font-size="26" fill="${MUTED}">${escapeXml(truncate(byline, 26, 590))}</text>
 ${copyLine}
@@ -213,7 +213,7 @@ export function storySvg(input: OgInput): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${STORY_WIDTH}" height="${STORY_HEIGHT}" viewBox="0 0 ${STORY_WIDTH} ${STORY_HEIGHT}">
 <rect width="${STORY_WIDTH}" height="${STORY_HEIGHT}" fill="${CREAM}"/>
 ${brand(pad, 128, 56)}
-<text x="${pad + 72}" y="168" font-family="Inter" font-weight="700" font-size="36" fill="${INK}" letter-spacing="-0.6">Stack</text>
+<text x="${pad + 72}" y="168" font-family="Inter" font-weight="700" font-size="36" fill="${INK}" letter-spacing="-0.6">StackView</text>
 ${titleText}
 <text x="${pad}" y="${bylineY}" font-family="Inter" font-weight="500" font-size="28" fill="${MUTED}">${escapeXml(truncate(byline, 28, inner))}</text>
 ${copyLine}

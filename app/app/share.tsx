@@ -8,13 +8,7 @@ import { UsernameField } from '@/src/components/UsernameField';
 import { BackButton, Button, Card, Screen, T } from '@/src/components/ui';
 import { api, ApiError } from '@/src/api';
 import { LIBRARY_GOALS, goalLabel, type LibraryGoalKey } from '@/src/copy/library';
-import {
-  EXAMPLE_CANNOT_SHARE,
-  NOT_ENOUGH_OUTCOME,
-  SHARE_STACK_LABEL,
-  copyCountLabel,
-  shareMessage,
-} from '@/src/copy/sharing';
+import { EXAMPLE_CANNOT_SHARE, NOT_ENOUGH_OUTCOME, SHARE_STACK_LABEL, SHARER_FALLBACK, copyCountLabel, shareMessage } from '@/src/copy/sharing';
 import { groupedCount } from '../../shared/engagement';
 import { usernameHandle } from '../../shared/username';
 import { creatorResults, sharePayloadProducts, type OwnShare, type ShareView } from '@/src/data/sharing';
@@ -211,7 +205,7 @@ export default function ShareScreen() {
         <Card>
           <ReviewRow label="Who can see it" value={listed ? 'Listed in Discover' : 'Only people with the link'} />
           <ReviewRow label="Stack name" value={previewName} />
-          <ReviewRow label="Username" value={handle ?? 'A Stack user'} />
+          <ReviewRow label="Username" value={handle ?? SHARER_FALLBACK} />
           <ReviewRow
             label="Products"
             value={

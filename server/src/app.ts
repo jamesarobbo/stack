@@ -736,7 +736,7 @@ function shareUrl(c: AppContext, slug: string): string {
 function ogInput(c: AppContext, view: Awaited<ReturnType<typeof publicShare>> extends infer R ? (R extends { view: infer V } ? V : never) : never) {
   return {
     stackName: view.stackName,
-    creator: usernameHandle(view.username) ?? 'A Stack user',
+    creator: usernameHandle(view.username) ?? 'A StackView user',
     productCount: view.products.length,
     score: view.auditScore,
     summary: view.score.summary,
