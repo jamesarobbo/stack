@@ -406,7 +406,7 @@ export async function deleteLocalData() {
 export async function exportPayload() {
   const snapshot = await loadSnapshot();
   return {
-    app: 'Stack',
+    app: 'StackView',
     exportedAt: new Date().toISOString(),
     note: 'Educational export of what you logged on this device. Not a medical record.',
     products: snapshot.products,

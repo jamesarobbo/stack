@@ -7,6 +7,7 @@ import { formatDose } from '../../../shared/doses';
 import { PERSONAL_RESULT_NOTE } from '../../../shared/outcome';
 import { useTheme, useThemedStyles, type Theme} from '../theme';
 import { NativeSegmented } from './NativeSegmented';
+import { APP_NAME } from '../config';
 import { T } from './ui';
 
 const NATIVE = Platform.OS !== 'web';
@@ -595,7 +596,7 @@ export function BrandMark({ size = 18 }: { size?: number }) {
   const theme = useTheme();
   const line = Math.max(2, Math.round(size * 0.14));
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }} accessibilityLabel="Stack">
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }} accessibilityLabel={APP_NAME}>
       <View
         style={{
           width: size,
@@ -612,7 +613,7 @@ export function BrandMark({ size = 18 }: { size?: number }) {
         <View style={{ height: line, borderRadius: line / 2, backgroundColor: '#FFFFFF', opacity: 0.6 }} />
       </View>
       <T weight="semibold" size={Math.round(size * 0.85)}>
-        Stack
+        {APP_NAME}
       </T>
     </View>
   );

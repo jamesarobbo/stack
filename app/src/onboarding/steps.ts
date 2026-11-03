@@ -8,7 +8,7 @@ export const ONBOARDING_STEPS = [
   { key: 'auditing', path: '/onboarding/auditing', title: 'Auditing your stack' },
   { key: 'result', path: '/onboarding/result', title: 'Your audit' },
   { key: 'save', path: '/onboarding/save', title: 'Save your stack and audit' },
-  { key: 'paywall', path: '/paywall', title: 'Stack Pro' },
+  { key: 'paywall', path: '/paywall', title: 'StackView Pro' },
 ] as const;
 
 export type OnboardingStepKey = (typeof ONBOARDING_STEPS)[number]['key'];

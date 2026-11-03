@@ -1,6 +1,6 @@
 import { formatMoney } from '../format';
 
-export const EXPECTATION = 'Give each change a few weeks. Stack compares your before and after.';
+export const EXPECTATION = 'Give each change a few weeks. StackView compares your before and after.';
 
 export const GOALS = [
   { key: 'sleep', label: 'Sleep better', echo: 'For better sleep', because: 'sleep better' },
@@ -77,11 +77,11 @@ export function spendLine(key: string | null, monthlyCents: number, currency = '
 export function wearableLine(choice: string | null): string {
   if (choice === 'healthkit') return 'Apple Health is connected, so the before and after can use your own nights.';
   if (choice === 'sample') {
-    return 'Apple Health is not connected on this device, so there are no wearable days yet. A development build can read it. Stack does not fill in sample nights.';
+    return 'Apple Health is not connected on this device, so there are no wearable days yet. A development build can read it. StackView does not fill in sample nights.';
   }
   if (choice === 'skipped') {
     return 'You skipped a wearable. Impact and the monthly report stay empty until a few weeks of Apple Health data are on this device.';
   }
-  return 'A wearable is how Stack shows whether a change lines up with your own nights.';
+  return 'A wearable is how StackView shows whether a change lines up with your own nights.';
 }
 

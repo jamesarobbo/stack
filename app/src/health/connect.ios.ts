@@ -13,7 +13,7 @@ function wearablePlatform(): WearablePlatform {
   return 'other';
 }
 
-/** Everything Stack reads, requested in one permission sheet. */
+/** Everything StackView reads, requested in one permission sheet. */
 const READ_TYPES = [
   'HKCategoryTypeIdentifierSleepAnalysis',
   'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
@@ -138,7 +138,7 @@ async function readAppleHealth(Healthkit: HealthkitModule): Promise<HealthConnec
 
   return {
     mode: 'healthkit',
-    message: `Apple Health is connected. Stack read ${HISTORY_DAYS} days of sleep, HRV, resting heart rate, VO2 max, steps, and active energy. That data stays on this device.`,
+    message: `Apple Health is connected. StackView read ${HISTORY_DAYS} days of sleep, HRV, resting heart rate, VO2 max, steps, and active energy. That data stays on this device.`,
     samples,
     device,
     demographics: await readDemographics(Healthkit),

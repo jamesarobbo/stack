@@ -133,7 +133,7 @@ describe('Open Food Facts barcode route', () => {
     expect(body.attribution).toBe(OFF_ATTRIBUTION);
     expect(calls.map((call) => call.url)).toEqual([offProductUrl('5060447850007')]);
     expect(calls[0]?.userAgent).toBe(offUserAgent('labels@example.com'));
-    expect(offUserAgent('labels@example.com')).toBe('Stack/0.1 (labels@example.com)');
+    expect(offUserAgent('labels@example.com')).toBe('StackView/0.1 (labels@example.com)');
 
     const offRows = sqlite.prepare('SELECT cache_key, payload FROM off_cache').all() as { cache_key: string; payload: string }[];
     expect(offRows.map((row) => row.cache_key)).toEqual(['off:5060447850007']);

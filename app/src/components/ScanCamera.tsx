@@ -15,7 +15,7 @@ export function ScanCamera({ torch, onScan }: { torch: boolean; onScan: (code: s
       <View style={{ gap: space.md }}>
         <ScanFrame />
         <T size={14} color={theme.muted}>
-          Stack needs the camera to read a barcode. Photos are not saved.
+          StackView needs the camera to read a barcode. Photos are not saved.
         </T>
         <Button label="Allow camera" onPress={() => void requestPermission()} />
         {permission && !permission.canAskAgain ? (

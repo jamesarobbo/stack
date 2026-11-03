@@ -13,7 +13,7 @@ function nowTime(): string {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
-const EXPLANATION = 'A daily reminder asks you to log what you took. You choose the time. Stack does not suggest one.';
+const EXPLANATION = 'A daily reminder asks you to log what you took. You choose the time. StackView does not suggest one.';
 
 export function DailyReminderCard() {
   const theme = useTheme();

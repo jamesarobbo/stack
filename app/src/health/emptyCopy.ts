@@ -11,10 +11,10 @@ export function wearableEmptyCopy(input: { expoGo: boolean; platform: WearablePl
 }
 
 export function healthConnectFailureCopy(input: { expoGo: boolean; platform: WearablePlatform; detail?: string }): string {
-  if (input.detail) return `${input.detail} Stack does not fill in wearable days.`;
+  if (input.detail) return `${input.detail} StackView does not fill in wearable days.`;
   if (input.expoGo) return wearableEmptyCopy(input);
   if (input.platform === 'ios') {
-    return 'Apple Health is not available on this iPhone. Stack does not fill in wearable days.';
+    return 'Apple Health is not available on this iPhone. StackView does not fill in wearable days.';
   }
   return 'Apple Health needs an iPhone. This install does not fill in wearable days.';
 }

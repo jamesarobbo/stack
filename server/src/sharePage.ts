@@ -17,9 +17,9 @@ const DISCLAIMER = 'Educational, not medical advice. Does not diagnose, treat, o
 export function renderSharePage(view: ShareView | null, context: PageContext): string {
   if (!view) return missingPage(context);
   const url = `${context.origin}/s/${view.slug}`;
-  const who = usernameHandle(view.username) ?? 'A Stack user';
+  const who = usernameHandle(view.username) ?? 'A StackView user';
   const count = view.products.length;
-  const title = `${view.stackName}, shared on Stack`;
+  const title = `${view.stackName}, shared on StackView`;
   const headline = view.result ? ` ${view.result.line}. ${view.result.disclaimer}.` : '';
   const description = `${count} ${count === 1 ? 'supplement' : 'supplements'} from ${who}, with daily doses checked against upper limits. Audit score ${view.auditScore} out of 100.${headline}`;
   const image = `${context.origin}/s/${view.slug}/og.png?v=${ogImageVersion(view.version)}`;
@@ -32,7 +32,7 @@ export function renderSharePage(view: ShareView | null, context: PageContext): s
     view.listed ? `<link rel="canonical" href="${escapeHtml(url)}">` : '<meta name="robots" content="noindex">',
     context.appStoreId ? `<meta name="apple-itunes-app" content="app-id=${escapeHtml(context.appStoreId)}, app-argument=${escapeHtml(url)}">` : '',
     `<meta property="og:type" content="website">`,
-    `<meta property="og:site_name" content="Stack">`,
+    `<meta property="og:site_name" content="StackView">`,
     `<meta property="og:title" content="${escapeHtml(title)}">`,
     `<meta property="og:description" content="${escapeHtml(description)}">`,
     `<meta property="og:url" content="${escapeHtml(url)}">`,
@@ -76,21 +76,21 @@ ${brandBar(null)}
 <section class="empty rise">
   <h1>This stack is no longer shared</h1>
   <p class="muted">The person who shared it turned the link off.</p>
-  ${store ? `<a class="cta" href="${escapeHtml(store)}">Get Stack</a>` : ''}
+  ${store ? `<a class="cta" href="${escapeHtml(store)}">Get StackView</a>` : ''}
 </section>
 </main>`;
-  return document('<title>Stack</title>\n<meta name="robots" content="noindex">', body);
+  return document('<title>StackView</title>\n<meta name="robots" content="noindex">', body);
 }
 
 function brandBar(openHref: string | null): string {
   return `<header class="bar">
-  <span class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Stack</span>
+  <span class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>StackView</span>
   ${openHref ? `<a class="open" href="${escapeHtml(openHref)}">Open in app</a>` : ''}
 </header>`;
 }
 
 function pageBody(view: ShareView, context: PageContext): string {
-  const who = escapeHtml(usernameHandle(view.username) ?? 'A Stack user');
+  const who = escapeHtml(usernameHandle(view.username) ?? 'A StackView user');
   const openHref = `stack://s/${view.slug}`;
   const getHref = `/s/${view.slug}/get`;
   const goals = view.goals
@@ -139,7 +139,7 @@ function pageBody(view: ShareView, context: PageContext): string {
       ? `<details class="changes"><summary>Updated on ${escapeHtml(formatDate(view.updatedOn))}</summary><ul>${view.changes.map((change) => `<li>${escapeHtml(change)}</li>`).join('')}</ul></details>`
       : '';
   const off = view.openFoodFacts ? `<p class="muted small">${escapeHtml(OFF_ATTRIBUTION)}</p>` : '';
-  const store = context.appStoreId ? 'Get Stack on the App Store' : 'Open it in Stack';
+  const store = context.appStoreId ? 'Get StackView on the App Store' : 'Open it in StackView';
   return `<main class="wrap">
 ${brandBar(openHref)}
 <section class="hero rise">
@@ -180,7 +180,7 @@ ${result}
 </section>
 <footer class="foot">
   <p>Ask your doctor before changing your supplements.</p>
-  <p class="muted small">${DISCLAIMER} To report this stack, open it in the Stack app.</p>
+  <p class="muted small">${DISCLAIMER} To report this stack, open it in the StackView app.</p>
   ${off}
 </footer>
 </main>`;

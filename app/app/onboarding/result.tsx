@@ -30,7 +30,7 @@ export default function ResultStep() {
       {preview.empty ? (
         <Card>
           <T size={15}>
-            Add a product and Stack will look for duplicate ingredients, overlapping bottles, and doses near common upper limits.
+            Add a product and StackView will look for duplicate ingredients, overlapping bottles, and doses near common upper limits.
           </T>
         </Card>
       ) : (

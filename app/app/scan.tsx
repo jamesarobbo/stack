@@ -31,7 +31,7 @@ export default function ScanScreen() {
         Scan a barcode
       </T>
       <T size={14} color={theme.muted}>
-        Point the camera at the UPC or EAN on the bottle. Stack reads the numbers and looks up the NIH label. It does not take or save a photo.
+        Point the camera at the UPC or EAN on the bottle. StackView reads the numbers and looks up the NIH label. It does not take or save a photo.
       </T>
       <ScanCamera torch={torch} onScan={lookup} />
       <Pressable

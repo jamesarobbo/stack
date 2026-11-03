@@ -107,7 +107,7 @@ describe('usernames', () => {
     sqlite.prepare("UPDATE shares SET creator_name = ''").run();
     sqlite.prepare('DELETE FROM share_search').run();
     const legacy = await (await request(env, `/s/${share.slug}`)).text();
-    expect(legacy).toContain('A Stack user');
+    expect(legacy).toContain('A StackView user');
     expect(legacy).not.toContain('@nova_lifts');
     expect(legacy).not.toContain('Penelope');
     const hidden = await json<{ items: unknown[] }>(await request(env, '/v1/library?q=penelope'));

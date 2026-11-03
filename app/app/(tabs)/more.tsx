@@ -28,13 +28,13 @@ export default function MoreScreen() {
         {app.previewPro ? (
           <Row title="Turn off Pro preview" detail="Preview is on for this device. It is not a charge." onPress={() => void app.setPreviewPro(false)} />
         ) : null}
-        <Row title={app.isPro ? 'Pro is on' : 'Stack Pro'} detail={app.isPro ? 'Multi-compare, confounders, monthly report' : '$7.99/month or $59/year'} onPress={() => router.push('/paywall')} />
+        <Row title={app.isPro ? 'Pro is on' : 'StackView Pro'} detail={app.isPro ? 'Multi-compare, confounders, monthly report' : '$7.99/month or $59/year'} onPress={() => router.push('/paywall')} />
         <Row title="Monthly report" detail={app.isPro ? 'Keep, drop, or unclear' : 'Pro'} onPress={() => router.push('/report')} />
         <Row title={app.sessionToken ? 'Signed in' : 'Sign in'} detail={app.email || 'Syncs your supplement list only'} onPress={() => router.push('/sign-in')} />
         <Row title="Currency" detail={currencyName(app.currency)} onPress={() => router.push('/currency')} />
         <Row title="Log history" detail="Days you logged" onPress={() => router.push('/history')} />
         <Row title="Settings" detail="Reminder, currency, username, export, and delete" onPress={() => router.push('/settings')} />
-        <Row title="About results" detail="How Stack works out your results" onPress={() => router.push('/results')} />
+        <Row title="About results" detail="How StackView works out your results" onPress={() => router.push('/results')} />
         <Row title="Privacy" detail="Health data stays on this device" onPress={() => router.push('/privacy')} last />
       </View>
       <DeveloperTools />

@@ -25,7 +25,7 @@ export default function WelcomeStep() {
           Your stack, in one place.
         </T>
         <T size={16} color={theme.muted}>
-          Add what you take. Stack checks the doses and shows what you pay each month.
+          Add what you take. StackView checks the doses and shows what you pay each month.
         </T>
         <View style={{ flex: 1 }} />
         <Button label="Continue" onPress={() => router.push('/onboarding/goal')} />

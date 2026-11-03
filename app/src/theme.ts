@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { Appearance, Platform, useColorScheme, type ColorSchemeName, type TextStyle } from 'react-native';
 
 /**
- * Stack theme, structured like Spanish Out Loud: one spacing scale, radii,
- * type ramp, and shared control heights. Colours stay Stack (#0066CC action,
+ * StackView theme, structured like Spanish Out Loud: one spacing scale, radii,
+ * type ramp, and shared control heights. Colours stay StackView (#0066CC action,
  * gold for money only). Light and dark are both AA.
  */
 export type ChipColors = { bg: string; fg: string };

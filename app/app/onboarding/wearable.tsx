@@ -45,7 +45,7 @@ export default function WearableStep() {
         Choose a wearable
       </T>
       <T size={15} color={theme.muted}>
-        This is how Stack shows whether each supplement is doing anything for you. You can skip this.
+        This is how StackView shows whether each supplement is doing anything for you. You can skip this.
       </T>
       <T size={15} color={theme.muted}>
         {EXPECTATION}

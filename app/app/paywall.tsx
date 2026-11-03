@@ -16,7 +16,7 @@ import { useApp } from '@/src/state';
 import { control, radius, space, useTheme, useThemedStyles, type Theme } from '@/src/theme';
 
 const ROWS: { label: string; free: boolean; pro: boolean }[] = [
-  { label: 'Stack log + duplicates', free: true, pro: true },
+  { label: 'StackView log + duplicates', free: true, pro: true },
   { label: 'Basic before/after', free: true, pro: true },
   { label: 'Savings score', free: false, pro: true },
   { label: 'Multi-supplement compare', free: false, pro: true },
