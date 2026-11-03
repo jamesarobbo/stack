@@ -1,4 +1,4 @@
-/* Stack landing. Light mode only. Two weights: 400 and 600. */
+/* StackView landing. Light mode only. Two weights: 400 and 600. */
 
 :root {
   color-scheme: light;
@@ -123,10 +123,25 @@ input {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 600;
   letter-spacing: -0.02em;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand [data-product-name] {
+  font-size: 1.05rem;
+}
+
+@media (max-width: 420px) {
+  .brand {
+    gap: 6px;
+  }
+
+  .brand [data-product-name] {
+    font-size: 0.98rem;
+  }
 }
 
 .brand-mark {

@@ -1,6 +1,6 @@
-# Stack landing (Cloudflare Pages)
+# StackView landing (Cloudflare Pages)
 
-Static marketing page for the waitlist. Light mode only. Product name comes from `config.js` (`PRODUCT_NAME`).
+Static marketing page for the StackView waitlist. Light mode only. Product name comes from `config.js` (`PRODUCT_NAME`).
 
 ## Local preview
 
