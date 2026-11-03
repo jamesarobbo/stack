@@ -23,6 +23,7 @@ export function T({
   size = 16,
   color,
   scale = true,
+  numberOfLines,
   style,
 }: {
   children: ReactNode;
@@ -31,13 +32,15 @@ export function T({
   color?: string;
   /** False only for a numeral sized to a fixed ring or badge. */
   scale?: boolean;
+  numberOfLines?: number;
   style?: StyleProp<TextStyle>;
 }) {
   const theme = useTheme();
   return (
     <Text
       allowFontScaling={scale}
-      style={[{ fontFamily, fontWeight: font[weight], fontSize: size, color: color ?? theme.text, lineHeight: Math.round(size * 1.35) }, style]}
+      numberOfLines={numberOfLines}
+      style={[{ fontWeight: font[weight], fontSize: size, color: color ?? theme.text, lineHeight: Math.round(size * 1.35) }, style, fontFamily ? { fontFamily } : null]}
     >
       {children}
     </Text>
@@ -271,9 +274,18 @@ export function ShareButton({ onPress }: { onPress: () => void }) {
       accessibilityLabel="Share stack"
       onPress={onPress}
       hitSlop={8}
-      style={{ width: 44, height: control.height, alignItems: 'center', justifyContent: 'center' }}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: theme.line,
+        backgroundColor: theme.card,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      <Ionicons name={name} size={22} color={theme.text} />
+      <Ionicons name={name} size={18} color={theme.action} />
     </Pressable>
   );
 }
@@ -337,11 +349,11 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
       style={({ pressed }) => [styles.product, last ? styles.productLast : null, pressed ? { opacity: 0.85 } : null]}
     >
       <Capsule color={theme.muted} />
-      <View style={{ flex: 1, gap: space.xxs }}>
-        <T weight="semibold" size={16}>
+      <View style={{ flex: 1, gap: space.xxs, minWidth: 0 }}>
+        <T weight="semibold" size={16} numberOfLines={1}>
           {product.name}
         </T>
-        <T size={13} color={theme.muted}>
+        <T size={13} color={theme.muted} numberOfLines={1}>
           {productSubtitle(product)}
         </T>
       </View>
@@ -350,7 +362,7 @@ export function ProductRow({ product, onPress, last = false }: { product: Produc
           Add price
         </T>
       ) : (
-        <T weight="semibold" size={16} color={theme.amber}>
+        <T weight="semibold" size={16} color={theme.text}>
           {formatMoney(monthly, currencyOf(product))}
         </T>
       )}

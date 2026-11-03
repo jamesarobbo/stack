@@ -4,7 +4,7 @@ import { Appearance, Platform, useColorScheme, type ColorSchemeName, type TextSt
 /**
  * StackView theme, structured like Spanish Out Loud: one spacing scale, radii,
  * type ramp, and shared control heights. Colours stay StackView (#0066CC action,
- * gold for money only). Light and dark are both AA.
+ * ink for money figures on stack; amber reserved for savings callouts). Light and dark are both AA.
  */
 export type ChipColors = { bg: string; fg: string };
 
@@ -173,8 +173,9 @@ export const control = {
 } as const;
 
 /**
- * SF Pro Rounded on iOS via the system UI rounded face. No custom font file;
- * Expo Go picks it up. Android and web keep the platform UI font.
+ * SF Pro Rounded on iOS via the system UI rounded face (`ui-rounded`). No custom
+ * font file. Keep this on every Text (T merges it last so styles cannot wipe it).
+ * Android and web keep the platform UI font.
  */
 export const fontFamily = Platform.OS === 'ios' ? 'ui-rounded' : undefined;
 
@@ -236,7 +237,7 @@ export function typeStyle(variant: TypeVariant, theme: Theme): TextStyle {
     case 'caption':
       return { ...face, fontWeight: font.regular, fontSize: 12, lineHeight: 16, color: theme.faint };
     case 'money':
-      return { ...face, fontWeight: font.semibold, fontSize: 34, lineHeight: 38, letterSpacing: -1, color: theme.amber };
+      return { ...face, fontWeight: font.semibold, fontSize: 34, lineHeight: 38, letterSpacing: -1, color: theme.text };
     default:
       return { ...face, fontWeight: font.regular, fontSize: 16, lineHeight: 24, color: theme.text };
   }
