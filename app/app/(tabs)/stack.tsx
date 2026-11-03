@@ -76,7 +76,7 @@ export default function StackScreen() {
           <T size={13} color={theme.muted}>
             Estimated monthly spend
           </T>
-          <T weight="semibold" size={56} color={theme.amber} style={styles.spend}>
+          <T weight="semibold" size={56} color={theme.text} style={styles.spend}>
             {joinMoney(audit.money.map((line) => ({ currency: line.currency, cents: line.monthlyCents }))) ?? formatMoney(0, app.currency)}
           </T>
           {audit.duplicates.length > 0 ? (
@@ -161,12 +161,12 @@ function localStyles(theme: Theme) {
   screen: { flex: 1, backgroundColor: theme.bg },
   header: { paddingHorizontal: space.xl, paddingBottom: 8, gap: space.xs },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  title: { letterSpacing: -0.8, flex: 1 },
+  title: { letterSpacing: -0.8, lineHeight: 38, flex: 1 },
   group: { backgroundColor: theme.card, borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line, overflow: 'hidden' },
   links: { flexDirection: 'row', gap: space.lg },
   link: { minHeight: control.height, justifyContent: 'center' },
   scroll: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.xxl, gap: space.xl },
-  hero: { gap: space.sm, paddingVertical: space.lg, paddingHorizontal: space.lg },
+  hero: { gap: space.sm, paddingVertical: space.lg, paddingHorizontal: space.xl },
   spend: { letterSpacing: -2, lineHeight: 60, marginTop: -space.xs },
   overlapRow: {
     flexDirection: 'row',

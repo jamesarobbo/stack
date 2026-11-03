@@ -258,7 +258,7 @@ function TagButton({ label, onPress }: { label: string; onPress: () => void }) {
 
 function localStyles(theme: Theme) {
   return StyleSheet.create({
-  title: { letterSpacing: -0.8, marginTop: 4 },
+  title: { letterSpacing: -0.8, lineHeight: 36, marginTop: 4 },
   link: { minHeight: control.height, justifyContent: 'center' },
   heroStat: {
     backgroundColor: theme.card,

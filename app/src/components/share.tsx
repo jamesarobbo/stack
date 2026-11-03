@@ -397,14 +397,13 @@ export function CompositionStrip({ items, height = 8 }: { items: { name: string;
 /** Square score badge for list rows. */
 export function ScoreBadge({ score, size = 56 }: { score: number; size?: number }) {
   const theme = useTheme();
-  const tone = scoreTone(score);
   return (
     <View
       style={{
         width: size,
         height: size,
         borderRadius: size * 0.3,
-        backgroundColor: tone === 'good' ? theme.goodFill : theme.neutralFill,
+        backgroundColor: theme.neutralFill,
         alignItems: 'center',
         justifyContent: 'center',
       }}

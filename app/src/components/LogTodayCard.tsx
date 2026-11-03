@@ -68,14 +68,20 @@ export function LogTodayCard({
         <Animated.View key="collapsed" entering={ENTER} exiting={EXIT} layout={LAYOUT}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="All taken today"
+            accessibilityLabel={`Log today. ${logStatus}`}
             onPress={onOpen}
-            style={({ pressed }) => [styles.doneRow, pressed ? { opacity: 0.88 } : null]}
+            style={({ pressed }) => [styles.promoCard, pressed ? { opacity: 0.92 } : null]}
           >
-            <Ionicons name="checkmark-circle" size={22} color={theme.action} />
-            <T size={15} weight="regular" color={theme.muted} style={{ flex: 1 }}>
-              All taken today
-            </T>
+            <View style={styles.promoAccent} />
+            <Ionicons name="checkmark-circle" size={28} color={theme.action} />
+            <View style={styles.promoCopy}>
+              <T weight="semibold" size={17}>
+                Log today
+              </T>
+              <T size={14} color={theme.muted}>
+                {logStatus}
+              </T>
+            </View>
             <Ionicons name="chevron-forward" size={18} color={theme.muted} />
           </Pressable>
         </Animated.View>
@@ -121,6 +127,8 @@ function localStyles(theme: Theme) {
       paddingVertical: space.md,
       paddingHorizontal: space.md,
       paddingLeft: 12,
+      // Keep the chevron clear of Expo Go's floating gear on the right edge.
+      paddingRight: space.xxl,
       borderRadius: theme.radius,
       borderWidth: 1,
       borderColor: theme.bg === '#16130F' ? '#2A3A4A' : '#C5D8EF',
@@ -136,19 +144,5 @@ function localStyles(theme: Theme) {
       backgroundColor: theme.action,
     },
     promoCopy: { flex: 1, gap: space.xxs },
-    doneRow: {
-      minHeight: control.height,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.md,
-      paddingVertical: space.md,
-      paddingLeft: space.md,
-      // Keep the chevron clear of Expo Go's floating gear on the right edge.
-      paddingRight: space.xxl,
-      borderRadius: theme.radius,
-      borderWidth: 1,
-      borderColor: theme.line,
-      backgroundColor: theme.card,
-    },
   });
 }
